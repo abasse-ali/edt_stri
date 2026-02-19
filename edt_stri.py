@@ -27,7 +27,16 @@ from googleapiclient.http import MediaFileUpload
 
 # --- CONFIGURATION MULTI-CLÉS ---
 API_KEYS = [
-    # Tes clés ici...
+    "AIzaSyDsxT0E36xS6mZLfz3Nq_5tv9O8ggvzIf8", # Clé 1
+    "AIzaSyBye12-BuNOJ7EtAtkFueqVFWmP5ZENqQc", # Clé 2
+    "AIzaSyCxW3sSnJDC8IDk7LtWNQg7_N9sMs29J4k", # Clé 3 
+    "AIzaSyC6gY1424MVmCu44JWBB6nGHu_qGzYp4Mc", # Clé 4
+    "AIzaSyAm2PaliRQoUZsmPvXhro-rdq5t3q3qB4M", # Clé 5
+    "AIzaSyCZuhFYd1r3NkzkJnZ1Rt4kCgloAPpWBHc", # Clé 6
+    "AIzaSyBMWAnorwvGxXSolHz0r93_xSrEjhsTBG4", # Clé 7
+    "AIzaSyDfMoqkhlcCFa9XdN6kHHyhkvyXZP3y95k", # Clé 8
+    "AIzaSyAWtcl3dxdrc0Xp5_Ey8K4LfYEgo1sGMs8", # Clé 9
+    "AIzaSyDNm7Xvvq1W-ERro_mKysVw3Lx8BvnaBpQ" # Clé 10
 ]
 
 URL_EDT = "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf"
