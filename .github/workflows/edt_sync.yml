@@ -5,6 +5,9 @@ on:
     - cron: '0 * * * *' # Toutes les heures
   workflow_dispatch: # Bouton manuel
 
+permissions:
+  contents: write
+
 jobs:
   run-edt-updater:
     runs-on: ubuntu-latest
