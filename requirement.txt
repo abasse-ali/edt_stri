@@ -1,0 +1,12 @@
+requests
+ics
+pdfplumber
+pdf2image
+pytz
+numpy
+opencv-python
+Pillow
+google-genai
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
