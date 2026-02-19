@@ -1,7 +1,6 @@
 import os
 import json
 import shutil
-import hashlib
 from pathlib import Path
 import requests
 import re
@@ -14,7 +13,6 @@ from pdf2image import convert_from_path
 import pytz
 import numpy as np
 import cv2  # Ajout OpenCV
-from PIL import Image
 
 # --- NOUVELLE BIBLIOTHÈQUE GOOGLE ---
 from google import genai
@@ -29,26 +27,7 @@ from googleapiclient.http import MediaFileUpload
 
 # --- CONFIGURATION MULTI-CLÉS ---
 API_KEYS = [
-    "AIzaSyDsxT0E36xS6mZLfz3Nq_5tv9O8ggvzIf8", # Clé 1
-    "AIzaSyBye12-BuNOJ7EtAtkFueqVFWmP5ZENqQc", # Clé 2
-    "AIzaSyCxW3sSnJDC8IDk7LtWNQg7_N9sMs29J4k", # Clé 3 
-    "AIzaSyC6gY1424MVmCu44JWBB6nGHu_qGzYp4Mc", # Clé 4
-    "AIzaSyAm2PaliRQoUZsmPvXhro-rdq5t3q3qB4M", # Clé 5+
-    "AIzaSyAbJLHhMSHR8jP8gHlxH8ZlNk05B8SGDhk", # Clé 6-
-    "AIzaSyANDvx3Uy6gjpIUpwc6C63_Fvk3KyLX-RE", # Clé 7-
-    "AIzaSyA5KjCWIdN1Tm7BuYiDGh6_OVP3TRZDSqM", # Clé 8-
-    "AIzaSyD2vDWxgNVBDViCdVjr7b-Ajtj5F879YEo", # Clé 9-
-    "AIzaSyBb1gA8egX4F7Cv7Ajy-_iwMpqNPBj82dc", # Clé 10-
-    "AIzaSyAzRZBHbF6U3iwd2nMCsPpah-mMKLX65kw", # Clé 11-
-    "AIzaSyBxCqRlAZ-REqgjTHkCaUkPx026u4CCYE0", # Clé 12-
-    "AIzaSyAuFA699JwBcawtMIrivv6Ffx7oD5ouq8o", # Clé 13-
-    "AIzaSyAUIc9Po2VLMwn5qh1kccsu0jfN1lznUlI", # Clé 14-
-    "AIzaSyA8nvU03CwjJ-UWufbS5SV1p2KYba7s0sU", # Clé 15-
-    "AIzaSyCZuhFYd1r3NkzkJnZ1Rt4kCgloAPpWBHc", # Clé 16+
-    "AIzaSyBMWAnorwvGxXSolHz0r93_xSrEjhsTBG4", # Clé 17
-    "AIzaSyDfMoqkhlcCFa9XdN6kHHyhkvyXZP3y95k", # Clé 18
-    "AIzaSyAWtcl3dxdrc0Xp5_Ey8K4LfYEgo1sGMs8", # Clé 19
-    "AIzaSyDNm7Xvvq1W-ERro_mKysVw3Lx8BvnaBpQ" # Clé 20
+    # Tes clés ici...
 ]
 
 URL_EDT = "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf"
@@ -67,18 +46,18 @@ MODELS = [
 DRIVE_FOLDER_ID = "1ID97m9gVzOqcLvdYBAabUo5wZKzZ5Nj-"
 
 # --- COORDONNÉES DE RÉFÉRENCE POUR L'HEURE (Match X -> Heure) ---
-# Basé sur 200 DPI
+# Basé sur 200 DPI +317px de marge à gauche, pour les créneaux de 7h45 à 20h00.
 REFERENCES_TEMPS = [
-    (13+317, "07h45"), (520, "09h00"), (343+317, "09h45"), (351+317, "10h00"), (408+317, "10h15"),
-    (702+317, "12h00"), (732+317, "12h15"), (852+317, "13h30"), (1187+317, "15h30"),
-    (1227+317, "15h45"), (1571+317, "17h45"), (1611+317, "18h00"), (1655+317, "18h15"), (1889+317, "20h00")
+    (13+317, "07h45"), (203+317, "09h00"), (343+317, "09h45"), (361+317, "10h00"), (408+317, "10h15"),
+    (702+317, "12h00"), (732+317, "12h15"), (852+317, "13h30"), (1187+317, "15h30"),(1227+317, "15h45"),
+    (1571+317, "17h45"), (1611+317, "18h00"), (1655+317, "18h15"), (1736+317, "19h00"), (1777+317, "19h15"), (1886+317, "20h00")
 ]
 
 if platform.system() == "Windows":
-    POPPLER_PATH = r"D:\Mes Projets\TEST\poppler\Library\bin"
+    POPPLER_PATH = r"D:\Mes Projets\edt_stri\poppler\Library\bin"
 else:
     POPPLER_PATH = None
-
+    
 PROFS = {
     "AnAn": "Andréi ANDRÉI", "AA": "André AOUN", "AB": "Abdelmalek BENZEKRI",
     "AL": "Abir LARABA", "BC": "Bilal CHEBARO", "BTJ": "Boris TIOMELA JOU",
@@ -87,7 +66,7 @@ PROFS = {
     "GR": "Gérard ROUZIES", "JGT": "Jean-Guy TARTARIN", "JS": "Jérôme SOKOLOFF",
     "KB": "Ketty BRAVO", "LC": "Louisa COT", "MCL": "Marie-Christine LAGASQUIÉ",
     "MM": "MUSTAPHA MOJAHID", "OC": "Olivier CRIVELLARO", "OM": "Olfa MECHI",
-    "PA": "Patrick AUSTIN", "PhA": "Philippe ARGUEL", "PIL": "Pierre LOTTE",
+    "PA": "Philippe ARGUEL", "PIL": "Pierre LOTTE",
     "PL": "Philippe LATU", "PT": "Patrice TORGUET", "RK": "Rahim KACIMI",
     "RL": "Romain LABORDE", "SB": "Sonia BADENE", "SL": "Séverine LALANDE",
     "TD": "Thierry DESPRATS", "TG": "Thierry GAYRAUD", "BA": "BA"
@@ -96,12 +75,10 @@ PROFS = {
 # --- FONCTIONS UTILITAIRES OPENCV ---
 
 def obtenir_heure_proche(x_detecte):
-    """Trouve l'heure correspondante au X le plus proche dans la liste de référence."""
     meilleur_match = min(REFERENCES_TEMPS, key=lambda item: abs(item[0] - x_detecte))
     return meilleur_match[1]
 
 def parse_heure_str(heure_str):
-    """Convertit '07h45' en (7, 45)"""
     h, m = heure_str.split('h')
     return int(h), int(m)
 
@@ -129,12 +106,7 @@ def filtrer_et_dessiner(liste_rects, tolerance=10):
         rects_valides.append(current)
     return rects_valides
 
-
 def tracer_grand_rectangle(img):
-    """
-    Trouve les limites du tableau des cours en analysant les lignes pleines.
-    Trace un rectangle noir épais sur le planning.
-    """
     h, w = img.shape[:2]
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
@@ -180,7 +152,6 @@ def detect_and_fill_dashed_cells(img):
     _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
     h, w = img.shape[:2]
 
-    # --- ÉTAPE 1 : EFFACER LES GRANDES LIGNES PLEINES ---
     kernel_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, h // 2))
     solid_v = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_v)
     
@@ -189,34 +160,25 @@ def detect_and_fill_dashed_cells(img):
     
     no_solid = cv2.subtract(thresh, cv2.bitwise_or(solid_v, solid_h))
 
-    # --- ÉTAPE 2 : FILTRER SUR LA VRAIE ÉPAISSEUR / LONGUEUR ---
     contours, _ = cv2.findContours(no_solid, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     tirets = []
     for cnt in contours:
         x, y, w_rect, h_rect = cv2.boundingRect(cnt)
         
-        # Obtenir la boîte englobante orientée (tournée selon l'angle du slash)
         rect = cv2.minAreaRect(cnt)
         (w_rot, h_rot) = rect[1]
         
-        # Sécurité contre les erreurs mathématiques
         if w_rot == 0 or h_rot == 0:
             continue
             
-        # Identifier l'épaisseur (le côté le plus petit) et la longueur (le plus grand)
         epaisseur = min(w_rot, h_rot)
         longueur = max(w_rot, h_rot)
 
-        # LE FILTRE ANTI-ACCENTS :
-        # - longueur >= 5 : Élimine les accents (trop courts)
-        # - epaisseur <= 6 : Confirme que c'est un trait fin, pas un bloc
-        # - w_rect <= 20 : Évite de prendre des lettres collées
         if longueur >= 4 and epaisseur <= 6 and w_rect <= 20:
             x_center = x + (w_rect // 2)
             tirets.append((x_center, y, y + h_rect))
 
-    # --- ÉTAPE 3 : REGROUPER LES TIRETS ---
     tirets.sort(key=lambda t: t[0])
     groupes_lignes = []
     groupe_actuel = []
@@ -226,7 +188,7 @@ def detect_and_fill_dashed_cells(img):
             groupe_actuel.append(tiret)
         else:
             avg_x = sum(t[0] for t in groupe_actuel) / len(groupe_actuel)
-            if abs(tiret[0] - avg_x) <= 6: # Alignement toléré à 6 pixels
+            if abs(tiret[0] - avg_x) <= 6:
                 groupe_actuel.append(tiret)
             else:
                 groupes_lignes.append(groupe_actuel)
@@ -234,18 +196,16 @@ def detect_and_fill_dashed_cells(img):
     if groupe_actuel:
         groupes_lignes.append(groupe_actuel)
 
-    # --- ÉTAPE 4 : VALIDATION ---
     result_img = img.copy()
     compteur_lignes = 0
     coords_x_finales = []
 
     for groupe in groupes_lignes:
-        if len(groupe) >= 2 and len(groupe) <= 7: # On veut au moins 2 slashs empilés, mais pas une pile énorme (faux positif)
+        if len(groupe) >= 2 and len(groupe) <= 7:
             min_y = min(t[1] for t in groupe)
             max_y = max(t[2] for t in groupe)
             hauteur_totale = max_y - min_y
 
-            # Si on a bien empilé des slashs et qu'ils couvrent au moins 45% de la hauteur
             if hauteur_totale >= h * 0.45:
                 final_x = int(sum(t[0] for t in groupe) / len(groupe))
                 cv2.line(result_img, (final_x, 0), (final_x, h), (0, 0, 0), 3)
@@ -256,24 +216,17 @@ def detect_and_fill_dashed_cells(img):
     return result_img
 
 def detect_slots_opencv(pil_image, date_str):
-    """
-    Prend une image PIL (la bande du jour), détecte les cours via OpenCV
-    et retourne une liste de tuples (image_crop_bytes, start_str, end_str).
-    """
     img_cv = np.array(pil_image)
     if img_cv.shape[2] == 3: # RGB
         img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
         
     img_raw = img_cv.copy()
     
-    # --- 2. RETOUCHE POUR LA DÉTECTION (Rouge -> Vert) ---
     hsv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2HSV)
-    # Masques pour le rouge (plages basse et haute)
     mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
     mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
     red_mask = mask1 + mask2
 
-    # On force le rouge à devenir vert UNIQUEMENT sur l'image de travail
     img_cv[red_mask > 0] = [0, 255, 0]
     
     gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
@@ -281,7 +234,6 @@ def detect_slots_opencv(pil_image, date_str):
 
     total_h, total_w = img_cv.shape[:2]
 
-    # --- Nettoyage des bords verticaux ---
     ver_kernel_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, total_h // 3))
     vertical_lines_only = cv2.erode(thresh, ver_kernel_long, iterations=1)
     vertical_lines_only = cv2.dilate(vertical_lines_only, ver_kernel_long, iterations=1)
@@ -295,18 +247,15 @@ def detect_slots_opencv(pil_image, date_str):
     else: 
         x_start, x_end = x_positions[1], x_positions[-1] + 5
 
-    # Crop pour enlever les marges gauche/droite inutiles
     img_crop = img_cv[:, x_start:x_end]
     img_crop_raw = img_raw[:, x_start:x_end]
     
-    # Ajout d'une bordure blanche pour faciliter la détection
     img_crop = cv2.copyMakeBorder(img_crop, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
     img_crop_raw = cv2.copyMakeBorder(img_crop_raw, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
     
     gray_crop = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
     thresh_crop = cv2.threshold(gray_crop, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     
-    # --- Détection Grille ---
     hor_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
     ver_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
     
@@ -314,7 +263,6 @@ def detect_slots_opencv(pil_image, date_str):
     v_lines = cv2.dilate(cv2.erode(thresh_crop, ver_kernel), ver_kernel)
     
     grid_mask = cv2.addWeighted(h_lines, 1, v_lines, 1, 0)
-    
     grid_mask = cv2.morphologyEx(grid_mask, cv2.MORPH_CLOSE, np.ones((5,5), np.uint8))
 
     contours, _ = cv2.findContours(grid_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -325,9 +273,8 @@ def detect_slots_opencv(pil_image, date_str):
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
         if w * h < 1000: continue
-        if w > (current_w * 0.80): continue # Trop large pour être un cours
+        if w > (current_w * 0.80): continue
         
-        # Vérification si vide
         roi = gray_crop[y:y+h, x:x+w]
         if roi.size > 0 and cv2.countNonZero(cv2.threshold(roi[5:-5, 5:-5], 150, 255, cv2.THRESH_BINARY_INV)[1]) < 50:
             continue
@@ -337,23 +284,18 @@ def detect_slots_opencv(pil_image, date_str):
     liste_finale.sort(key=lambda k: k['x1'])
 
     detected_slots = []
-    
     folder_path = Path("export_cours") / date_str
     folder_path.mkdir(parents=True, exist_ok=True)
     
     if liste_finale:
-        # Normalisation Hauteur
         y_top_global = min(c['y'] for c in liste_finale)
         y_bottom_global = max(c['y'] + c['h'] for c in liste_finale)
         h_global = 58
         
         print(f"Info: Hauteur standardisée appliquée : {h_global}px (Y={y_top_global} à {y_bottom_global})")
-        
         debug_img = img_crop_raw.copy()
         
         for i, cours in enumerate(liste_finale):
-            # On mappe x1/x2 par rapport à l'image ORIGINALE (avant crop x_start)
-            # x (dans crop) - 10 (border) + x_start = x_original
             real_x1 = cours['x1'] - 10 + x_start
             real_x2 = cours['x2'] - 10 + x_start
 
@@ -362,11 +304,7 @@ def detect_slots_opencv(pil_image, date_str):
             
             print(f"Cours {i+1}: {real_x1} -> {real_x2} / {start_str} -> {end_str}")
             
-            # Dessin rectangle debug
             cv2.rectangle(debug_img, (cours['x1'], y_top_global), (cours['x2'], y_top_global + h_global), (0, 0, 255), 2)
-
-            # Extraction de l'image du cours
-            # On utilise y_top_global pour avoir toute la hauteur de la ligne
             roi_cours = img_crop_raw[y_top_global:y_top_global+h_global, cours['x1']:cours['x2']]
             
             if roi_cours.size > 0:
@@ -382,46 +320,9 @@ def detect_slots_opencv(pil_image, date_str):
                         "end": end_str
                     })
             
-        # Sauvegarde de la vue d'ensemble
         cv2.imwrite(str(folder_path / "overview_debug.jpg"), debug_img)
     
     return detected_slots
-
-# --- FONCTIONS GENERALES ---
-
-HASH_FILE = "last_pdf_hash.txt"
-
-def download_and_check_update():
-    print("🔍 Vérification de la mise à jour du PDF...")
-    try:
-        response = requests.get(URL_EDT, verify=False)
-        response.raise_for_status()
-        
-        # Calcul de l'empreinte unique du fichier téléchargé
-        current_hash = hashlib.md5(response.content).hexdigest()
-        
-        # Vérification avec l'ancienne empreinte
-        if os.path.exists(HASH_FILE):
-            with open(HASH_FILE, "r") as f:
-                last_hash = f.read().strip()
-                
-            if current_hash == last_hash:
-                print("💤 Aucun changement détecté dans le PDF. Arrêt du script.")
-                return False # Indique qu'il n'y a pas eu de changement
-                
-        # S'il y a un changement (ou si c'est le 1er lancement), on sauvegarde le nouveau hash et le PDF
-        print("🚨 Nouveau PDF détecté ! Mise à jour en cours...")
-        with open("edt.pdf", 'wb') as f:
-            f.write(response.content)
-            
-        with open(HASH_FILE, "w") as f:
-            f.write(current_hash)
-            
-        return True # Indique qu'on doit lancer le traitement
-        
-    except Exception as e:
-        print(f"❌ Erreur lors du téléchargement : {e}")
-        return False
 
 def get_full_prof_name(initials_or_name):
     if not initials_or_name: return ""
@@ -432,9 +333,6 @@ def get_full_prof_name(initials_or_name):
     return clean_txt
 
 def analyze_slot_image_multikey(image_bytes, start_model_idx, start_key_idx):
-    """
-    Analyse l'image avec gestion automatique des CLÉS API et des MODÈLES.
-    """
     prompt = """
     Analyse cette image de cours (créneau unique).
     
@@ -507,7 +405,6 @@ def analyze_slot_image_multikey(image_bytes, start_model_idx, start_key_idx):
         except Exception as e:
             err_str = str(e)
             if "429" in err_str:
-                # print(f"      ⚡ Quota épuisé sur Clé {current_key_idx+1}.", end="\r")
                 print(f"      ⚡ Quota épuisé sur Clé {current_key_idx+1}.")
                 current_key_idx = (current_key_idx + 1) % len(API_KEYS)
                 if current_key_idx == start_key_idx:
@@ -552,12 +449,10 @@ def upload_to_drive_folder(filename, folder_id):
     except Exception as e: print(f"❌ Erreur Upload : {e}")
 
 def main():
-    # Si la fonction renvoie False, on arrête tout
-    if not download_and_check_update():
-        return
+    # ATTENTION : GitHub Actions se charge déjà de télécharger 'edt.pdf'
+    # avant de lancer ce script. On l'ouvre donc directement !
     
     cal = Calendar()
-    
     print("✂️ Traitement du PDF...")
     final_day_zones = []
     
@@ -614,15 +509,16 @@ def main():
         
         scale_y = page_img.height / zone['pdf_height']
         
-        # Crop de la journée entière
         day_img = page_img.crop((0, zone['top'] * scale_y, page_img.width, zone['bottom'] * scale_y))
         
         print(f"   📅 {zone['date'].strftime('%Y-%m-%d')}")
 
-        # === REMPLACEMENT ICI : Détection OpenCV au lieu de EXACT_COORDS ===
-        # On passe l'image du jour à OpenCV pour trouver les vrais créneaux
         date_str_fmt = zone['date'].strftime('%Y-%m-%d')
-        day_img_bgr = detect_and_fill_dashed_cells(day_img)
+        
+        day_img_np = np.array(day_img)
+        day_img_cv = cv2.cvtColor(day_img_np, cv2.COLOR_RGB2BGR)
+        
+        day_img_bgr = detect_and_fill_dashed_cells(day_img_cv)
         day_img_rgb = cv2.cvtColor(day_img_bgr, cv2.COLOR_BGR2RGB)
         slots_trouves = detect_slots_opencv(day_img_rgb, date_str_fmt)
 
@@ -631,14 +527,12 @@ def main():
             start_str = slot_data["start"]
             end_str = slot_data["end"]
 
-            # Parsing des heures dynamiques
             try:
                 h_start, m_start = parse_heure_str(start_str)
                 h_end, m_end = parse_heure_str(end_str)
             except:
-                continue # Heure invalide
+                continue 
 
-            # APPEL MULTI-CLÉS
             raw_blocks, current_model_idx, current_key_idx = analyze_slot_image_multikey(
                 img_bytes, current_model_idx, current_key_idx
             )
@@ -655,7 +549,7 @@ def main():
                 keep = False
                 if pos_txt == 'TOP': keep = is_my_group
                 elif pos_txt == 'BOTTOM': keep = True
-                else: # FULL
+                else: 
                     if grp and "GA" in grp and not is_my_group: keep = False
                     else: keep = True
                 
@@ -684,7 +578,6 @@ def main():
                     
                     try:
                         tz = pytz.timezone('Europe/Paris')
-                        # Utilisation des heures détectées par OpenCV
                         start_dt = zone['date'].replace(hour=h_start, minute=m_start).replace(tzinfo=tz)
                         end_dt = zone['date'].replace(hour=h_end, minute=m_end).replace(tzinfo=tz)
                         
@@ -701,7 +594,8 @@ def main():
     
     shutil.rmtree("__pycache__", ignore_errors=True)
     shutil.rmtree("export_cours", ignore_errors=True)
-    if os.path.exists("edt.pdf"): os.remove("edt.pdf")
+    # J'ai volontairement supprimé 'os.remove("edt.pdf")' ici.
+    # GitHub Actions doit garder le PDF pour faire le commit et l'avoir à la prochaine heure !
     
 if __name__ == "__main__":
     main()
