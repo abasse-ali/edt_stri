@@ -63,7 +63,7 @@ jobs:
 
       - name: Run Python script
         if: steps.verification.outputs.run_script == 'true'
-        run: python main.py
+        run: python edt_stri.py
 
       # 4. On sauvegarde le nouveau PDF sur GitHub pour la prochaine comparaison
       - name: Sauvegarder le nouveau PDF sur le dépôt
