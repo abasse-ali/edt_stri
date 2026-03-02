@@ -2,11 +2,11 @@ import os
 import json
 import shutil
 from pathlib import Path
-import requests
 import re
 import platform
 import time
 from datetime import datetime, timedelta
+import requests
 from ics import Calendar, Event
 import pdfplumber
 from pdf2image import convert_from_path
@@ -25,23 +25,18 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# --- CONFIGURATION MULTI-CLÉS ---
-API_KEYS = [
-    "AIzaSyDsxT0E36xS6mZLfz3Nq_5tv9O8ggvzIf8", # Clé 1
-    "AIzaSyBye12-BuNOJ7EtAtkFueqVFWmP5ZENqQc", # Clé 2
-    "AIzaSyCxW3sSnJDC8IDk7LtWNQg7_N9sMs29J4k", # Clé 3 
-    "AIzaSyC6gY1424MVmCu44JWBB6nGHu_qGzYp4Mc", # Clé 4
-    "AIzaSyAm2PaliRQoUZsmPvXhro-rdq5t3q3qB4M", # Clé 5
-    "AIzaSyCZuhFYd1r3NkzkJnZ1Rt4kCgloAPpWBHc", # Clé 6
-    "AIzaSyBMWAnorwvGxXSolHz0r93_xSrEjhsTBG4", # Clé 7
-    "AIzaSyDfMoqkhlcCFa9XdN6kHHyhkvyXZP3y95k", # Clé 8
-    "AIzaSyAWtcl3dxdrc0Xp5_Ey8K4LfYEgo1sGMs8", # Clé 9
-    "AIzaSyDNm7Xvvq1W-ERro_mKysVw3Lx8BvnaBpQ" # Clé 10
-]
+# --- CONFIGURATION SÉCURISÉE ---
+cles_brutes = os.environ.get("GEMINI_API_KEYS", "")
+API_KEYS = [cle.strip() for cle in cles_brutes.split(",")] if cles_brutes else []
 
-URL_EDT = "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf"
+if not API_KEYS or not API_KEYS[0]:
+    print("❌ ERREUR : Aucune clé API Gemini trouvée dans les variables d'environnement.")
+    exit(1)
+
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
+
 MY_GROUPS = ["GB", "GC"]
-YEAR = 2026
+ANNEE = 2026
 
 MODELS = [
     "gemini-2.5-flash",
@@ -54,13 +49,8 @@ MODELS = [
 
 DRIVE_FOLDER_ID = "1ID97m9gVzOqcLvdYBAabUo5wZKzZ5Nj-"
 
-# --- COORDONNÉES DE RÉFÉRENCE POUR L'HEURE (Match X -> Heure) ---
-# Basé sur 200 DPI +317px de marge à gauche, pour les créneaux de 7h45 à 20h00.
-REFERENCES_TEMPS = [
-    (13+317, "07h45"), (203+317, "09h00"), (343+317, "09h45"), (361+317, "10h00"), (408+317, "10h15"),
-    (702+317, "12h00"), (732+317, "12h15"), (852+317, "13h30"), (1187+317, "15h30"),(1227+317, "15h45"),
-    (1571+317, "17h45"), (1611+317, "18h00"), (1655+317, "18h15"), (1736+317, "19h00"), (1777+317, "19h15"), (1886+317, "20h00")
-]
+# Initialisation vide, elle sera calculée dynamiquement
+REFERENCES_TEMPS = []
 
 if platform.system() == "Windows":
     POPPLER_PATH = r"D:\Mes Projets\edt_stri\poppler\Library\bin"
@@ -81,17 +71,70 @@ PROFS = {
     "TD": "Thierry DESPRATS", "TG": "Thierry GAYRAUD", "BA": "BA"
 }
 
-# --- FONCTIONS UTILITAIRES OPENCV ---
+# =====================================================================
+# FONCTIONS DISCORD
+# =====================================================================
+
+def envoyer_notification_discord(modifications):
+    if not DISCORD_WEBHOOK_URL or not modifications:
+        return
+
+    # On construit le message Discord
+    description = "L'emploi du temps a été mis à jour ! Voici les changements :\n\n"
+    
+    for modif in modifications:
+        try:
+            date_fr = datetime.strptime(modif['date'], '%Y-%m-%d').strftime('%d/%m/%Y')
+        except:
+            date_fr = modif['date']
+            
+        titre = modif.get('titre', 'Cours inconnu')
+        heures = f"{modif.get('start', '?')} - {modif.get('end', '?')}"
+        
+        if modif['type'] == 'ajout':
+            description += f"🟢 **AJOUT** : {titre} le {date_fr} ({heures}) en salle {modif.get('room', 'Non attribuée')} avec {modif.get('prof', 'Inconnu')}\n"
+        elif modif['type'] == 'suppression':
+            description += f"🔴 **ANNULATION** : {titre} le {date_fr} ({heures})\n"
+        elif modif['type'] == 'modification':
+            description += f"🟠 **MODIFICATION** : {titre} le {date_fr} ({heures})\n"
+            for champ, valeurs in modif.get('changements', {}).items():
+                nom_champ = {"room": "Salle", "prof": "Prof", "end": "Heure de fin", "titre": "Nom du cours"}.get(champ, champ)
+                description += f"   ↳ *{nom_champ}* : ~~{valeurs['ancien']}~~ ➔ **{valeurs['nouveau']}**\n"
+        description += "\n"
+
+    # Si le texte est trop long (limite Discord 2000/4000 car), on coupe
+    if len(description) > 4000:
+        description = description[:3900] + "\n... (trop de changements pour tout afficher)."
+
+    payload = {
+        "username": "Bot EDT STRI",
+        "avatar_url": "https://cdn-icons-png.flaticon.com/512/2602/2602282.png",
+        "embeds": [{
+            "title": "🚨 Changements détectés dans l'emploi du temps !",
+            "description": description,
+            "color": 16753920 # Couleur Orange
+        }]
+    }
+
+    try:
+        requests.post(DISCORD_WEBHOOK_URL, json=payload)
+        print("✅ Notification Discord envoyée !")
+    except Exception as e:
+        print(f"❌ Erreur lors de l'envoi Discord : {e}")
+
+# =====================================================================
+# FONCTIONS UTILITAIRES ET OPENCV
+# =====================================================================
 
 def obtenir_heure_proche(x_detecte):
     meilleur_match = min(REFERENCES_TEMPS, key=lambda item: abs(item[0] - x_detecte))
     return meilleur_match[1]
 
-def parse_heure_str(heure_str):
+def analyser_heure_chaine(heure_str):
     h, m = heure_str.split('h')
     return int(h), int(m)
 
-def filtrer_et_dessiner(liste_rects, tolerance=10):
+def filtrer_et_dessiner_rectangles(liste_rects, tolerance=10):
     liste_rects.sort(key=lambda k: k['x1'])
     rects_valides = []
     indices_traites = set()
@@ -118,7 +161,6 @@ def filtrer_et_dessiner(liste_rects, tolerance=10):
 def tracer_grand_rectangle(img):
     h, w = img.shape[:2]
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
     _, thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)
     
     col_sums = np.sum(thresh, axis=0) / 255 
@@ -142,12 +184,11 @@ def tracer_grand_rectangle(img):
         x_droite_planning = x_lines[-1]
         y_haut = y_lines[0]
         y_bas = y_lines[-1]
-        
         cv2.rectangle(img, (x_droite_jour, y_haut), (x_droite_planning, y_bas), (0, 0, 0), 5)
     
     return img
 
-def detect_and_fill_dashed_cells(img):
+def detecter_et_remplir_cellules_pointillees(img):
     if img is None:
         print("Erreur: Impossible de charger l'image.")
         return
@@ -161,6 +202,7 @@ def detect_and_fill_dashed_cells(img):
     _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
     h, w = img.shape[:2]
 
+    # --- ÉTAPE 1 : EFFACER LES GRANDES LIGNES PLEINES ---
     kernel_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, h // 2))
     solid_v = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_v)
     
@@ -169,12 +211,12 @@ def detect_and_fill_dashed_cells(img):
     
     no_solid = cv2.subtract(thresh, cv2.bitwise_or(solid_v, solid_h))
 
+    # --- ÉTAPE 2 : FILTRER SUR LA VRAIE ÉPAISSEUR / LONGUEUR ---
     contours, _ = cv2.findContours(no_solid, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     tirets = []
     for cnt in contours:
         x, y, w_rect, h_rect = cv2.boundingRect(cnt)
-        
         rect = cv2.minAreaRect(cnt)
         (w_rot, h_rot) = rect[1]
         
@@ -188,6 +230,7 @@ def detect_and_fill_dashed_cells(img):
             x_center = x + (w_rect // 2)
             tirets.append((x_center, y, y + h_rect))
 
+    # --- ÉTAPE 3 : REGROUPER LES TIRETS ---
     tirets.sort(key=lambda t: t[0])
     groupes_lignes = []
     groupe_actuel = []
@@ -205,12 +248,10 @@ def detect_and_fill_dashed_cells(img):
     if groupe_actuel:
         groupes_lignes.append(groupe_actuel)
 
+    # --- ÉTAPE 4 : VALIDATION ---
     result_img = img.copy()
-    compteur_lignes = 0
-    coords_x_finales = []
-
     for groupe in groupes_lignes:
-        if len(groupe) >= 2 and len(groupe) <= 7:
+        if 2 <= len(groupe) <= 7:
             min_y = min(t[1] for t in groupe)
             max_y = max(t[2] for t in groupe)
             hauteur_totale = max_y - min_y
@@ -218,24 +259,21 @@ def detect_and_fill_dashed_cells(img):
             if hauteur_totale >= h * 0.45:
                 final_x = int(sum(t[0] for t in groupe) / len(groupe))
                 cv2.line(result_img, (final_x, 0), (final_x, h), (0, 0, 0), 3)
-                coords_x_finales.append(final_x)
-                compteur_lignes += 1
-                print(f"Ligne validée à X = {final_x} ({len(groupe)} slashs empilés)")
 
     return result_img
 
-def detect_slots_opencv(pil_image, date_str):
+def detecter_creneaux_cours_opencv(pil_image, date_str):
     img_cv = np.array(pil_image)
-    if img_cv.shape[2] == 3: # RGB
+    if img_cv.shape[2] == 3:
         img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
         
     img_raw = img_cv.copy()
     
+    # --- 2. RETOUCHE POUR LA DÉTECTION (Rouge -> Vert) ---
     hsv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2HSV)
     mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
     mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
     red_mask = mask1 + mask2
-
     img_cv[red_mask > 0] = [0, 255, 0]
     
     gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
@@ -243,6 +281,7 @@ def detect_slots_opencv(pil_image, date_str):
 
     total_h, total_w = img_cv.shape[:2]
 
+    # --- Nettoyage des bords verticaux ---
     ver_kernel_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, total_h // 3))
     vertical_lines_only = cv2.erode(thresh, ver_kernel_long, iterations=1)
     vertical_lines_only = cv2.dilate(vertical_lines_only, ver_kernel_long, iterations=1)
@@ -265,12 +304,12 @@ def detect_slots_opencv(pil_image, date_str):
     gray_crop = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
     thresh_crop = cv2.threshold(gray_crop, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     
+    # --- Détection Grille ---
     hor_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
     ver_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
     
     h_lines = cv2.dilate(cv2.erode(thresh_crop, hor_kernel), hor_kernel)
     v_lines = cv2.dilate(cv2.erode(thresh_crop, ver_kernel), ver_kernel)
-    
     grid_mask = cv2.addWeighted(h_lines, 1, v_lines, 1, 0)
     grid_mask = cv2.morphologyEx(grid_mask, cv2.MORPH_CLOSE, np.ones((5,5), np.uint8))
 
@@ -281,15 +320,14 @@ def detect_slots_opencv(pil_image, date_str):
     
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
-        if w * h < 1000: continue
-        if w > (current_w * 0.80): continue
+        if w * h < 1000 or w > (current_w * 0.80): continue
         
         roi = gray_crop[y:y+h, x:x+w]
         if roi.size > 0 and cv2.countNonZero(cv2.threshold(roi[5:-5, 5:-5], 150, 255, cv2.THRESH_BINARY_INV)[1]) < 50:
             continue
         liste_brute.append({'x1': x, 'x2': x + w, 'y': y, 'h': h, 'w': w})
 
-    liste_finale = filtrer_et_dessiner(liste_brute)
+    liste_finale = filtrer_et_dessiner_rectangles(liste_brute)
     liste_finale.sort(key=lambda k: k['x1'])
 
     detected_slots = []
@@ -299,19 +337,15 @@ def detect_slots_opencv(pil_image, date_str):
     if liste_finale:
         y_top_global = min(c['y'] for c in liste_finale)
         y_bottom_global = max(c['y'] + c['h'] for c in liste_finale)
-        h_global = 58
+        h_global = max(57, y_bottom_global - y_top_global)
         
-        print(f"Info: Hauteur standardisée appliquée : {h_global}px (Y={y_top_global} à {y_bottom_global})")
         debug_img = img_crop_raw.copy()
         
         for i, cours in enumerate(liste_finale):
-            real_x1 = cours['x1'] - 10 + x_start
-            real_x2 = cours['x2'] - 10 + x_start
-
+            real_x1 = cours['x1']
+            real_x2 = cours['x2']
             start_str = obtenir_heure_proche(real_x1)
             end_str = obtenir_heure_proche(real_x2)
-            
-            print(f"Cours {i+1}: {real_x1} -> {real_x2} / {start_str} -> {end_str}")
             
             cv2.rectangle(debug_img, (cours['x1'], y_top_global), (cours['x2'], y_top_global + h_global), (0, 0, 255), 2)
             roi_cours = img_crop_raw[y_top_global:y_top_global+h_global, cours['x1']:cours['x2']]
@@ -333,15 +367,19 @@ def detect_slots_opencv(pil_image, date_str):
     
     return detected_slots
 
-def get_full_prof_name(initials_or_name):
-    if not initials_or_name: return ""
-    clean_txt = initials_or_name.replace("(", "").replace(")", "").strip()
+# =====================================================================
+# FONCTIONS GÉNÉRALES ET APIs
+# =====================================================================
+
+def obtenir_nom_complet_professeur(initiales_ou_nom):
+    if not initiales_ou_nom: return ""
+    clean_txt = initiales_ou_nom.replace("(", "").replace(")", "").strip()
     if clean_txt in PROFS: return PROFS[clean_txt]
     for code, full_name in PROFS.items():
         if code in clean_txt: return full_name
     return clean_txt
 
-def analyze_slot_image_multikey(image_bytes, start_model_idx, start_key_idx):
+def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     prompt = """
     Analyse cette image de cours (créneau unique).
     
@@ -357,15 +395,15 @@ def analyze_slot_image_multikey(image_bytes, start_model_idx, start_key_idx):
     note: si un cours est en FULL, l'initiale du prof sera sur le texte du bas sur la deuxième ligne sans parenthèses mais en italique.
 
     === EXTRACTION ===
-    Pour chaque élément (Si FULL: 1 élément. Si SPLIT: 2 éléments TOP/BOTTOM. Si TOP seul: 1 élément TOP) :
+    Pour chaque élément :
     - `position`: "FULL", "TOP", "BOTTOM".
     - `color`: "ORANGE"(#FFA800), "JAUNE"(#FFE800), "BLANC".
     - `course`: Texte principal.
-    - `prof`: Nom (dans les parenthèses ou si FULL l'initiale sera en bas sans parenthèses mais en italique).
+    - `prof`: Nom.
     - `group`: "GB", "GC", "GA" ou null.
-    - `room`: Salle (dans le coin verte à droite, peut être vide room="Non attribuée").
+    - `room`: Salle.
 
-    JSON :
+    JSON attendu :
     [ { "position": "...", "color": "...", "course": "...", "prof": "...", "group": "...", "room": "..." } ]
     """
 
@@ -420,7 +458,6 @@ def analyze_slot_image_multikey(image_bytes, start_model_idx, start_key_idx):
                     print(f"      ⏳ TOUTES les clés sont épuisées")
                     exit()
                 else: continue 
-
             elif "503" in err_str or "500" in err_str:
                 print(f"      ⚠️ Surcharge Modèle {model_name}.", end="\r")
                 current_model_idx = (current_model_idx + 1) % len(MODELS)
@@ -431,7 +468,7 @@ def analyze_slot_image_multikey(image_bytes, start_model_idx, start_key_idx):
                 if current_model_idx == start_model_idx:
                       return [], current_model_idx, current_key_idx
 
-def upload_to_drive_folder(filename, folder_id):
+def televerser_sur_google_drive(nom_fichier, dossier_id):
     print(f"☁️  Téléversement Drive...")
     try:
         SCOPES = ['https://www.googleapis.com/auth/drive.file']
@@ -444,28 +481,123 @@ def upload_to_drive_folder(filename, folder_id):
                 flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
                 creds = flow.run_local_server(port=0)
             with open('token.json', 'w') as token: token.write(creds.to_json())
+            
         service = build('drive', 'v3', credentials=creds)
-        query = f"name = '{filename}' and '{folder_id}' in parents and trashed = false"
+        query = f"name = '{nom_fichier}' and '{dossier_id}' in parents and trashed = false"
         results = service.files().list(q=query, fields="files(id)").execute()
         items = results.get('files', [])
-        file_metadata = {'name': filename, 'parents': [folder_id]}
-        media = MediaFileUpload(filename, mimetype='text/calendar')
-        if not items: service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        file_metadata = {'name': nom_fichier, 'parents': [dossier_id]}
+        media = MediaFileUpload(nom_fichier, mimetype='text/calendar')
+        
+        if not items: 
+            service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         else:
             del file_metadata['parents']
             service.files().update(fileId=items[0]['id'], body=file_metadata, media_body=media, fields='id').execute()
         print(f"✅ Fichier mis à jour sur Drive.")
-    except Exception as e: print(f"❌ Erreur Upload : {e}")
+    except Exception as e: 
+        print(f"❌ Erreur Upload : {e}")
 
-def main():
-    # ATTENTION : GitHub Actions se charge déjà de télécharger 'edt.pdf'
-    # avant de lancer ce script. On l'ouvre donc directement !
+# =====================================================================
+# ANALYSE STRUCTURELLE DU PDF
+# =====================================================================
+
+def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
+    pages = convert_from_path(chemin_pdf, dpi=dpi, poppler_path=POPPLER_PATH)
+    img = np.array(pages[page_num])
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     
-    cal = Calendar()
-    print("✂️ Traitement du PDF...")
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
+    
+    min_line_length = img.shape[1] // 3
+    horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (min_line_length, 1))
+    horiz_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horiz_kernel)
+    contours_h, _ = cv2.findContours(horiz_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    y_coords = sorted([cv2.boundingRect(c)[1] for c in contours_h])
+    
+    unique_y = []
+    for y in y_coords:
+        if not unique_y or y - unique_y[-1] > 10:
+            unique_y.append(y)
+            
+    if len(unique_y) < 2: return []
+    y_start, y_end = unique_y[0] - 2, unique_y[1] + 2
+    
+    crop_h = y_end - y_start
+    kernel_v_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, crop_h - 10))
+    major_v_lines = cv2.morphologyEx(thresh[y_start:y_end, :], cv2.MORPH_OPEN, kernel_v_long)
+    cnts_v, _ = cv2.findContours(major_v_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    major_x = sorted([cv2.boundingRect(c)[0] for c in cnts_v])
+    
+    ux = []
+    for x in major_x:
+        if not ux or x - ux[-1] > 15: ux.append(x)
+    
+    start_x = ux[1] - 3 
+    end_x = ux[-1] + 3
+    
+    final_crop = img[y_start:y_end, start_x:end_x]
+    padding = 10
+    padded_img = cv2.copyMakeBorder(final_crop, padding, padding, padding, padding, 
+                                    cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    
+    gray_padded = cv2.cvtColor(padded_img, cv2.COLOR_BGR2GRAY)
+    _, thresh_padded = cv2.threshold(gray_padded, 210, 255, cv2.THRESH_BINARY_INV)
+    
+    kernel_h_borders = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+    horizontal_borders = cv2.morphologyEx(thresh_padded, cv2.MORPH_OPEN, kernel_h_borders)
+    thresh_no_borders = cv2.subtract(thresh_padded, horizontal_borders)
+    
+    kernel_close_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 20))
+    connected_v_lines = cv2.morphologyEx(thresh_no_borders, cv2.MORPH_CLOSE, kernel_close_v)
+    
+    kernel_open_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(crop_h * 0.6)))
+    clean_v_lines = cv2.morphologyEx(connected_v_lines, cv2.MORPH_OPEN, kernel_open_v)
+
+    contours_all, _ = cv2.findContours(clean_v_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    raw_x_found = []
+    for c in contours_all:
+        x, y, w, h = cv2.boundingRect(c)
+        if w < 10:
+            raw_x_found.append(x + w//2)
+            
+    raw_x_found.sort()
+    
+    final_x_positions = []
+    for x in raw_x_found:
+        if not final_x_positions or x - final_x_positions[-1] > 10:
+            final_x_positions.append(x)
+
+    if len(final_x_positions) > 18:
+        x_12h00 = final_x_positions[17]
+        if final_x_positions[18] - x_12h00 > 50:
+            final_x_positions.insert(18, x_12h00 + 35)
+
+    if len(final_x_positions) > 22:
+        x_13h00 = final_x_positions[21]
+        if final_x_positions[22] - x_13h00 > 40:
+            final_x_positions.insert(22, x_13h00 + 20)
+
+    heures_attendues = [
+        "07h45", "08h00", "08h15", "08h30", "08h45", "09h00", "09h15", "09h30", "09h45", "10h00", "10h15", "10h30",
+        "10h45", "11h00", "11h15", "11h30", "11h45", "12h00", "12h15", "12h30", "12h45", "13h00", "13h15", "13h30",
+        "13h45", "14h00", "14h15", "14h30", "14h45", "15h00", "15h15", "15h30", "15h45", "16h00", "16h15", "16h30",
+        "16h45", "17h00", "17h15", "17h30", "17h45", "18h00", "18h15", "18h30", "18h45", "19h00", "19h15", "19h30",
+        "19h45", "20h00"
+    ]
+    
+    refs_temps = []
+    for i, x in enumerate(final_x_positions):
+        label = heures_attendues[i] if i < len(heures_attendues) else f"?"
+        refs_temps.append((x, label))
+        
+    return refs_temps
+
+def extraire_zones_jours_pdf(chemin_pdf):
     final_day_zones = []
-    
-    with pdfplumber.open("edt.pdf") as pdf:
+    with pdfplumber.open(chemin_pdf) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             words = page.extract_words()
             h_lines = [l['top'] for l in page.lines if l['width'] > 100 and l['orientation'] == 'h']
@@ -481,7 +613,7 @@ def main():
                 if match_date:
                     d, m_str = match_date.groups()
                     m_map = {'janv':1, 'févr':2, 'mars':3, 'avr':4, 'mai':5, 'juin':6, 'sept':9, 'oct':10, 'nov':11, 'déc':12}
-                    try: current_monday_date = datetime(YEAR, m_map[m_str], int(d))
+                    try: current_monday_date = datetime(ANNEE, m_map[m_str], int(d))
                     except: pass
                 
                 day_offset = -1
@@ -501,110 +633,194 @@ def main():
                     if exact_bottom - exact_top > 300: exact_bottom = exact_top + 150 
                     final_day_zones.append({'date': actual_date, 'top': exact_top, 'bottom': exact_bottom, 'page': page_idx + 1, 'pdf_height': page.height})
 
+    return final_day_zones
+
+# =====================================================================
+# BOUCLE PRINCIPALE
+# =====================================================================
+
+def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, calendrier, liste_cours_json):
+    page_idx = zone['page'] - 1
+    if page_idx >= len(images_pdf): 
+        return current_model_idx, current_key_idx
+        
+    page_img = images_pdf[page_idx]
+    scale_y = page_img.height / zone['pdf_height']
+    
+    day_img = page_img.crop((0, zone['top'] * scale_y, page_img.width, zone['bottom'] * scale_y))
+    print(f"   📅 {zone['date'].strftime('%Y-%m-%d')}")
+
+    date_str_fmt = zone['date'].strftime('%Y-%m-%d')
+    day_img_np = np.array(day_img)
+    day_img_cv = cv2.cvtColor(day_img_np, cv2.COLOR_RGB2BGR)
+    
+    day_img_rgb = cv2.cvtColor(day_img_cv, cv2.COLOR_BGR2RGB)
+    slots_trouves = detecter_creneaux_cours_opencv(day_img_rgb, date_str_fmt)
+
+    for slot_data in slots_trouves:
+        img_bytes = slot_data["bytes"]
+        start_str = slot_data["start"]
+        end_str = slot_data["end"]
+
+        try:
+            h_start, m_start = analyser_heure_chaine(start_str)
+            h_end, m_end = analyser_heure_chaine(end_str)
+        except:
+            continue
+
+        raw_blocks, current_model_idx, current_key_idx = analyser_image_creneau_avec_ia(
+            img_bytes, current_model_idx, current_key_idx
+        )
+        
+        for block in raw_blocks:
+            col_txt = (block.get('color') or 'BLANC').upper()
+            pos_txt = (block.get('position') or 'FULL').upper()
+            
+            if 'ORANGE' in col_txt: continue
+            
+            grp = (block.get('group') or '')
+            is_my_group = grp and any(g in grp for g in MY_GROUPS)
+            
+            keep = False
+            if pos_txt == 'TOP': keep = is_my_group
+            elif pos_txt == 'BOTTOM': keep = True
+            else:
+                if grp and "GA" in grp and not is_my_group: keep = False
+                else: keep = True
+            
+            if keep:
+                c_txt = (block.get('course') or "Cours").strip()
+                if len(c_txt) < 2 : continue
+                if c_txt.lower() in ["inconnu", "cours inconnu", "cours"]: continue
+                
+                grp_str = f"[{grp}]" if grp else ""
+                p_txt = (block.get('prof') or "").strip()
+                p_full = obtenir_nom_complet_professeur(p_txt)
+                
+                if p_full and p_full not in c_txt:
+                    title = f"{grp_str} {c_txt} ({p_full})".strip()
+                else:
+                    title = f"{grp_str} {c_txt}".strip()
+                
+                title = title.replace("[] ", "")
+                if 'JAUNE' in col_txt: title = "[EXAMEN] " + title
+                
+                print(f"      [+] Ajout : {title} ({start_str}-{end_str})")
+
+                # NOUVEAU : Sauvegarde des données pour la comparaison Discord
+                liste_cours_json.append({
+                    "date": date_str_fmt,
+                    "start": start_str,
+                    "end": end_str,
+                    "titre": title,
+                    "room": block.get('room') or "Non attribuée",
+                    "prof": p_full or "Inconnu"
+                })
+
+                ics_evt = Event()
+                ics_evt.name = title
+                ics_evt.location = block.get('room') or ""
+                
+                try:
+                    tz = pytz.timezone('Europe/Paris')
+                    start_dt = zone['date'].replace(hour=h_start, minute=m_start).replace(tzinfo=tz)
+                    end_dt = zone['date'].replace(hour=h_end, minute=m_end).replace(tzinfo=tz)
+                    
+                    ics_evt.begin = start_dt
+                    ics_evt.end = end_dt
+                    calendrier.events.add(ics_evt)
+                except: pass
+
+    return current_model_idx, current_key_idx
+
+def principale():
+    global REFERENCES_TEMPS
+
+    print("📏 Calcul dynamique des références horaires...")
+    REFERENCES_TEMPS = extraire_positions_heures_pdf("edt.pdf", dpi=200)
+    
+    if not REFERENCES_TEMPS:
+        print("❌ Erreur lors de l'extraction des heures. Arrêt du script.")
+        return
+        
+    print(f"✅ {len(REFERENCES_TEMPS)} coordonnées horaires détectées avec succès.")
+    
+    calendrier = Calendar()
+    print("✂️ Traitement du PDF...")
+    final_day_zones = extraire_zones_jours_pdf("edt.pdf")
+
     print(f"📋 Génération de {len(final_day_zones)} jours...")
-    images = convert_from_path("edt.pdf", poppler_path=POPPLER_PATH, dpi=200)
+    images_pdf = convert_from_path("edt.pdf", poppler_path=POPPLER_PATH, dpi=200)
     
     current_model_idx = 0 
     current_key_idx = 0
+    nouvelles_donnees_cours = [] # Liste pour stocker le JSON des cours
 
     for i, zone in enumerate(final_day_zones):
         if zone['date'].weekday() == 0 and i > 0:
             print("☕ Nouvelle semaine. Pause 60s...")
             time.sleep(60)
-        
-        page_idx = zone['page'] - 1
-        if page_idx >= len(images): continue
-        page_img = images[page_idx]
-        
-        scale_y = page_img.height / zone['pdf_height']
-        
-        day_img = page_img.crop((0, zone['top'] * scale_y, page_img.width, zone['bottom'] * scale_y))
-        
-        print(f"   📅 {zone['date'].strftime('%Y-%m-%d')}")
-
-        date_str_fmt = zone['date'].strftime('%Y-%m-%d')
-        
-        day_img_np = np.array(day_img)
-        day_img_cv = cv2.cvtColor(day_img_np, cv2.COLOR_RGB2BGR)
-        
-        day_img_bgr = detect_and_fill_dashed_cells(day_img_cv)
-        day_img_rgb = cv2.cvtColor(day_img_bgr, cv2.COLOR_BGR2RGB)
-        slots_trouves = detect_slots_opencv(day_img_rgb, date_str_fmt)
-
-        for slot_data in slots_trouves:
-            img_bytes = slot_data["bytes"]
-            start_str = slot_data["start"]
-            end_str = slot_data["end"]
-
-            try:
-                h_start, m_start = parse_heure_str(start_str)
-                h_end, m_end = parse_heure_str(end_str)
-            except:
-                continue 
-
-            raw_blocks, current_model_idx, current_key_idx = analyze_slot_image_multikey(
-                img_bytes, current_model_idx, current_key_idx
-            )
             
-            for block in raw_blocks:
-                col_txt = (block.get('color') or 'BLANC').upper()
-                pos_txt = (block.get('position') or 'FULL').upper()
-                
-                if 'ORANGE' in col_txt: continue
-                
-                grp = (block.get('group') or '')
-                is_my_group = grp and any(g in grp for g in MY_GROUPS)
-                
-                keep = False
-                if pos_txt == 'TOP': keep = is_my_group
-                elif pos_txt == 'BOTTOM': keep = True
-                else: 
-                    if grp and "GA" in grp and not is_my_group: keep = False
-                    else: keep = True
-                
-                if keep:
-                    c_txt = (block.get('course') or "Cours").strip()
-                    if len(c_txt) < 2 : continue
-                    if c_txt.lower() in ["inconnu", "cours inconnu", "cours"]: continue
-                    
-                    grp_str = f"[{grp}]" if grp else ""
-                    p_txt = (block.get('prof') or "").strip()
-                    p_full = get_full_prof_name(p_txt)
-                    
-                    if p_full and p_full not in c_txt:
-                        title = f"{grp_str} {c_txt} ({p_full})".strip()
-                    else:
-                        title = f"{grp_str} {c_txt}".strip()
-                    
-                    title = title.replace("[] ", "")
-                    if 'JAUNE' in col_txt: title = "[EXAMEN] " + title
-                    
-                    print(f"      [+] Ajout : {title} ({start_str}-{end_str})")
+        current_model_idx, current_key_idx = traiter_journee(
+            zone, images_pdf, current_model_idx, current_key_idx, calendrier, nouvelles_donnees_cours
+        )
 
-                    ics_evt = Event()
-                    ics_evt.name = title
-                    ics_evt.location = block.get('room') or ""
-                    
-                    try:
-                        tz = pytz.timezone('Europe/Paris')
-                        start_dt = zone['date'].replace(hour=h_start, minute=m_start).replace(tzinfo=tz)
-                        end_dt = zone['date'].replace(hour=h_end, minute=m_end).replace(tzinfo=tz)
-                        
-                        ics_evt.begin = start_dt
-                        ics_evt.end = end_dt
-                        cal.events.add(ics_evt)
-                    except: pass
+    # --- LOGIQUE DE COMPARAISON DISCORD ---
+    fichier_json = "edt_data.json"
+    anciennes_donnees = []
+    
+    if os.path.exists(fichier_json):
+        with open(fichier_json, "r", encoding="utf-8") as f:
+            try:
+                anciennes_donnees = json.load(f)
+            except:
+                pass
+
+    if anciennes_donnees: # On ne notifie pas s'il n'y avait pas de données avant
+        modifications = []
+        anciens_dict = {f"{c['date']}_{c['start']}": c for c in anciennes_donnees}
+        nouveaux_dict = {f"{c['date']}_{c['start']}": c for c in nouvelles_donnees_cours}
+
+        for cle, nouveau_cours in nouveaux_dict.items():
+            if cle not in anciens_dict:
+                nouveau_cours['type'] = 'ajout'
+                modifications.append(nouveau_cours)
+            else:
+                ancien_cours = anciens_dict[cle]
+                changements = {}
+                for attribut in ['titre', 'room', 'prof', 'end']:
+                    if nouveau_cours.get(attribut) != ancien_cours.get(attribut):
+                        changements[attribut] = {'ancien': ancien_cours.get(attribut), 'nouveau': nouveau_cours.get(attribut)}
+                
+                if changements:
+                    modifications.append({
+                        "type": "modification",
+                        "date": nouveau_cours['date'],
+                        "start": nouveau_cours['start'],
+                        "end": nouveau_cours['end'],
+                        "titre": nouveau_cours['titre'],
+                        "changements": changements
+                    })
+
+        for cle, ancien_cours in anciens_dict.items():
+            if cle not in nouveaux_dict:
+                ancien_cours['type'] = 'suppression'
+                modifications.append(ancien_cours)
+
+        envoyer_notification_discord(modifications)
+
+    # Sauvegarde des nouvelles données pour la prochaine fois
+    with open(fichier_json, "w", encoding="utf-8") as f:
+        json.dump(nouvelles_donnees_cours, f, ensure_ascii=False, indent=2)
+    # ------------------------------------------------
 
     with open("edt.ics", 'w', encoding='utf-8') as f:
-        f.writelines(cal.serialize())
+        f.writelines(calendrier.serialize())
+        
     print("Terminé avec succès ! Fichier edt.ics généré.")
     
-    upload_to_drive_folder("edt.ics", DRIVE_FOLDER_ID)
-    
+    televerser_sur_google_drive("edt.ics", DRIVE_FOLDER_ID)
     shutil.rmtree("__pycache__", ignore_errors=True)
-    shutil.rmtree("export_cours", ignore_errors=True)
-    # J'ai volontairement supprimé 'os.remove("edt.pdf")' ici.
-    # GitHub Actions doit garder le PDF pour faire le commit et l'avoir à la prochaine heure !
-    
+
 if __name__ == "__main__":
-    main()
+    principale()

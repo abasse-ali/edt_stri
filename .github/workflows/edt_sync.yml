@@ -66,14 +66,17 @@ jobs:
 
       - name: Run Python script
         if: steps.verification.outputs.run_script == 'true'
+        env:
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python edt_stri.py
 
-      # 4. On sauvegarde le nouveau PDF sur GitHub pour la prochaine comparaison
-      - name: Sauvegarder le nouveau PDF sur le dépôt
+      # 4. On sauvegarde le PDF ET les données JSON sur GitHub
+      - name: Sauvegarder les fichiers sur le dépôt
         if: steps.verification.outputs.run_script == 'true'
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add edt.pdf
-          git commit -m "Mise à jour automatique du PDF de l'EDT"
+          git add edt.pdf edt_data.json
+          git commit -m "Mise à jour automatique de l'EDT" || echo "Rien à commiter"
           git push
