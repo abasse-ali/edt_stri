@@ -131,9 +131,9 @@
     "date": "2026-03-12",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Gest. de Projets (A A)",
+    "titre": "Gest. de Projets (A.A)",
     "room": "U3-306",
-    "prof": "A A"
+    "prof": "A.A"
   },
   {
     "date": "2026-03-12",
@@ -147,8 +147,8 @@
     "date": "2026-03-13",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[U3-4] TCP/IP (TD)",
-    "room": "Non attribuée",
+    "titre": "TCP/IP (TD)",
+    "room": "U3-4",
     "prof": "Inconnu"
   },
   {
