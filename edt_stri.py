@@ -12,7 +12,7 @@ import pdfplumber
 from pdf2image import convert_from_path
 import pytz
 import numpy as np
-import cv2  # Ajout OpenCV
+import cv2
 
 # --- NOUVELLE BIBLIOTHÈQUE GOOGLE ---
 from google import genai
@@ -49,7 +49,6 @@ MODELS = [
 
 DRIVE_FOLDER_ID = "1ID97m9gVzOqcLvdYBAabUo5wZKzZ5Nj-"
 
-# Initialisation vide, elle sera calculée dynamiquement
 REFERENCES_TEMPS = []
 
 if platform.system() == "Windows":
@@ -79,7 +78,6 @@ def envoyer_notification_discord(modifications):
     if not DISCORD_WEBHOOK_URL or not modifications:
         return
 
-    # On construit le message Discord
     description = "L'emploi du temps a été mis à jour ! Voici les changements :\n\n"
     
     for modif in modifications:
@@ -102,7 +100,6 @@ def envoyer_notification_discord(modifications):
                 description += f"   ↳ *{nom_champ}* : ~~{valeurs['ancien']}~~ ➔ **{valeurs['nouveau']}**\n"
         description += "\n"
 
-    # Si le texte est trop long (limite Discord 2000/4000 car), on coupe
     if len(description) > 4000:
         description = description[:3900] + "\n... (trop de changements pour tout afficher)."
 
@@ -112,7 +109,7 @@ def envoyer_notification_discord(modifications):
         "embeds": [{
             "title": "🚨 Changements détectés dans l'emploi du temps !",
             "description": description,
-            "color": 16753920 # Couleur Orange
+            "color": 16753920 
         }]
     }
 
@@ -190,7 +187,6 @@ def tracer_grand_rectangle(img):
 
 def detecter_et_remplir_cellules_pointillees(img):
     if img is None:
-        print("Erreur: Impossible de charger l'image.")
         return
 
     try:
@@ -202,7 +198,6 @@ def detecter_et_remplir_cellules_pointillees(img):
     _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
     h, w = img.shape[:2]
 
-    # --- ÉTAPE 1 : EFFACER LES GRANDES LIGNES PLEINES ---
     kernel_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, h // 2))
     solid_v = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_v)
     
@@ -211,7 +206,6 @@ def detecter_et_remplir_cellules_pointillees(img):
     
     no_solid = cv2.subtract(thresh, cv2.bitwise_or(solid_v, solid_h))
 
-    # --- ÉTAPE 2 : FILTRER SUR LA VRAIE ÉPAISSEUR / LONGUEUR ---
     contours, _ = cv2.findContours(no_solid, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     tirets = []
@@ -230,7 +224,6 @@ def detecter_et_remplir_cellules_pointillees(img):
             x_center = x + (w_rect // 2)
             tirets.append((x_center, y, y + h_rect))
 
-    # --- ÉTAPE 3 : REGROUPER LES TIRETS ---
     tirets.sort(key=lambda t: t[0])
     groupes_lignes = []
     groupe_actuel = []
@@ -248,7 +241,6 @@ def detecter_et_remplir_cellules_pointillees(img):
     if groupe_actuel:
         groupes_lignes.append(groupe_actuel)
 
-    # --- ÉTAPE 4 : VALIDATION ---
     result_img = img.copy()
     for groupe in groupes_lignes:
         if 2 <= len(groupe) <= 7:
@@ -269,7 +261,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
         
     img_raw = img_cv.copy()
     
-    # --- 2. RETOUCHE POUR LA DÉTECTION (Rouge -> Vert) ---
     hsv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2HSV)
     mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
     mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
@@ -281,7 +272,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
 
     total_h, total_w = img_cv.shape[:2]
 
-    # --- Nettoyage des bords verticaux ---
     ver_kernel_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, total_h // 3))
     vertical_lines_only = cv2.erode(thresh, ver_kernel_long, iterations=1)
     vertical_lines_only = cv2.dilate(vertical_lines_only, ver_kernel_long, iterations=1)
@@ -304,7 +294,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
     gray_crop = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
     thresh_crop = cv2.threshold(gray_crop, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     
-    # --- Détection Grille ---
     hor_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 1))
     ver_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
     
@@ -367,10 +356,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
     
     return detected_slots
 
-# =====================================================================
-# FONCTIONS GÉNÉRALES ET APIs
-# =====================================================================
-
 def obtenir_nom_complet_professeur(initiales_ou_nom):
     if not initiales_ou_nom: return ""
     clean_txt = initiales_ou_nom.replace("(", "").replace(")", "").strip()
@@ -391,8 +376,6 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - NON (Pas de ligne) -> C'est "FULL". C'est un seul cours sur toute la hauteur de l'image.
     - Si l'image est complètement blanche ou illisible, réponds avec un seul élément FULL avec course="Inconnu".
     - Si la case de la salle est rouge ou vert vide, room="Non attribuée".
-
-    note: si un cours est en FULL, l'initiale du prof sera sur le texte du bas sur la deuxième ligne sans parenthèses mais en italique.
 
     === EXTRACTION ===
     Pour chaque élément :
@@ -452,14 +435,11 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
         except Exception as e:
             err_str = str(e)
             if "429" in err_str:
-                print(f"      ⚡ Quota épuisé sur Clé {current_key_idx+1}.")
                 current_key_idx = (current_key_idx + 1) % len(API_KEYS)
                 if current_key_idx == start_key_idx:
-                    print(f"      ⏳ TOUTES les clés sont épuisées")
                     exit()
                 else: continue 
             elif "503" in err_str or "500" in err_str:
-                print(f"      ⚠️ Surcharge Modèle {model_name}.", end="\r")
                 current_model_idx = (current_model_idx + 1) % len(MODELS)
                 time.sleep(2)
             else:
@@ -497,10 +477,6 @@ def televerser_sur_google_drive(nom_fichier, dossier_id):
         print(f"✅ Fichier mis à jour sur Drive.")
     except Exception as e: 
         print(f"❌ Erreur Upload : {e}")
-
-# =====================================================================
-# ANALYSE STRUCTURELLE DU PDF
-# =====================================================================
 
 def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
     pages = convert_from_path(chemin_pdf, dpi=dpi, poppler_path=POPPLER_PATH)
@@ -636,10 +612,10 @@ def extraire_zones_jours_pdf(chemin_pdf):
     return final_day_zones
 
 # =====================================================================
-# BOUCLE PRINCIPALE
+# TRAITEMENT DES JOURS
 # =====================================================================
 
-def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, calendrier, liste_cours_json):
+def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_cours_json):
     page_idx = zone['page'] - 1
     if page_idx >= len(images_pdf): 
         return current_model_idx, current_key_idx
@@ -661,12 +637,6 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, calend
         img_bytes = slot_data["bytes"]
         start_str = slot_data["start"]
         end_str = slot_data["end"]
-
-        try:
-            h_start, m_start = analyser_heure_chaine(start_str)
-            h_end, m_end = analyser_heure_chaine(end_str)
-        except:
-            continue
 
         raw_blocks, current_model_idx, current_key_idx = analyser_image_creneau_avec_ia(
             img_bytes, current_model_idx, current_key_idx
@@ -707,7 +677,7 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, calend
                 
                 print(f"      [+] Ajout : {title} ({start_str}-{end_str})")
 
-                # NOUVEAU : Sauvegarde des données pour la comparaison Discord
+                # Sauvegarde exclusive en JSON (l'ICS sera généré à la fin)
                 liste_cours_json.append({
                     "date": date_str_fmt,
                     "start": start_str,
@@ -717,21 +687,8 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, calend
                     "prof": p_full or "Inconnu"
                 })
 
-                ics_evt = Event()
-                ics_evt.name = title
-                ics_evt.location = block.get('room') or ""
-                
-                try:
-                    tz = pytz.timezone('Europe/Paris')
-                    start_dt = zone['date'].replace(hour=h_start, minute=m_start).replace(tzinfo=tz)
-                    end_dt = zone['date'].replace(hour=h_end, minute=m_end).replace(tzinfo=tz)
-                    
-                    ics_evt.begin = start_dt
-                    ics_evt.end = end_dt
-                    calendrier.events.add(ics_evt)
-                except: pass
-
     return current_model_idx, current_key_idx
+
 
 def principale():
     global REFERENCES_TEMPS
@@ -740,21 +697,16 @@ def principale():
     REFERENCES_TEMPS = extraire_positions_heures_pdf("edt.pdf", dpi=200)
     
     if not REFERENCES_TEMPS:
-        print("❌ Erreur lors de l'extraction des heures. Arrêt du script.")
+        print("❌ Erreur lors de l'extraction des heures.")
         return
         
-    print(f"✅ {len(REFERENCES_TEMPS)} coordonnées horaires détectées avec succès.")
-    
-    calendrier = Calendar()
     print("✂️ Traitement du PDF...")
     final_day_zones = extraire_zones_jours_pdf("edt.pdf")
-
-    print(f"📋 Génération de {len(final_day_zones)} jours...")
     images_pdf = convert_from_path("edt.pdf", poppler_path=POPPLER_PATH, dpi=200)
     
     current_model_idx = 0 
     current_key_idx = 0
-    nouvelles_donnees_cours = [] # Liste pour stocker le JSON des cours
+    nouvelles_donnees_cours = [] 
 
     for i, zone in enumerate(final_day_zones):
         if zone['date'].weekday() == 0 and i > 0:
@@ -762,10 +714,10 @@ def principale():
             time.sleep(60)
             
         current_model_idx, current_key_idx = traiter_journee(
-            zone, images_pdf, current_model_idx, current_key_idx, calendrier, nouvelles_donnees_cours
+            zone, images_pdf, current_model_idx, current_key_idx, nouvelles_donnees_cours
         )
 
-    # --- LOGIQUE DE COMPARAISON DISCORD ---
+    # --- LOGIQUE DE FUSION ET DE COMPARAISON DISCORD ---
     fichier_json = "edt_data.json"
     anciennes_donnees = []
     
@@ -776,21 +728,42 @@ def principale():
             except:
                 pass
 
-    if anciennes_donnees: # On ne notifie pas s'il n'y avait pas de données avant
+    # Déterminer la période couverte par le nouveau PDF
+    dates_nouveau = [c['date'] for c in nouvelles_donnees_cours]
+    if dates_nouveau:
+        date_min = min(dates_nouveau)
+        date_max = max(dates_nouveau)
+    else:
+        date_min = "9999-12-31"
+        date_max = "0000-01-01"
+
+    donnees_historiques = []
+    donnees_a_comparer = []
+    
+    for c in anciennes_donnees:
+        # Si le cours tombe pendant les semaines visibles dans le PDF
+        if date_min <= c['date'] <= date_max:
+            donnees_a_comparer.append(c)
+        else:
+            # S'il est en dehors du PDF (ex: semaines passées), on le garde précieusement
+            donnees_historiques.append(c)
+
+    if anciennes_donnees: 
         modifications = []
-        anciens_dict = {f"{c['date']}_{c['start']}": c for c in anciennes_donnees}
+        anciens_dict = {f"{c['date']}_{c['start']}": c for c in donnees_a_comparer}
         nouveaux_dict = {f"{c['date']}_{c['start']}": c for c in nouvelles_donnees_cours}
 
         for cle, nouveau_cours in nouveaux_dict.items():
             if cle not in anciens_dict:
-                nouveau_cours['type'] = 'ajout'
-                modifications.append(nouveau_cours)
+                nouveau_copy = nouveau_cours.copy()
+                nouveau_copy['type'] = 'ajout'
+                modifications.append(nouveau_copy)
             else:
                 ancien_cours = anciens_dict[cle]
                 changements = {}
-                for attribut in ['titre', 'room', 'prof', 'end']:
-                    if nouveau_cours.get(attribut) != ancien_cours.get(attribut):
-                        changements[attribut] = {'ancien': ancien_cours.get(attribut), 'nouveau': nouveau_cours.get(attribut)}
+                for attr in ['titre', 'room', 'prof', 'end']:
+                    if nouveau_cours.get(attr) != ancien_cours.get(attr):
+                        changements[attr] = {'ancien': ancien_cours.get(attr), 'nouveau': nouveau_cours.get(attr)}
                 
                 if changements:
                     modifications.append({
@@ -804,20 +777,47 @@ def principale():
 
         for cle, ancien_cours in anciens_dict.items():
             if cle not in nouveaux_dict:
-                ancien_cours['type'] = 'suppression'
-                modifications.append(ancien_cours)
+                ancien_copy = ancien_cours.copy()
+                ancien_copy['type'] = 'suppression'
+                modifications.append(ancien_copy)
 
         envoyer_notification_discord(modifications)
 
-    # Sauvegarde des nouvelles données pour la prochaine fois
+    # Fusionner l'historique préservé avec les toutes nouvelles données
+    toutes_les_donnees = donnees_historiques + nouvelles_donnees_cours
+
     with open(fichier_json, "w", encoding="utf-8") as f:
-        json.dump(nouvelles_donnees_cours, f, ensure_ascii=False, indent=2)
+        json.dump(toutes_les_donnees, f, ensure_ascii=False, indent=2)
     # ------------------------------------------------
 
-    with open("edt.ics", 'w', encoding='utf-8') as f:
-        f.writelines(calendrier.serialize())
+    # --- RECONSTRUCTION DE L'ICS COMPLET ---
+    calendrier_global = Calendar()
+    tz = pytz.timezone('Europe/Paris')
+    
+    for cours in toutes_les_donnees:
+        ics_evt = Event()
+        ics_evt.name = cours['titre']
+        ics_evt.location = cours.get('room', '')
         
-    print("Terminé avec succès ! Fichier edt.ics généré.")
+        try:
+            h_start, m_start = map(int, cours['start'].split('h'))
+            h_end, m_end = map(int, cours['end'].split('h'))
+            date_obj = datetime.strptime(cours['date'], '%Y-%m-%d')
+            
+            # Application correcte du fuseau horaire
+            start_dt = tz.localize(date_obj.replace(hour=h_start, minute=m_start))
+            end_dt = tz.localize(date_obj.replace(hour=h_end, minute=m_end))
+            
+            ics_evt.begin = start_dt
+            ics_evt.end = end_dt
+            calendrier_global.events.add(ics_evt)
+        except Exception as e:
+            pass
+
+    with open("edt.ics", 'w', encoding='utf-8') as f:
+        f.writelines(calendrier_global.serialize())
+        
+    print("✅ Terminé avec succès ! Fichier edt.ics reconstruit et complet.")
     
     televerser_sur_google_drive("edt.ics", DRIVE_FOLDER_ID)
     shutil.rmtree("__pycache__", ignore_errors=True)
