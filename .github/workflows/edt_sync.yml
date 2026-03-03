@@ -17,9 +17,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Télécharge le PDF actuel depuis le site
+      # 2. Télécharge le PDF actuel depuis le site en se faisant passer pour un navigateur
       - name: Télécharger le nouveau PDF en ligne
-        run: curl -k -o edt_nouveau.pdf "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf"
+        run: |
+          curl -k -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o edt_nouveau.pdf "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf"
+          
+          # Sécurité : On vérifie que les 4 premiers caractères sont bien "%PDF"
+          if ! head -c 4 edt_nouveau.pdf | grep -q "%PDF"; then
+            echo "❌ Erreur : Le site n'a pas renvoyé un PDF valide !"
+            echo "Voici ce que le site a renvoyé :"
+            head -n 10 edt_nouveau.pdf
+            exit 1
+          fi
 
       # 3. Compare le nouveau avec l'ancien
       - name: Comparer les PDF
