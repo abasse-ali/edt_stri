@@ -356,17 +356,25 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
     
     return detected_slots
 
-def obtenir_nom_complet_professeur(initiales_ou_nom):
-    if not initiales_ou_nom: return ""
-    clean_txt = initiales_ou_nom.replace("(", "").replace(")", "").strip()
-    if clean_txt in PROFS: return PROFS[clean_txt]
-    for code, full_name in PROFS.items():
-        if code in clean_txt: return full_name
-    return clean_txt
-
 def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     prompt = """
     Analyse cette image de cours (créneau unique).
+    === Données d'entrée ===
+    - Une image JPEG d'un créneau de cours extrait d'un emploi du temps.
+    - PROFS = {
+        "AnAn": "Andréi ANDRÉI", "AA": "André AOUN", "AB": "Abdelmalek BENZEKRI",
+        "AL": "Abir LARABA", "BC": "Bilal CHEBARO", "BTJ": "Boris TIOMELA JOU",
+        "CC": "Cédric CHAMBAULT", "CG": "Christine GALY", "CT": "Cédric TEYSSIE",
+        "EG": "Eric GONNEAU", "EL": "Emmanuel LAVINAL", "FM": "Frédéric MOUTIER",
+        "GR": "Gérard ROUZIES", "JGT": "Jean-Guy TARTARIN", "JS": "Jérôme SOKOLOFF",
+        "KB": "Ketty BRAVO", "LC": "Louisa COT", "MCL": "Marie-Christine LAGASQUIÉ",
+        "MM": "MUSTAPHA MOJAHID", "OC": "Olivier CRIVELLARO", "OM": "Olfa MECHI",
+        "PA": "Philippe ARGUEL", "PIL": "Pierre LOTTE",
+        "PL": "Philippe LATU", "PT": "Patrice TORGUET", "RK": "Rahim KACIMI",
+        "RL": "Romain LABORDE", "SB": "Sonia BADENE", "SL": "Séverine LALANDE",
+        "TD": "Thierry DESPRATS", "TG": "Thierry GAYRAUD", "BA": "BA"
+    } (Initiales possibles des profs et leur nom complet)
+    - Tu dois transformer les initiales des profs en leur nom complet grâce à ce mapping. Si tu ne reconnais pas les initiales, laisse le texte tel quel. Avant de rendre le résultat, vérifie bien que le nom du prof est correct et complet (pas d'initiales restantes).
     
     === DÉTECTION STRUCTURE ===
     Regarde s'il y a une **ligne horizontale noire** de séparation au milieu.
@@ -665,7 +673,7 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_
                 
                 grp_str = f"[{grp}]" if grp else ""
                 p_txt = (block.get('prof') or "").strip()
-                p_full = obtenir_nom_complet_professeur(p_txt)
+                p_full = p_txt
                 
                 if p_full and p_full not in c_txt:
                     title = f"{grp_str} {c_txt} ({p_full})".strip()
@@ -688,7 +696,6 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_
                 })
 
     return current_model_idx, current_key_idx
-
 
 def principale():
     global REFERENCES_TEMPS
