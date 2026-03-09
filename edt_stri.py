@@ -382,6 +382,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - Si l'image contient seulemtent un TOP et en BAS une celulle blanche avec des traits verticals, c'est "TOP".
     - Si l'image contient seulemtent un BAS et en HAUT une celulle blanche avec des traits verticals, c'est "BOTTOM".
     - NON (Pas de ligne) -> C'est "FULL". C'est un seul cours sur toute la hauteur de l'image.
+    - Les initiales du professeur sont en italique et en dessous du titre dans un cours FULL, mais entre parenthèses à sur la même ligne que le j titre dans un cours TOP ou BOTTOM.
     - Si l'image est complètement blanche ou illisible, réponds avec un seul élément FULL avec course="Inconnu".
     - Si la case de la salle est rouge ou vert vide, room="Non attribuée".
 
