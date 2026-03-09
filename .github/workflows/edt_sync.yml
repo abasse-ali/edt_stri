@@ -17,44 +17,79 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Télécharge le PDF actuel depuis le site en se faisant passer pour un navigateur
-      - name: Télécharger le nouveau PDF en ligne
+      # 2. Initialiser Python DÈS LE DÉBUT (nécessaire pour le téléchargement anti-bot)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 3. Installer les outils pour contourner l'anti-bot (Playwright)
+      - name: Install download tools
         run: |
-          curl -k -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o edt_nouveau.pdf "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf"
+          pip install playwright requests
+          playwright install chromium
+
+      # 4. Télécharger le PDF en contournant le WAF "Tiger Protect" via Playwright
+      - name: Télécharger le nouveau PDF via Playwright
+        run: |
+          cat << 'EOF' > download_pdf.py
+          import requests
+          import time
+          from playwright.sync_api import sync_playwright
+
+          pdf_url = 'https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf'
+          base_url = 'https://stri.fr/'
+
+          with sync_playwright() as p:
+              print("🌐 Lancement du navigateur fantôme...")
+              browser = p.chromium.launch(headless=True)
+              context = browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+              page = context.new_page()
+              
+              print("🛡️ Passage de la vérification anti-bot (Tiger Protect)...")
+              page.goto(base_url)
+              time.sleep(10) # Laisse le temps au JavaScript de valider
+              
+              print("🍪 Récupération du cookie d'accès...")
+              cookies = context.cookies()
+              cookie_dict = {c['name']: c['value'] for c in cookies}
+              browser.close()
+
+          print("📥 Téléchargement du fichier PDF...")
+          headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+          response = requests.get(pdf_url, headers=headers, cookies=cookie_dict)
+
+          with open('edt_nouveau.pdf', 'wb') as f:
+              f.write(response.content)
+
+          print("✅ Téléchargement terminé !")
+          EOF
+          
+          python download_pdf.py
           
           # Sécurité : On vérifie que les 4 premiers caractères sont bien "%PDF"
           if ! head -c 4 edt_nouveau.pdf | grep -q "%PDF"; then
-            echo "❌ Erreur : Le site n'a pas renvoyé un PDF valide !"
-            echo "Voici ce que le site a renvoyé :"
+            echo "❌ Erreur : Le fichier téléchargé n'est pas un PDF valide !"
             head -n 10 edt_nouveau.pdf
             exit 1
           fi
 
-      # 3. Compare le nouveau avec l'ancien
+      # 5. Compare le nouveau avec l'ancien
       - name: Comparer les PDF
         id: verification
         run: |
-          # Si edt.pdf n'existe pas (lors du tout premier lancement), on le crée vide
           touch edt.pdf 
           
-          # La commande 'cmp' compare les deux fichiers silencieusement
           if cmp -s edt_nouveau.pdf edt.pdf; then
             echo "📄 Aucun changement détecté dans le PDF. Arrêt."
             echo "run_script=false" >> $GITHUB_OUTPUT
           else
             echo "🚨 Le PDF a changé ! On prépare l'exécution."
-            # On remplace l'ancien par le nouveau pour que Python puisse le lire
             mv edt_nouveau.pdf edt.pdf
             echo "run_script=true" >> $GITHUB_OUTPUT
           fi
 
       # --- À PARTIR D'ICI, LES ÉTAPES NE SE LANCENT QUE SI LE PDF A CHANGÉ ---
-
-      - name: Set up Python
-        if: steps.verification.outputs.run_script == 'true'
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
       - name: Install system dependencies (Poppler)
         if: steps.verification.outputs.run_script == 'true'
@@ -80,7 +115,7 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python edt_stri.py
 
-      # 4. On sauvegarde le PDF ET les données JSON sur GitHub
+      # 6. On sauvegarde le PDF ET les données JSON sur GitHub
       - name: Sauvegarder les fichiers sur le dépôt
         if: steps.verification.outputs.run_script == 'true'
         run: |
