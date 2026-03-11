@@ -50,25 +50,13 @@ MODELS = [
 DRIVE_FOLDER_ID = "1ID97m9gVzOqcLvdYBAabUo5wZKzZ5Nj-"
 
 REFERENCES_TEMPS = []
+GLOBAL_START_X = 0
+GLOBAL_END_X = 0
 
 if platform.system() == "Windows":
     POPPLER_PATH = r"D:\Mes Projets\edt_stri\poppler\Library\bin"
 else:
     POPPLER_PATH = None
-    
-PROFS = {
-    "AnAn": "Andréi ANDRÉI", "AA": "André AOUN", "AB": "Abdelmalek BENZEKRI",
-    "AL": "Abir LARABA", "BC": "Bilal CHEBARO", "BTJ": "Boris TIOMELA JOU",
-    "CC": "Cédric CHAMBAULT", "CG": "Christine GALY", "CT": "Cédric TEYSSIE",
-    "EG": "Eric GONNEAU", "EL": "Emmanuel LAVINAL", "FM": "Frédéric MOUTIER",
-    "GR": "Gérard ROUZIES", "JGT": "Jean-Guy TARTARIN", "JS": "Jérôme SOKOLOFF",
-    "KB": "Ketty BRAVO", "LC": "Louisa COT", "MCL": "Marie-Christine LAGASQUIÉ",
-    "MM": "MUSTAPHA MOJAHID", "OC": "Olivier CRIVELLARO", "OM": "Olfa MECHI",
-    "PA": "Philippe ARGUEL", "PIL": "Pierre LOTTE",
-    "PL": "Philippe LATU", "PT": "Patrice TORGUET", "RK": "Rahim KACIMI",
-    "RL": "Romain LABORDE", "SB": "Sonia BADENE", "SL": "Séverine LALANDE",
-    "TD": "Thierry DESPRATS", "TG": "Thierry GAYRAUD", "BA": "BA"
-}
 
 # =====================================================================
 # FONCTIONS DISCORD
@@ -156,17 +144,11 @@ def filtrer_et_dessiner_rectangles(liste_rects, tolerance=10):
     return rects_valides
 
 def tracer_grand_rectangle(img):
+    global GLOBAL_START_X, GLOBAL_END_X
+    
     h, w = img.shape[:2]
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)
-    
-    col_sums = np.sum(thresh, axis=0) / 255 
-    x_lines = []
-    
-    for x in range(w):
-        if col_sums[x] > h * 0.6: 
-            if not x_lines or x - x_lines[-1] > 15: 
-                x_lines.append(x)
                 
     row_sums = np.sum(thresh, axis=1) / 255
     y_lines = []
@@ -176,83 +158,103 @@ def tracer_grand_rectangle(img):
             if not y_lines or y - y_lines[-1] > 15:
                 y_lines.append(y)
                 
-    if len(x_lines) >= 2 and len(y_lines) >= 2:
-        x_droite_jour = x_lines[1]
-        x_droite_planning = x_lines[-1]
+    # --- UTILISATION STRICTE DES X DE L'EN-TÊTE ---
+    x_start = GLOBAL_START_X
+    x_end = GLOBAL_END_X
+    
+    if len(y_lines) >= 2:
         y_haut = y_lines[0]
         y_bas = y_lines[-1]
-        cv2.rectangle(img, (x_droite_jour, y_haut), (x_droite_planning, y_bas), (0, 0, 0), 5)
+        # On continue de tracer le cadre noir, mais avec les X parfaitement alignés
+        cv2.rectangle(img, (x_start, y_haut), (x_end - 5, y_bas), (0, 0, 0), 5)
     
-    return img
+    # Découpe de l'image (parfaitement synchronisée avec REFERENCES_TEMPS)
+    img_coupee = img[:, x_start:x_end]
+    
+    # Ajout de la marge blanche de 10px dès maintenant !
+    img_padded = cv2.copyMakeBorder(img_coupee, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    
+    return img_padded, x_start, x_end
 
-def detecter_et_remplir_cellules_pointillees(img):
+def detecter_et_dessiner_ligne_verticale(img, date_str):
+    global REFERENCES_TEMPS
+    x_start, x_end = 0, img.shape[1] if img is not None else 0
+    
     if img is None:
-        return
+        return img, x_start, x_end 
 
     try:
-        img = tracer_grand_rectangle(img)
-    except NameError:
-        pass
+        # L'image reçue ici est déjà coupée ET a sa marge de 10px
+        img, x_start, x_end = tracer_grand_rectangle(img)
+    except Exception as e:
+        print(f"Erreur lors du traçage/découpe : {e}")
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
     h, w = img.shape[:2]
+    
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    kernel_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, h // 2))
-    solid_v = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_v)
+    # =========================================================================
+    # NOUVELLE LOGIQUE : Intersection avec la vraie grille
+    # =========================================================================
     
-    kernel_h = cv2.getStructuringElement(cv2.MORPH_RECT, (w // 10, 1))
-    solid_h = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_h)
+    # 1. On isole uniquement les pixels très noirs (la grille et le texte)
+    # Les fonds colorés (orange, vert...) seront ignorés car trop clairs (seuil à 50)
+    _, thresh_black = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
     
-    no_solid = cv2.subtract(thresh, cv2.bitwise_or(solid_v, solid_h))
-
-    contours, _ = cv2.findContours(no_solid, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # 2. On isole uniquement les traits verticaux
+    # (Cela va effacer le texte et les lignes horizontales)
+    kernel_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 4))
+    v_lines = cv2.morphologyEx(thresh_black, cv2.MORPH_OPEN, kernel_v)
     
-    tirets = []
-    for cnt in contours:
-        x, y, w_rect, h_rect = cv2.boundingRect(cnt)
-        rect = cv2.minAreaRect(cnt)
-        (w_rot, h_rot) = rect[1]
-        
-        if w_rot == 0 or h_rot == 0:
-            continue
+    # On épaissit légèrement ces vraies lignes pour s'assurer que notre ligne
+    # théorique croise bien la vraie ligne (tolérance aux micro-décalages)
+    v_lines = cv2.dilate(v_lines, np.ones((5, 3), np.uint8)) 
+    
+    # 3. On crée un "calque" vierge pour tracer nos trajectoires idéales
+    line_mask = np.zeros((h, w), dtype=np.uint8)
+    
+    for ref_x, label in REFERENCES_TEMPS:
+        local_x = ref_x
+        if 0 <= local_x < w:
+            # On trace notre trajectoire de référence (épaisseur 3px)
+            cv2.line(line_mask, (local_x, 10), (local_x, 65), 255, 2)
             
-        epaisseur = min(w_rot, h_rot)
-        longueur = max(w_rot, h_rot)
-
-        if longueur >= 4 and epaisseur <= 6 and w_rect <= 20:
-            x_center = x + (w_rect // 2)
-            tirets.append((x_center, y, y + h_rect))
-
-    tirets.sort(key=lambda t: t[0])
-    groupes_lignes = []
-    groupe_actuel = []
-
-    for tiret in tirets:
-        if not groupe_actuel:
-            groupe_actuel.append(tiret)
-        else:
-            avg_x = sum(t[0] for t in groupe_actuel) / len(groupe_actuel)
-            if abs(tiret[0] - avg_x) <= 6:
-                groupe_actuel.append(tiret)
-            else:
-                groupes_lignes.append(groupe_actuel)
-                groupe_actuel = [tiret]
-    if groupe_actuel:
-        groupes_lignes.append(groupe_actuel)
-
+    # 4. L'INTERSECTION MAGIQUE : 
+    # On ne garde notre calque vert QUE là où il croise une VRAIE ligne verticale (v_lines)
+    final_mask = cv2.bitwise_and(line_mask, v_lines)
+    
+    # =========================================================================
+    # NOUVEAU FILTRE : Suppression des lignes de moins de 10px de hauteur
+    # =========================================================================
+    
+    # On détecte tous les fragments distincts dans le masque
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(final_mask, connectivity=8)
+    
+    # On prépare un nouveau masque tout propre
+    clean_mask = np.zeros_like(final_mask)
+    
+    # On boucle sur chaque élément trouvé (on commence à 1 pour ignorer le fond noir qui est 0)
+    for i in range(1, num_labels):
+        # stats[i, cv2.CC_STAT_HEIGHT] nous donne la hauteur exacte du fragment
+        hauteur = stats[i, cv2.CC_STAT_HEIGHT]
+        
+        # Si la hauteur est de 10px ou plus, on l'autorise sur notre masque propre
+        if hauteur >= 15:
+            clean_mask[labels == i] = 255
+            
+    # On remplace l'ancien masque par le nouveau masque filtré
+    final_mask = clean_mask
+        
+    # 5. On imprime les lignes sur l'image finale
     result_img = img.copy()
-    for groupe in groupes_lignes:
-        if 2 <= len(groupe) <= 7:
-            min_y = min(t[1] for t in groupe)
-            max_y = max(t[2] for t in groupe)
-            hauteur_totale = max_y - min_y
-
-            if hauteur_totale >= h * 0.45:
-                final_x = int(sum(t[0] for t in groupe) / len(groupe))
-                cv2.line(result_img, (final_x, 0), (final_x, h), (0, 0, 0), 3)
-
-    return result_img
+    result_img[final_mask > 0] = [0, 0, 0] # Colorie les traits en vert
+    
+    # Sauvegarde de débug
+    folder_path = Path("export_cours") / date_str
+    folder_path.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(folder_path / "ligne_vert_debug.jpg"), result_img)
+    
+    return result_img, x_start, x_end
 
 def detecter_creneaux_cours_opencv(pil_image, date_str):
     img_cv = np.array(pil_image)
@@ -261,36 +263,20 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
         
     img_raw = img_cv.copy()
     
+    # 1. On récupère l'image déjà coupée, paddée (+10px), et avec ses lignes verticales nettes
+    img_cv, x_start, x_end = detecter_et_dessiner_ligne_verticale(img_cv, date_str)
+    
+    # 2. On reproduit la même découpe ET le même padding sur l'image raw
+    img_crop_raw = img_raw[:, x_start:x_end]
+    img_crop_raw = cv2.copyMakeBorder(img_crop_raw, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    
     hsv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2HSV)
     mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
     mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
     red_mask = mask1 + mask2
     img_cv[red_mask > 0] = [0, 255, 0]
     
-    gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-
-    total_h, total_w = img_cv.shape[:2]
-
-    ver_kernel_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, total_h // 3))
-    vertical_lines_only = cv2.erode(thresh, ver_kernel_long, iterations=1)
-    vertical_lines_only = cv2.dilate(vertical_lines_only, ver_kernel_long, iterations=1)
-    
-    contours_v, _ = cv2.findContours(vertical_lines_only, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    x_positions = [cv2.boundingRect(c)[0] for c in contours_v if cv2.boundingRect(c)[3] > total_h/2]
-    x_positions.sort()
-
-    if len(x_positions) < 3: 
-        x_start, x_end = 0, total_w
-    else: 
-        x_start, x_end = x_positions[1], x_positions[-1] + 5
-
-    img_crop = img_cv[:, x_start:x_end]
-    img_crop_raw = img_raw[:, x_start:x_end]
-    
-    img_crop = cv2.copyMakeBorder(img_crop, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
-    img_crop_raw = cv2.copyMakeBorder(img_crop_raw, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
-    
+    img_crop = img_cv
     gray_crop = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
     thresh_crop = cv2.threshold(gray_crop, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     
@@ -333,6 +319,8 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
         for i, cours in enumerate(liste_finale):
             real_x1 = cours['x1']
             real_x2 = cours['x2']
+            
+            # Correction des coordonnées pour interroger REFERENCES_TEMPS
             start_str = obtenir_heure_proche(real_x1)
             end_str = obtenir_heure_proche(real_x2)
             
@@ -488,13 +476,21 @@ def televerser_sur_google_drive(nom_fichier, dossier_id):
         print(f"❌ Erreur Upload : {e}")
 
 def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
+    global REFERENCES_TEMPS, GLOBAL_START_X, GLOBAL_END_X
+    if platform.system() == "Windows":
+        POPPLER_PATH = r"D:\Mes Projets\edt_stri\poppler\Library\bin"
+    else:
+        POPPLER_PATH = None
+        
     pages = convert_from_path(chemin_pdf, dpi=dpi, poppler_path=POPPLER_PATH)
     img = np.array(pages[page_num])
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     
+    # 1. Binarisation
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
     
+    # Détection du Y (Bande des heures)
     min_line_length = img.shape[1] // 3
     horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (min_line_length, 1))
     horiz_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horiz_kernel)
@@ -509,6 +505,7 @@ def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
     if len(unique_y) < 2: return []
     y_start, y_end = unique_y[0] - 2, unique_y[1] + 2
     
+    # --- DÉTERMINATION DU X START/END (Lignes pleines uniquement) ---
     crop_h = y_end - y_start
     kernel_v_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, crop_h - 10))
     major_v_lines = cv2.morphologyEx(thresh[y_start:y_end, :], cv2.MORPH_OPEN, kernel_v_long)
@@ -522,21 +519,29 @@ def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
     start_x = ux[1] - 3 
     end_x = ux[-1] + 3
     
+    GLOBAL_START_X = start_x
+    GLOBAL_END_X = end_x
+    
+    # 2. Crop final et Padding
     final_crop = img[y_start:y_end, start_x:end_x]
     padding = 10
     padded_img = cv2.copyMakeBorder(final_crop, padding, padding, padding, padding, 
                                     cv2.BORDER_CONSTANT, value=[255, 255, 255])
     
+    # --- DÉTECTION STRICTE (Traits pleins ET pointillés) ---
     gray_padded = cv2.cvtColor(padded_img, cv2.COLOR_BGR2GRAY)
     _, thresh_padded = cv2.threshold(gray_padded, 210, 255, cv2.THRESH_BINARY_INV)
     
+    # ÉTAPE A : Supprimer UNIQUEMENT les longues bordures horizontales
     kernel_h_borders = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
     horizontal_borders = cv2.morphologyEx(thresh_padded, cv2.MORPH_OPEN, kernel_h_borders)
     thresh_no_borders = cv2.subtract(thresh_padded, horizontal_borders)
     
+    # ÉTAPE B : Connecter les pointillés verticalement
     kernel_close_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 20))
     connected_v_lines = cv2.morphologyEx(thresh_no_borders, cv2.MORPH_CLOSE, kernel_close_v)
     
+    # ÉTAPE C : Isoler par la hauteur (Le texte disparaît ici)
     kernel_open_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(crop_h * 0.6)))
     clean_v_lines = cv2.morphologyEx(connected_v_lines, cv2.MORPH_OPEN, kernel_open_v)
 
@@ -550,21 +555,28 @@ def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
             
     raw_x_found.sort()
     
+    # Filtrage des doublons (proximité < 10 pixels)
     final_x_positions = []
     for x in raw_x_found:
         if not final_x_positions or x - final_x_positions[-1] > 10:
             final_x_positions.append(x)
 
+    # --- INJECTION ARTIFICIELLE DES TRAITS MANQUANTS (12h15 et 13h15) ---
+    # L'index 17 correspond à 12h00 dans notre liste
     if len(final_x_positions) > 18:
         x_12h00 = final_x_positions[17]
+        # Si la distance avec le trait suivant est > 50px, c'est que le 12h15 est absent (le suivant est 12h30)
         if final_x_positions[18] - x_12h00 > 50:
-            final_x_positions.insert(18, x_12h00 + 35)
+            final_x_positions.insert(18, x_12h00 + 29)
 
+    # L'index 21 correspond à 13h00 (maintenant que 12h15 est en place)
     if len(final_x_positions) > 22:
         x_13h00 = final_x_positions[21]
+        # Si la distance avec le trait suivant est > 40px, c'est que le 13h15 est absent
         if final_x_positions[22] - x_13h00 > 40:
-            final_x_positions.insert(22, x_13h00 + 20)
+            final_x_positions.insert(22, x_13h00 + 21)
 
+    # 3. Mapping avec les heures
     heures_attendues = [
         "07h45", "08h00", "08h15", "08h30", "08h45", "09h00", "09h15", "09h30", "09h45", "10h00", "10h15", "10h30",
         "10h45", "11h00", "11h15", "11h30", "11h45", "12h00", "12h15", "12h30", "12h45", "13h00", "13h15", "13h30",
@@ -573,12 +585,18 @@ def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
         "19h45", "20h00"
     ]
     
-    refs_temps = []
+    REFERENCES_TEMPS = []
+    debug_out = padded_img.copy()
+    
     for i, x in enumerate(final_x_positions):
         label = heures_attendues[i] if i < len(heures_attendues) else f"?"
-        refs_temps.append((x, label))
+        REFERENCES_TEMPS.append((x, label))
+        cv2.line(debug_out, (x, 1), (x, padded_img.shape[0]), (0, 0, 255), 1)
         
-    return refs_temps
+    os.makedirs("export_cours", exist_ok=True)
+    cv2.imwrite(str(Path("export_cours") / "debug_lignes_heures.png"), debug_out)
+    print(f"Positions extraites : {REFERENCES_TEMPS}")
+    return REFERENCES_TEMPS
 
 def extraire_zones_jours_pdf(chemin_pdf):
     final_day_zones = []
@@ -684,7 +702,7 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_
                 title = title.replace("[] ", "")
                 if 'JAUNE' in col_txt: title = "[EXAMEN] " + title
                 
-                print(f"      [+] Ajout : {title} ({start_str}-{end_str})")
+                print(f"     [+] Ajout : {title} ({start_str}-{end_str})")
 
                 # Sauvegarde exclusive en JSON (l'ICS sera généré à la fin)
                 liste_cours_json.append({
@@ -712,7 +730,7 @@ def principale():
     final_day_zones = extraire_zones_jours_pdf("edt.pdf")
     images_pdf = convert_from_path("edt.pdf", poppler_path=POPPLER_PATH, dpi=200)
     
-    current_model_idx = 0 
+    current_model_idx = 0
     current_key_idx = 0
     nouvelles_donnees_cours = [] 
 
@@ -797,7 +815,7 @@ def principale():
     with open(fichier_json, "w", encoding="utf-8") as f:
         json.dump(toutes_les_donnees, f, ensure_ascii=False, indent=2)
     # ------------------------------------------------
-
+    
     # --- RECONSTRUCTION DE L'ICS COMPLET ---
     calendrier_global = Calendar()
     tz = pytz.timezone('Europe/Paris')
@@ -821,14 +839,13 @@ def principale():
             calendrier_global.events.add(ics_evt)
         except Exception as e:
             pass
-
+    
     with open("edt.ics", 'w', encoding='utf-8') as f:
         f.writelines(calendrier_global.serialize())
         
     print("✅ Terminé avec succès ! Fichier edt.ics reconstruit et complet.")
     
     televerser_sur_google_drive("edt.ics", DRIVE_FOLDER_ID)
-    shutil.rmtree("__pycache__", ignore_errors=True)
 
 if __name__ == "__main__":
     principale()
