@@ -1,6 +1,5 @@
 import os
 import json
-import shutil
 from pathlib import Path
 import re
 import platform
@@ -52,11 +51,6 @@ DRIVE_FOLDER_ID = "1ID97m9gVzOqcLvdYBAabUo5wZKzZ5Nj-"
 REFERENCES_TEMPS = []
 GLOBAL_START_X = 0
 GLOBAL_END_X = 0
-
-if platform.system() == "Windows":
-    POPPLER_PATH = r"D:\Mes Projets\edt_stri\poppler\Library\bin"
-else:
-    POPPLER_PATH = None
 
 # =====================================================================
 # FONCTIONS DISCORD
@@ -176,7 +170,7 @@ def tracer_grand_rectangle(img):
     
     return img_padded, x_start, x_end
 
-def detecter_et_dessiner_ligne_verticale(img, date_str):
+def detecter_et_dessiner_ligne_verticale(img):
     global REFERENCES_TEMPS
     x_start, x_end = 0, img.shape[1] if img is not None else 0
     
@@ -249,11 +243,6 @@ def detecter_et_dessiner_ligne_verticale(img, date_str):
     result_img = img.copy()
     result_img[final_mask > 0] = [0, 0, 0] # Colorie les traits en vert
     
-    # Sauvegarde de débug
-    folder_path = Path("export_cours") / date_str
-    folder_path.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(folder_path / "ligne_vert_debug.jpg"), result_img)
-    
     return result_img, x_start, x_end
 
 def detecter_creneaux_cours_opencv(pil_image, date_str):
@@ -306,8 +295,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
     liste_finale.sort(key=lambda k: k['x1'])
 
     detected_slots = []
-    folder_path = Path("export_cours") / date_str
-    folder_path.mkdir(parents=True, exist_ok=True)
     
     if liste_finale:
         y_top_global = min(c['y'] for c in liste_finale)
@@ -328,10 +315,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
             roi_cours = img_crop_raw[y_top_global:y_top_global+h_global, cours['x1']:cours['x2']]
             
             if roi_cours.size > 0:
-                safe_start = start_str.replace(':', 'h')
-                safe_end = end_str.replace(':', 'h')
-                filename = folder_path / f"slot_{i}_{safe_start}_{safe_end}.jpg"
-                cv2.imwrite(str(filename), roi_cours)
                 success, encoded_img = cv2.imencode('.jpg', roi_cours)
                 if success:
                     detected_slots.append({
@@ -339,8 +322,6 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
                         "start": start_str,
                         "end": end_str
                     })
-            
-        cv2.imwrite(str(folder_path / "overview_debug.jpg"), debug_img)
     
     return detected_slots
 
@@ -366,13 +347,15 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     
     === DÉTECTION STRUCTURE ===
     Regarde s'il y a une **ligne horizontale noire** de séparation au milieu.
-    - OUI (Ligne noire) -> C'est "SPLIT". Il y a deux cours : un en **HAUT** (TOP), un en **BAS** (BOTTOM).
+    - OUI (Ligne noire continue ou discontinue) -> C'est "SPLIT". Il y a deux cours : un en **HAUT** (TOP), un en **BAS** (BOTTOM).
     - Si l'image contient seulemtent un TOP et en BAS une celulle blanche avec des traits verticals, c'est "TOP".
     - Si l'image contient seulemtent un BAS et en HAUT une celulle blanche avec des traits verticals, c'est "BOTTOM".
     - NON (Pas de ligne) -> C'est "FULL". C'est un seul cours sur toute la hauteur de l'image.
-    - Les initiales du professeur sont en italique et en dessous du titre dans un cours FULL, mais entre parenthèses à sur la même ligne que le j titre dans un cours TOP ou BOTTOM.
+    - Les initiales du professeur sont en italique et en dessous du titre dans un cours FULL, mais entre parenthèses à sur la même ligne que le titre dans un cours TOP ou BOTTOM.
     - Si l'image est complètement blanche ou illisible, réponds avec un seul élément FULL avec course="Inconnu".
-    - Si la case de la salle est rouge ou vert vide, room="Non attribuée".
+    - Si la case de la salle est rouge vide ou verte vide ou blanche vide, room="Non attribuée".
+    - Si /TP ou /TD dans le titre, on le garde dans le résultat titre.
+    - Après extraction de /GB ou /GC dans le titre, on les retire du titre et on les met dans le champ "group".
 
     === EXTRACTION ===
     Pour chaque élément :
@@ -472,131 +455,149 @@ def televerser_sur_google_drive(nom_fichier, dossier_id):
             del file_metadata['parents']
             service.files().update(fileId=items[0]['id'], body=file_metadata, media_body=media, fields='id').execute()
         print(f"✅ Fichier mis à jour sur Drive.")
-    except Exception as e: 
+    except Exception as e:
         print(f"❌ Erreur Upload : {e}")
 
 def extraire_positions_heures_pdf(chemin_pdf, page_num=0, dpi=200):
     global REFERENCES_TEMPS, GLOBAL_START_X, GLOBAL_END_X
-    if platform.system() == "Windows":
-        POPPLER_PATH = r"D:\Mes Projets\edt_stri\poppler\Library\bin"
-    else:
-        POPPLER_PATH = None
-        
-    pages = convert_from_path(chemin_pdf, dpi=dpi, poppler_path=POPPLER_PATH)
-    img = np.array(pages[page_num])
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    
-    # 1. Binarisation
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
-    
-    # Détection du Y (Bande des heures)
-    min_line_length = img.shape[1] // 3
-    horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (min_line_length, 1))
-    horiz_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horiz_kernel)
-    contours_h, _ = cv2.findContours(horiz_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    y_coords = sorted([cv2.boundingRect(c)[1] for c in contours_h])
-    
-    unique_y = []
-    for y in y_coords:
-        if not unique_y or y - unique_y[-1] > 10:
-            unique_y.append(y)
-            
-    if len(unique_y) < 2: return []
-    y_start, y_end = unique_y[0] - 2, unique_y[1] + 2
-    
-    # --- DÉTERMINATION DU X START/END (Lignes pleines uniquement) ---
-    crop_h = y_end - y_start
-    kernel_v_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, crop_h - 10))
-    major_v_lines = cv2.morphologyEx(thresh[y_start:y_end, :], cv2.MORPH_OPEN, kernel_v_long)
-    cnts_v, _ = cv2.findContours(major_v_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    major_x = sorted([cv2.boundingRect(c)[0] for c in cnts_v])
-    
-    ux = []
-    for x in major_x:
-        if not ux or x - ux[-1] > 15: ux.append(x)
-    
-    start_x = ux[1] - 3 
-    end_x = ux[-1] + 3
-    
-    GLOBAL_START_X = start_x
-    GLOBAL_END_X = end_x
-    
-    # 2. Crop final et Padding
-    final_crop = img[y_start:y_end, start_x:end_x]
-    padding = 10
-    padded_img = cv2.copyMakeBorder(final_crop, padding, padding, padding, padding, 
-                                    cv2.BORDER_CONSTANT, value=[255, 255, 255])
-    
-    # --- DÉTECTION STRICTE (Traits pleins ET pointillés) ---
-    gray_padded = cv2.cvtColor(padded_img, cv2.COLOR_BGR2GRAY)
-    _, thresh_padded = cv2.threshold(gray_padded, 210, 255, cv2.THRESH_BINARY_INV)
-    
-    # ÉTAPE A : Supprimer UNIQUEMENT les longues bordures horizontales
-    kernel_h_borders = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
-    horizontal_borders = cv2.morphologyEx(thresh_padded, cv2.MORPH_OPEN, kernel_h_borders)
-    thresh_no_borders = cv2.subtract(thresh_padded, horizontal_borders)
-    
-    # ÉTAPE B : Connecter les pointillés verticalement
-    kernel_close_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 20))
-    connected_v_lines = cv2.morphologyEx(thresh_no_borders, cv2.MORPH_CLOSE, kernel_close_v)
-    
-    # ÉTAPE C : Isoler par la hauteur (Le texte disparaît ici)
-    kernel_open_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(crop_h * 0.6)))
-    clean_v_lines = cv2.morphologyEx(connected_v_lines, cv2.MORPH_OPEN, kernel_open_v)
 
-    contours_all, _ = cv2.findContours(clean_v_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    raw_x_found = []
-    for c in contours_all:
-        x, y, w, h = cv2.boundingRect(c)
-        if w < 10:
-            raw_x_found.append(x + w//2)
-            
-    raw_x_found.sort()
-    
-    # Filtrage des doublons (proximité < 10 pixels)
-    final_x_positions = []
-    for x in raw_x_found:
-        if not final_x_positions or x - final_x_positions[-1] > 10:
-            final_x_positions.append(x)
-
-    # --- INJECTION ARTIFICIELLE DES TRAITS MANQUANTS (12h15 et 13h15) ---
-    # L'index 17 correspond à 12h00 dans notre liste
-    if len(final_x_positions) > 18:
-        x_12h00 = final_x_positions[17]
-        # Si la distance avec le trait suivant est > 50px, c'est que le 12h15 est absent (le suivant est 12h30)
-        if final_x_positions[18] - x_12h00 > 50:
-            final_x_positions.insert(18, x_12h00 + 29)
-
-    # L'index 21 correspond à 13h00 (maintenant que 12h15 est en place)
-    if len(final_x_positions) > 22:
-        x_13h00 = final_x_positions[21]
-        # Si la distance avec le trait suivant est > 40px, c'est que le 13h15 est absent
-        if final_x_positions[22] - x_13h00 > 40:
-            final_x_positions.insert(22, x_13h00 + 21)
-
-    # 3. Mapping avec les heures
-    heures_attendues = [
-        "07h45", "08h00", "08h15", "08h30", "08h45", "09h00", "09h15", "09h30", "09h45", "10h00", "10h15", "10h30",
-        "10h45", "11h00", "11h15", "11h30", "11h45", "12h00", "12h15", "12h30", "12h45", "13h00", "13h15", "13h30",
-        "13h45", "14h00", "14h15", "14h30", "14h45", "15h00", "15h15", "15h30", "15h45", "16h00", "16h15", "16h30",
-        "16h45", "17h00", "17h15", "17h30", "17h45", "18h00", "18h15", "18h30", "18h45", "19h00", "19h15", "19h30",
-        "19h45", "20h00"
+    # Définition des valeurs de secours en cas d'échec
+    valeurs_secours = [
+        (10, '07h45'), (52, '08h00'), (89, '08h15'), (127, '08h30'), (164, '08h45'), 
+        (201, '09h00'), (247, '09h15'), (284, '09h30'), (341, '09h45'), (357, '10h00'), 
+        (403, '10h15'), (441, '10h30'), (478, '10h45'), (526, '11h00'), (572, '11h15'), 
+        (609, '11h30'), (655, '11h45'), (695, '12h00'), (724, '12h15'), (758, '12h30'), 
+        (779, '12h45'), (797, '13h00'), (818, '13h15'), (841, '13h30'), (878, '13h45'), 
+        (916, '14h00'), (959, '14h15'), (996, '14h30'), (1036, '14h45'), (1084, '15h00'), 
+        (1122, '15h15'), (1172, '15h30'), (1209, '15h45'), (1246, '16h00'), (1284, '16h15'), 
+        (1321, '16h30'), (1359, '16h45'), (1396, '17h00'), (1446, '17h15'), (1496, '17h30'), 
+        (1550, '17h45'), (1587, '18h00'), (1625, '18h15'), (1662, '18h30'), (1688, '18h45'), 
+        (1711, '19h00'), (1752, '19h15'), (1781, '19h30'), (1810, '19h45'), (1863, '20h00')
     ]
-    
-    REFERENCES_TEMPS = []
-    debug_out = padded_img.copy()
-    
-    for i, x in enumerate(final_x_positions):
-        label = heures_attendues[i] if i < len(heures_attendues) else f"?"
-        REFERENCES_TEMPS.append((x, label))
-        cv2.line(debug_out, (x, 1), (x, padded_img.shape[0]), (0, 0, 255), 1)
+
+    try:
+        pages = convert_from_path(chemin_pdf, dpi=dpi, poppler_path=None)
+        img = np.array(pages[page_num])
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         
-    os.makedirs("export_cours", exist_ok=True)
-    cv2.imwrite(str(Path("export_cours") / "debug_lignes_heures.png"), debug_out)
-    print(f"Positions extraites : {REFERENCES_TEMPS}")
-    return REFERENCES_TEMPS
+        # 1. Binarisation
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
+        
+        # Détection du Y (Bande des heures)
+        min_line_length = img.shape[1] // 3
+        horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (min_line_length, 1))
+        horiz_lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horiz_kernel)
+        contours_h, _ = cv2.findContours(horiz_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        y_coords = sorted([cv2.boundingRect(c)[1] for c in contours_h])
+        
+        unique_y = []
+        for y in y_coords:
+            if not unique_y or y - unique_y[-1] > 10:
+                unique_y.append(y)
+                
+        # On lève une erreur au lieu de retourner [] pour forcer l'utilisation des valeurs de secours
+        if len(unique_y) < 2: 
+            raise ValueError("Pas assez de lignes horizontales détectées.")
+            
+        y_start, y_end = unique_y[0] - 2, unique_y[1] + 2
+        
+        # --- DÉTERMINATION DU X START/END (Lignes pleines uniquement) ---
+        crop_h = y_end - y_start
+        kernel_v_long = cv2.getStructuringElement(cv2.MORPH_RECT, (1, crop_h - 10))
+        major_v_lines = cv2.morphologyEx(thresh[y_start:y_end, :], cv2.MORPH_OPEN, kernel_v_long)
+        cnts_v, _ = cv2.findContours(major_v_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        major_x = sorted([cv2.boundingRect(c)[0] for c in cnts_v])
+        
+        ux = []
+        for x in major_x:
+            if not ux or x - ux[-1] > 15: ux.append(x)
+        
+        start_x = ux[1] - 3 
+        end_x = ux[-1] + 3
+        
+        GLOBAL_START_X = start_x
+        GLOBAL_END_X = end_x
+        
+        # 2. Crop final et Padding
+        final_crop = img[y_start:y_end, start_x:end_x]
+        padding = 10
+        padded_img = cv2.copyMakeBorder(final_crop, padding, padding, padding, padding, 
+                                        cv2.BORDER_CONSTANT, value=[255, 255, 255])
+        
+        # --- DÉTECTION STRICTE (Traits pleins ET pointillés) ---
+        gray_padded = cv2.cvtColor(padded_img, cv2.COLOR_BGR2GRAY)
+        _, thresh_padded = cv2.threshold(gray_padded, 210, 255, cv2.THRESH_BINARY_INV)
+        
+        # ÉTAPE A : Supprimer UNIQUEMENT les longues bordures horizontales
+        kernel_h_borders = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+        horizontal_borders = cv2.morphologyEx(thresh_padded, cv2.MORPH_OPEN, kernel_h_borders)
+        thresh_no_borders = cv2.subtract(thresh_padded, horizontal_borders)
+        
+        # ÉTAPE B : Connecter les pointillés verticalement
+        kernel_close_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 20))
+        connected_v_lines = cv2.morphologyEx(thresh_no_borders, cv2.MORPH_CLOSE, kernel_close_v)
+        
+        # ÉTAPE C : Isoler par la hauteur (Le texte disparaît ici)
+        kernel_open_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(crop_h * 0.6)))
+        clean_v_lines = cv2.morphologyEx(connected_v_lines, cv2.MORPH_OPEN, kernel_open_v)
+
+        contours_all, _ = cv2.findContours(clean_v_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        raw_x_found = []
+        for c in contours_all:
+            x, y, w, h = cv2.boundingRect(c)
+            if w < 10:
+                raw_x_found.append(x + w//2)
+                
+        raw_x_found.sort()
+        
+        # Filtrage des doublons (proximité < 10 pixels)
+        final_x_positions = []
+        for x in raw_x_found:
+            if not final_x_positions or x - final_x_positions[-1] > 10:
+                final_x_positions.append(x)
+
+        # --- INJECTION ARTIFICIELLE DES TRAITS MANQUANTS (12h15 et 13h15) ---
+        if len(final_x_positions) > 18:
+            x_12h00 = final_x_positions[17]
+            if final_x_positions[18] - x_12h00 > 50:
+                final_x_positions.insert(18, x_12h00 + 29)
+
+        if len(final_x_positions) > 22:
+            x_13h00 = final_x_positions[21]
+            if final_x_positions[22] - x_13h00 > 40:
+                final_x_positions.insert(22, x_13h00 + 21)
+
+        # 3. Mapping avec les heures
+        heures_attendues = [
+            "07h45", "08h00", "08h15", "08h30", "08h45", "09h00", "09h15", "09h30", "09h45", "10h00", "10h15", "10h30",
+            "10h45", "11h00", "11h15", "11h30", "11h45", "12h00", "12h15", "12h30", "12h45", "13h00", "13h15", "13h30",
+            "13h45", "14h00", "14h15", "14h30", "14h45", "15h00", "15h15", "15h30", "15h45", "16h00", "16h15", "16h30",
+            "16h45", "17h00", "17h15", "17h30", "17h45", "18h00", "18h15", "18h30", "18h45", "19h00", "19h15", "19h30",
+            "19h45", "20h00"
+        ]
+        
+        REFERENCES_TEMPS = []
+        debug_out = padded_img.copy()
+        
+        for i, x in enumerate(final_x_positions):
+            label = heures_attendues[i] if i < len(heures_attendues) else f"?"
+            REFERENCES_TEMPS.append((x, label))
+            cv2.line(debug_out, (x, 1), (x, padded_img.shape[0]), (0, 0, 255), 1)
+            
+        print(f"Positions extraites avec succès : {REFERENCES_TEMPS}")
+        return REFERENCES_TEMPS
+
+    except Exception as e:
+        print(f"⚠️ Échec de l'extraction dynamique ({e}). Chargement des valeurs de secours.")
+        REFERENCES_TEMPS = valeurs_secours
+        
+        # Optionnel: on donne aussi des valeurs cohérentes à ces globales en cas de plantage
+        GLOBAL_START_X = valeurs_secours[0][0]
+        GLOBAL_END_X = valeurs_secours[-1][0]
+        
+        return REFERENCES_TEMPS
 
 def extraire_zones_jours_pdf(chemin_pdf):
     final_day_zones = []
@@ -644,7 +645,7 @@ def extraire_zones_jours_pdf(chemin_pdf):
 
 def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_cours_json):
     page_idx = zone['page'] - 1
-    if page_idx >= len(images_pdf): 
+    if page_idx >= len(images_pdf):
         return current_model_idx, current_key_idx
         
     page_img = images_pdf[page_idx]
@@ -702,7 +703,7 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_
                 title = title.replace("[] ", "")
                 if 'JAUNE' in col_txt: title = "[EXAMEN] " + title
                 
-                print(f"     [+] Ajout : {title} ({start_str}-{end_str})")
+                print(f"     [+] Ajout : {title} ({start_str}-{end_str}) en {block.get('room') or 'salle non attribuée'}")
 
                 # Sauvegarde exclusive en JSON (l'ICS sera généré à la fin)
                 liste_cours_json.append({
@@ -718,7 +719,7 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_
 
 def principale():
     global REFERENCES_TEMPS
-
+    
     print("📏 Calcul dynamique des références horaires...")
     REFERENCES_TEMPS = extraire_positions_heures_pdf("edt.pdf", dpi=200)
     
@@ -728,11 +729,11 @@ def principale():
         
     print("✂️ Traitement du PDF...")
     final_day_zones = extraire_zones_jours_pdf("edt.pdf")
-    images_pdf = convert_from_path("edt.pdf", poppler_path=POPPLER_PATH, dpi=200)
+    images_pdf = convert_from_path("edt.pdf", poppler_path=None, dpi=200)
     
     current_model_idx = 0
     current_key_idx = 0
-    nouvelles_donnees_cours = [] 
+    nouvelles_donnees_cours = []
 
     for i, zone in enumerate(final_day_zones):
         if zone['date'].weekday() == 0 and i > 0:
