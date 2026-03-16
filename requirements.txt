@@ -1,5 +1,6 @@
 requests
-ics>=0.8.0
+ics>=0.7.0
+tatsu<5.0
 pdfplumber
 pdf2image
 pytz
