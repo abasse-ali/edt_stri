@@ -67,9 +67,9 @@
     "date": "2026-03-18",
     "start": "10h00",
     "end": "12h00",
-    "titre": "TCP/IP TD ++",
+    "titre": "TCP/IP (Thierry DESPRATS)",
     "room": "U3-Amphi",
-    "prof": "Inconnu"
+    "prof": "Thierry DESPRATS"
   },
   {
     "date": "2026-03-18",
@@ -141,14 +141,6 @@
     "end": "11h00",
     "titre": "Réunion Alternance",
     "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-03-23",
-    "start": "11h00",
-    "end": "12h00",
-    "titre": "U2-Amphi Vandel",
-    "room": "U2-Amphi Vandel",
     "prof": "Inconnu"
   },
   {
@@ -350,14 +342,6 @@
     "titre": "[GC] Télécoms /TP",
     "room": "Non attribuée",
     "prof": "Inconnu"
-  },
-  {
-    "date": "2026-04-01",
-    "start": "16h45",
-    "end": "19h45",
-    "titre": "[GC] Télécoms /TP (Thierry GAYRAUD)",
-    "room": "U3-Amphi",
-    "prof": "Thierry GAYRAUD"
   },
   {
     "date": "2026-04-02",

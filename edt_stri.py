@@ -346,6 +346,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - Tu dois transformer les initiales des profs en leur nom complet grâce à ce mapping. Si tu ne reconnais pas les initiales, laisse le texte tel quel. Avant de rendre le résultat, vérifie bien que le nom du prof est correct et complet (pas d'initiales restantes).
     
     === DÉTECTION STRUCTURE ===
+    - Si dans l'image on a des traits verticaux juste devant la case d'un cours (BOTTOM), tu ignores le cours et on passe au suivant.
     Regarde s'il y a une **ligne horizontale noire** de séparation au milieu.
     - OUI (Ligne noire continue ou discontinue) -> C'est "SPLIT". Il y a deux cours : un en **HAUT** (TOP), un en **BAS** (BOTTOM).
     - Si l'image contient seulemtent un TOP et en BAS une celulle blanche avec des traits verticals, c'est "TOP".
