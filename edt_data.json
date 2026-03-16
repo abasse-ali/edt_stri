@@ -72,14 +72,6 @@
     "prof": "Thierry DESPRATS"
   },
   {
-    "date": "2026-03-18",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[GB] BD /TP (MUSTAPHA MOJAHID)",
-    "room": "U3-211/212",
-    "prof": "MUSTAPHA MOJAHID"
-  },
-  {
     "date": "2026-03-19",
     "start": "07h45",
     "end": "09h45",
@@ -105,6 +97,14 @@
   },
   {
     "date": "2026-03-20",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[GB] BD /TP (MUSTAPHA MOJAHID)",
+    "room": "U3-215/216",
+    "prof": "MUSTAPHA MOJAHID"
+  },
+  {
+    "date": "2026-03-20",
     "start": "10h00",
     "end": "12h00",
     "titre": "SHS (André AOUN)",
@@ -115,7 +115,7 @@
     "date": "2026-03-20",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[GC] Gest. De Projets (André AOUN)",
+    "titre": "[GC] Gest. De Projets (AA) (André AOUN)",
     "room": "U3-306",
     "prof": "André AOUN"
   },
@@ -140,6 +140,14 @@
     "start": "10h00",
     "end": "11h00",
     "titre": "Réunion Alternance",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-03-23",
+    "start": "11h00",
+    "end": "12h00",
+    "titre": "U2-Amphi Vandel",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -342,6 +350,14 @@
     "titre": "[GC] Télécoms /TP",
     "room": "Non attribuée",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-01",
+    "start": "16h45",
+    "end": "19h45",
+    "titre": "[GC] Télécoms /TP (Thierry GAYRAUD)",
+    "room": "U3-Amphi",
+    "prof": "Thierry GAYRAUD"
   },
   {
     "date": "2026-04-02",
