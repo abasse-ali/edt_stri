@@ -245,7 +245,7 @@ def detecter_et_dessiner_ligne_verticale(img):
     
     return result_img, x_start, x_end
 
-def detecter_creneaux_cours_opencv(pil_image, date_str):
+def detecter_creneaux_cours_opencv(pil_image):
     img_cv = np.array(pil_image)
     if img_cv.shape[2] == 3:
         img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
@@ -253,7 +253,7 @@ def detecter_creneaux_cours_opencv(pil_image, date_str):
     img_raw = img_cv.copy()
     
     # 1. On récupère l'image déjà coupée, paddée (+10px), et avec ses lignes verticales nettes
-    img_cv, x_start, x_end = detecter_et_dessiner_ligne_verticale(img_cv, date_str)
+    img_cv, x_start, x_end = detecter_et_dessiner_ligne_verticale(img_cv)
     
     # 2. On reproduit la même découpe ET le même padding sur l'image raw
     img_crop_raw = img_raw[:, x_start:x_end]
@@ -659,7 +659,7 @@ def traiter_journee(zone, images_pdf, current_model_idx, current_key_idx, liste_
     day_img_cv = cv2.cvtColor(day_img_np, cv2.COLOR_RGB2BGR)
     
     day_img_rgb = cv2.cvtColor(day_img_cv, cv2.COLOR_BGR2RGB)
-    slots_trouves = detecter_creneaux_cours_opencv(day_img_rgb, date_str_fmt)
+    slots_trouves = detecter_creneaux_cours_opencv(day_img_rgb)
 
     for slot_data in slots_trouves:
         img_bytes = slot_data["bytes"]
