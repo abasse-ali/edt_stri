@@ -317,7 +317,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - Si /TP ou /TD dans le titre, on le garde dans le résultat titre.
     - Après extraction de /GB ou /GC dans le titre, on les retire du titre et on les met dans le champ "group".
     - Si y'a "+" à côté de l'initiale de prof (Ex : "AA +" ou "TD ++"), on l'ignore.
-    - Si sur l'image, devant la case d'un cours (BOTTOM) on a des traits verticaux (ex : "| | | |Titre /GC (prof)|), on ignore le cours.
+    - Si sur l'image, devant ou après la case d'un cours (BOTTOM) on a des traits verticaux (ex : "| | | [Titre /GC (prof)] | | |), on ignore le cours.
 
     === EXTRACTION ===
     Pour chaque élément :
