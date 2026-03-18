@@ -401,6 +401,14 @@
   },
   {
     "date": "2026-04-03",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "[GC] TCP/IP",
+    "room": "U3-306",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-03",
     "start": "13h30",
     "end": "15h30",
     "titre": "SHS (André AOUN)",
