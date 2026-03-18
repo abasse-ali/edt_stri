@@ -1,13 +1,22 @@
-requests
-ics
-pdfplumber
-pdf2image
-pytz
-numpy
-opencv-python
-opencv-python-headless
-Pillow
-google-genai
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
+# --- Requêtes web et manipulations ICS ---
+requests>=2.32.0
+ics>=0.8.0
+
+# --- Manipulation et extraction PDF/Images ---
+pdfplumber>=0.11.0
+pdf2image>=1.17.0
+numpy>=2.0.0
+
+# --- Traitement d'images OpenCV ---
+# Utilisation de la version headless (sans interface graphique)
+# Idéale pour les scripts automatisés/serveurs.
+# Si tu as besoin d'afficher les fenêtres cv2.imshow(), remplace par: opencv-python>=4.9.0
+opencv-python-headless>=4.9.0
+
+# --- IA Générative Google (Gemini) ---
+google-genai>=0.3.0
+
+# --- Google Drive API ---
+google-api-python-client>=2.115.0
+google-auth-oauthlib>=1.2.0
+google-auth>=2.27.0
