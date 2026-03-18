@@ -1,6 +1,6 @@
 # --- Requêtes web et manipulations ICS ---
 requests>=2.32.0
-ics>=0.8.0
+ics>=0.8.0.dev0
 
 # --- Manipulation et extraction PDF/Images ---
 pdfplumber>=0.11.0
