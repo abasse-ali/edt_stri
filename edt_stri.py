@@ -760,11 +760,13 @@ def principale():
     
     # --- RECONSTRUCTION DE L'ICS COMPLET ---
     calendrier_global = Calendar()
-    tz = ZoneInfo('Europe/Paris') # NOUVEAU : Application de la timezone avec ZoneInfo
+    tz = ZoneInfo('Europe/Paris') # Utilisation du module standard ZoneInfo
     
     for cours in toutes_les_donnees:
         ics_evt = Event()
-        ics_evt.name = cours['titre']
+        
+        # NOUVELLE SYNTAXE ICS 0.8.0 : 'summary' au lieu de 'name'
+        ics_evt.summary = cours['titre']
         ics_evt.location = cours.get('room', '')
         
         try:
@@ -772,20 +774,24 @@ def principale():
             h_end, m_end = map(int, cours['end'].split('h'))
             date_obj = datetime.strptime(cours['date'], '%Y-%m-%d')
             
-            # Application de la timezone directement dans le datetime
+            # Application correcte du fuseau horaire avec ZoneInfo
             start_dt = date_obj.replace(hour=h_start, minute=m_start, tzinfo=tz)
             end_dt = date_obj.replace(hour=h_end, minute=m_end, tzinfo=tz)
             
             ics_evt.begin = start_dt
             ics_evt.end = end_dt
-            calendrier_global.events.add(ics_evt)
+            
+            # NOUVELLE SYNTAXE ICS 0.8.0 : 'append' au lieu de 'add'
+            calendrier_global.events.append(ics_evt)
+            
         except Exception as e:
-            pass
+            # On affiche l'erreur au lieu de la rendre silencieuse !
+            print(f"⚠️ Erreur lors de l'ajout du cours {cours.get('titre', 'inconnu')} : {e}")
     
     with open("edt.ics", 'w', encoding='utf-8') as f:
         f.writelines(calendrier_global.serialize())
         
-    print("✅ Terminé avec succès ! Fichier edt.ics reconstruit et complet.")
+    print(f"✅ Terminé avec succès ! Fichier edt.ics reconstruit avec {len(calendrier_global.events)} cours.")
     
     televerser_sur_google_drive("edt.ics", DRIVE_FOLDER_ID)
 
