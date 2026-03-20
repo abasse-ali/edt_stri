@@ -125,7 +125,7 @@
     "end": "17h45",
     "titre": "[GC] CPO /TP",
     "room": "U3-208/209",
-    "prof": "Inconnu"
+    "prof": "TP"
   },
   {
     "date": "2026-03-23",
@@ -140,14 +140,6 @@
     "start": "10h00",
     "end": "11h00",
     "titre": "Réunion Alternance",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-03-23",
-    "start": "11h00",
-    "end": "12h00",
-    "titre": "U2-Amphi Vandel",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -211,9 +203,9 @@
     "date": "2026-03-25",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[GB] CPO (Patrice TORGUET)",
+    "titre": "[GB] CPO",
     "room": "U3-208/209",
-    "prof": "Patrice TORGUET"
+    "prof": "Inconnu"
   },
   {
     "date": "2026-03-25",
@@ -259,9 +251,9 @@
     "date": "2026-03-27",
     "start": "15h45",
     "end": "17h45",
-    "titre": "[GC] CPO (Patrice TORGUET)",
+    "titre": "[GC] CPO",
     "room": "U3-208/209",
-    "prof": "Patrice TORGUET"
+    "prof": "Inconnu"
   },
   {
     "date": "2026-03-30",
