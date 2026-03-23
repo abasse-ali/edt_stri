@@ -144,22 +144,6 @@
     "prof": "Inconnu"
   },
   {
-    "date": "2026-03-23",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[GC] TCP/IP",
-    "room": "U3-306",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-03-23",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "[GC] TCP/IP",
-    "room": "U3-306",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-03-24",
     "start": "07h45",
     "end": "09h45",
@@ -347,17 +331,17 @@
     "date": "2026-04-02",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[GB] TCP/IP",
+    "titre": "[GB] TCP/IP (Abir LARABA)",
     "room": "U3-306",
-    "prof": "Inconnu"
+    "prof": "Abir LARABA"
   },
   {
     "date": "2026-04-02",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[GB] TCP/IP",
+    "titre": "[GB] TCP/IP (Abir LARABA)",
     "room": "U3-306",
-    "prof": "Inconnu"
+    "prof": "Abir LARABA"
   },
   {
     "date": "2026-04-02",
@@ -387,17 +371,17 @@
     "date": "2026-04-03",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[GC] TCP/IP",
+    "titre": "[GC] TCP/IP (Abir LARABA)",
     "room": "U3-306",
-    "prof": "Inconnu"
+    "prof": "Abir LARABA"
   },
   {
     "date": "2026-04-03",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[GC] TCP/IP",
+    "titre": "[GC] TCP/IP (Abir LARABA)",
     "room": "U3-306",
-    "prof": "Inconnu"
+    "prof": "Abir LARABA"
   },
   {
     "date": "2026-04-03",
