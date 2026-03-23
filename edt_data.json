@@ -144,6 +144,14 @@
     "prof": "Inconnu"
   },
   {
+    "date": "2026-03-23",
+    "start": "11h00",
+    "end": "12h00",
+    "titre": "U2-Amphi Vandel",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
     "date": "2026-03-24",
     "start": "07h45",
     "end": "09h45",
@@ -320,14 +328,6 @@
     "prof": "Rahim KACIMI"
   },
   {
-    "date": "2026-04-01",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "[GC] Télécoms (Frédéric MOUTIER)",
-    "room": "U4-307/308",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
     "date": "2026-04-02",
     "start": "07h45",
     "end": "09h45",
@@ -390,6 +390,14 @@
     "titre": "SHS (André AOUN)",
     "room": "Visio",
     "prof": "André AOUN"
+  },
+  {
+    "date": "2026-04-03",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "[GC] Télécoms (Frédéric MOUTIER)",
+    "room": "U4-307/308",
+    "prof": "Frédéric MOUTIER"
   },
   {
     "date": "2026-04-07",
