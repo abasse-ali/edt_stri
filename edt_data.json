@@ -345,14 +345,6 @@
   },
   {
     "date": "2026-04-02",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "[GB] BD (MUSTAPHA MOJAHID)",
-    "room": "U3-211/212",
-    "prof": "MUSTAPHA MOJAHID"
-  },
-  {
-    "date": "2026-04-02",
     "start": "13h30",
     "end": "15h30",
     "titre": "[GB] BD (MUSTAPHA MOJAHID)",
@@ -430,5 +422,13 @@
     "titre": "[GB] TCP/IP",
     "room": "U3-306",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-08",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GB] BD (MUSTAPHA MOJAHID)",
+    "room": "Non attribuée",
+    "prof": "MUSTAPHA MOJAHID"
   }
 ]
