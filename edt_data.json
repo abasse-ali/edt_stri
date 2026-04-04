@@ -332,7 +332,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "[GB] TCP/IP (Abir LARABA)",
-    "room": "U3-306",
+    "room": "U3-307",
     "prof": "Abir LARABA"
   },
   {
@@ -340,7 +340,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "[GB] TCP/IP (Abir LARABA)",
-    "room": "U3-306",
+    "room": "U3-307",
     "prof": "Abir LARABA"
   },
   {
@@ -364,7 +364,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "[GC] TCP/IP (Abir LARABA)",
-    "room": "U3-306",
+    "room": "U3-307",
     "prof": "Abir LARABA"
   },
   {
@@ -372,7 +372,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "[GC] TCP/IP (Abir LARABA)",
-    "room": "U3-306",
+    "room": "U3-307",
     "prof": "Abir LARABA"
   },
   {
@@ -395,17 +395,17 @@
     "date": "2026-04-07",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[GB] TCP/IP",
+    "titre": "[GB] TCP/IP (Emmanuel LAVINAL)",
     "room": "U3-306",
-    "prof": "Inconnu"
+    "prof": "Emmanuel LAVINAL"
   },
   {
     "date": "2026-04-07",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[GB] TCP/IP",
+    "titre": "[GB] TCP/IP (Emmanuel LAVINAL)",
     "room": "U3-306",
-    "prof": "Inconnu"
+    "prof": "Emmanuel LAVINAL"
   },
   {
     "date": "2026-04-08",
@@ -428,7 +428,31 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "[GB] BD (MUSTAPHA MOJAHID)",
-    "room": "Non attribuée",
+    "room": "U3-206/207",
+    "prof": "MUSTAPHA MOJAHID"
+  },
+  {
+    "date": "2026-04-14",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "[GB] Anglais",
+    "room": "4A K01",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-15",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[GB] TCP/IP",
+    "room": "U3-306",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-16",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "[GB] BD (MUSTAPHA MOJAHID)",
+    "room": "U3-215/216",
     "prof": "MUSTAPHA MOJAHID"
   }
 ]
