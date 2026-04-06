@@ -451,9 +451,17 @@
     "date": "2026-04-14",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[GB] Anglais",
+    "titre": "[GB] Anglais (Gérard ROUZIES)",
     "room": "4A K01",
-    "prof": "Inconnu"
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-04-14",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "CPO-PJ /PJ (Patrice TORGUET)",
+    "room": "Non attribuée",
+    "prof": "Patrice TORGUET"
   },
   {
     "date": "2026-04-15",
@@ -478,5 +486,69 @@
     "titre": "[GB] BE (André AOUN)",
     "room": "Visio",
     "prof": "André AOUN"
+  },
+  {
+    "date": "2026-04-21",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GB] Réseaux d'opérateurs /TP",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-22",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GB] BE - PJ",
+    "room": "KINR6AE2",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-22",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "[GB] BE - PJ (KINR6AE2)",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-22",
+    "start": "18h00",
+    "end": "20h00",
+    "titre": "[GB] BE - PJ (KINR6AE2)",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-23",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GB] BE (André AOUN)",
+    "room": "Visio",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-04-23",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "[GB] BE - PJ (KINR6AE2)",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-24",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GB] BE - PJ (KINR6AE2)",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-04-24",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "[GB] BE - PJ (KINR6AE2)",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   }
 ]
