@@ -396,7 +396,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "[GB] TCP/IP (Emmanuel LAVINAL)",
-    "room": "U3-306",
+    "room": "U3-307",
     "prof": "Emmanuel LAVINAL"
   },
   {
@@ -404,7 +404,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "[GB] TCP/IP (Emmanuel LAVINAL)",
-    "room": "U3-306",
+    "room": "U3-307",
     "prof": "Emmanuel LAVINAL"
   },
   {
@@ -499,8 +499,8 @@
     "date": "2026-04-22",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[GB] BE - PJ",
-    "room": "KINR6AE2",
+    "titre": "[GB] BE - PJ (KINR6AE2)",
+    "room": "Non attribuée",
     "prof": "Inconnu"
   },
   {
