@@ -690,7 +690,7 @@ def principale():
             zone, images_pdf, current_model_idx, current_key_idx, nouvelles_donnees_cours
         )
 
-    # --- LOGIQUE DE FUSION ET DE COMPARAISON DISCORD ---
+    # --- LOGIQUE DE COMPARAISON DISCORD (SANS HISTORIQUE) ---
     fichier_json = "edt_data.json"
     anciennes_donnees = []
     
@@ -701,26 +701,9 @@ def principale():
             except:
                 pass
 
-    dates_nouveau = [c['date'] for c in nouvelles_donnees_cours]
-    if dates_nouveau:
-        date_min = min(dates_nouveau)
-        date_max = max(dates_nouveau)
-    else:
-        date_min = "9999-12-31"
-        date_max = "0000-01-01"
-
-    donnees_historiques = []
-    donnees_a_comparer = []
-    
-    for c in anciennes_donnees:
-        if date_min <= c['date'] <= date_max:
-            donnees_a_comparer.append(c)
-        else:
-            donnees_historiques.append(c)
-
     if anciennes_donnees: 
         modifications = []
-        anciens_dict = {f"{c['date']}_{c['start']}": c for c in donnees_a_comparer}
+        anciens_dict = {f"{c['date']}_{c['start']}": c for c in anciennes_donnees}
         nouveaux_dict = {f"{c['date']}_{c['start']}": c for c in nouvelles_donnees_cours}
 
         for cle, nouveau_cours in nouveaux_dict.items():
@@ -753,19 +736,17 @@ def principale():
 
         envoyer_notification_discord(modifications)
 
-    toutes_les_donnees = donnees_historiques + nouvelles_donnees_cours
-
+    # On écrase le JSON avec uniquement les données du PDF actuel (plus de stockage infini)
     with open(fichier_json, "w", encoding="utf-8") as f:
-        json.dump(toutes_les_donnees, f, ensure_ascii=False, indent=2)
+        json.dump(nouvelles_donnees_cours, f, ensure_ascii=False, indent=2)
     
-    # --- RECONSTRUCTION DE L'ICS COMPLET ---
+    # --- RECONSTRUCTION DE L'ICS UNIQUEMENT AVEC LES COURS ACTUELS ---
     calendrier_global = Calendar()
-    tz = ZoneInfo('Europe/Paris') # Utilisation du module standard ZoneInfo
+    tz = ZoneInfo('Europe/Paris') 
     
-    for cours in toutes_les_donnees:
+    for cours in nouvelles_donnees_cours:
         ics_evt = Event()
         
-        # NOUVELLE SYNTAXE ICS 0.8.0 : 'summary' au lieu de 'name'
         ics_evt.summary = cours['titre']
         ics_evt.location = cours.get('room', '')
         
@@ -774,24 +755,21 @@ def principale():
             h_end, m_end = map(int, cours['end'].split('h'))
             date_obj = datetime.strptime(cours['date'], '%Y-%m-%d')
             
-            # Application correcte du fuseau horaire avec ZoneInfo
             start_dt = date_obj.replace(hour=h_start, minute=m_start, tzinfo=tz)
             end_dt = date_obj.replace(hour=h_end, minute=m_end, tzinfo=tz)
             
             ics_evt.begin = start_dt
             ics_evt.end = end_dt
             
-            # NOUVELLE SYNTAXE ICS 0.8.0 : 'append' au lieu de 'add'
             calendrier_global.events.append(ics_evt)
             
         except Exception as e:
-            # On affiche l'erreur au lieu de la rendre silencieuse !
             print(f"⚠️ Erreur lors de l'ajout du cours {cours.get('titre', 'inconnu')} : {e}")
     
     with open("edt.ics", 'w', encoding='utf-8') as f:
         f.writelines(calendrier_global.serialize())
         
-    print(f"✅ Terminé avec succès ! Fichier edt.ics reconstruit avec {len(calendrier_global.events)} cours.")
+    print(f"✅ Terminé avec succès ! Fichier edt.ics généré avec {len(calendrier_global.events)} cours.")
     
     televerser_sur_google_drive("edt.ics", DRIVE_FOLDER_ID)
 
