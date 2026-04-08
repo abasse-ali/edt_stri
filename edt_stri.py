@@ -350,6 +350,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
 
     current_model_idx = start_model_idx
     current_key_idx = start_key_idx
+    erreurs_quota = 0  # On ajoute le compteur ici
     
     while True:
         try:
@@ -372,22 +373,44 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
                 time.sleep(1)
                 continue
             
+            # Succès : pas besoin de réinitialiser erreurs_quota car on quitte la fonction
             return json.loads(response.text), current_model_idx, current_key_idx
 
         except Exception as e:
             err_str = str(e)
+            
             if "429" in err_str:
+                erreurs_quota += 1
                 current_key_idx = (current_key_idx + 1) % len(API_KEYS)
-                if current_key_idx == start_key_idx:
-                    exit()
-                else: continue 
+                
+                if erreurs_quota >= 3:
+                    print(f"🔄 3 erreurs de quota (429) atteintes. Passage au modèle suivant...")
+                    current_model_idx = (current_model_idx + 1) % len(MODELS)
+                    erreurs_quota = 0  # On remet à zéro pour le nouveau modèle
+                    
+                    # Sécurité : si on a fait le tour de TOUS les modèles
+                    if current_model_idx == start_model_idx:
+                        print("❌ Tous les modèles sont épuisés (Quota). On ignore ce créneau.")
+                        return [], current_model_idx, current_key_idx
+                        
+                    time.sleep(2)
+                else:
+                    print(f"⏳ Quota dépassé (Tentative {erreurs_quota}/3). Essai avec la clé suivante...")
+                    time.sleep(2)
+                    
+                continue 
+                
             elif "503" in err_str or "500" in err_str:
                 current_model_idx = (current_model_idx + 1) % len(MODELS)
                 time.sleep(2)
+                
             else:
+                print(f"⚠️ Erreur IA ({model_name}) : {err_str[:100]}...") 
                 current_model_idx = (current_model_idx + 1) % len(MODELS)
                 time.sleep(5)
+                
                 if current_model_idx == start_model_idx:
+                      print("❌ Tous les modèles ont échoué pour ce créneau. On l'ignore.")
                       return [], current_model_idx, current_key_idx
 
 def televerser_sur_google_drive(nom_fichier, dossier_id):
