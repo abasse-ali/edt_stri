@@ -97,24 +97,8 @@
   },
   {
     "date": "2026-04-22",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[GB] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "KINR6AE2"
-  },
-  {
-    "date": "2026-04-22",
     "start": "15h45",
     "end": "17h45",
-    "titre": "[GB] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-04-22",
-    "start": "18h00",
-    "end": "20h00",
     "titre": "[GB] BE - PJ (KINR6AE2)",
     "room": "Non attribuée",
     "prof": "KINR6AE2"
@@ -133,7 +117,7 @@
     "end": "15h30",
     "titre": "[GB] BE - PJ (KINR6AE2)",
     "room": "Non attribuée",
-    "prof": "KINR6AE2"
+    "prof": "Inconnu"
   },
   {
     "date": "2026-04-24",
@@ -141,6 +125,6 @@
     "end": "17h45",
     "titre": "[GB] BE - PJ (KINR6AE2)",
     "room": "Non attribuée",
-    "prof": "KINR6AE2"
+    "prof": "Inconnu"
   }
 ]
