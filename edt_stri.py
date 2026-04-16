@@ -32,7 +32,7 @@ if not API_KEYS or not API_KEYS[0]:
 
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 
-MY_GROUPS = ["GB", "GC"]
+MY_GROUPS = ["GB", "GC", "PJ"]
 ANNEE = 2026
 
 MODELS = [
@@ -315,7 +315,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - Si l'image est complètement blanche ou illisible, réponds avec un seul élément FULL avec course="Inconnu".
     - Si la case de la salle est rouge vide ou verte vide ou blanche vide, room="Non attribuée".
     - Si /TP ou /TD dans le titre, on le garde dans le résultat titre.
-    - Après extraction de /GB ou /GC dans le titre, on les retire du titre et on les met dans le champ "group".
+    - Après extraction de /GB ou /GC ou /PJ dans le titre, on les retire du titre et on les met dans le champ "group".
     - Si y'a "+" à côté de l'initiale de prof (Ex : "AA +" ou "TD ++"), on l'ignore.
     - Si sur l'image, devant ou après la case d'un cours (BOTTOM) on a des traits verticaux (ex : "| | | [Titre /GC (prof)] | | |), on ignore le cours.
 
@@ -325,7 +325,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - `color`: "ORANGE"(#FFA800), "JAUNE"(#FFE800), "BLANC".
     - `course`: Texte principal.
     - `prof`: Nom.
-    - `group`: "GB", "GC", "GA" ou null.
+    - `group`: "GB", "GC", "PJ", "GA" ou null.
     - `room`: Salle.
 
     JSON attendu :
