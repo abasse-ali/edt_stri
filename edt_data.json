@@ -16,52 +16,12 @@
     "prof": "André AOUN"
   },
   {
-    "date": "2026-04-22",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[PJ] BD-PJ (KUPT6BB3)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-04-22",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "[PJ] BD-PJ (KUPT6BB3)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-04-23",
     "start": "10h00",
     "end": "12h00",
     "titre": "[GB] BE (André AOUN)",
     "room": "Visio",
     "prof": "André AOUN"
-  },
-  {
-    "date": "2026-04-23",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[PJ] BD-PJ (KUPT6BB3)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-04-23",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "[PJ] BD-PJ (KUPT6BB3)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-04-24",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "[PJ] BD-PJ (KUPT6BB3)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
   },
   {
     "date": "2026-05-04",
@@ -81,18 +41,10 @@
   },
   {
     "date": "2026-05-04",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[GC] TCP/IP /TP",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-04",
     "start": "15h45",
     "end": "17h45",
-    "titre": "[GC] TCP/IP /TP",
-    "room": "Non attribuée",
+    "titre": "[GC] TCP/IP",
+    "room": "U3-307",
     "prof": "Inconnu"
   },
   {
@@ -115,57 +67,49 @@
     "date": "2026-05-05",
     "start": "13h30",
     "end": "16h30",
-    "titre": "[GC] Télécoms /TP (Frédéric MOUTIER)",
+    "titre": "[GC] Télécoms (Frédéric MOUTIER)",
     "room": "U4-307/308",
     "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-05-05",
-    "start": "18h00",
-    "end": "20h00",
-    "titre": "[PJ] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
   },
   {
     "date": "2026-05-06",
     "start": "08h00",
     "end": "09h45",
-    "titre": "[GC] P /TP",
-    "room": "Non attribuée",
+    "titre": "[GC] IP",
+    "room": "U3-307",
     "prof": "Inconnu"
   },
   {
     "date": "2026-05-06",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[GC] TCP/IP /TP",
-    "room": "Non attribuée",
+    "titre": "[GC] TCP/IP",
+    "room": "U3-307",
     "prof": "Inconnu"
   },
   {
     "date": "2026-05-06",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[GB] Réseaux d'opérateurs /TP",
+    "titre": "[GB] Réseaux d'opérateurs",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
   {
     "date": "2026-05-06",
     "start": "15h45",
-    "end": "16h15",
-    "titre": "Télécoms /",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-06",
-    "start": "16h15",
     "end": "18h45",
-    "titre": "[GC] TP (Eric GONNEAU)",
+    "titre": "[GC] Télécoms (Eric GONNEAU)",
     "room": "U4-307/308",
     "prof": "Eric GONNEAU"
+  },
+  {
+    "date": "2026-05-07",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "PHP (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-05-07",
@@ -179,15 +123,7 @@
     "date": "2026-05-07",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[PJ] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-07",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[GC] TCP/IP /TP",
+    "titre": "[GC] TCP/IP",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -195,41 +131,17 @@
     "date": "2026-05-07",
     "start": "15h45",
     "end": "17h45",
-    "titre": "[PJ] BD-PJ (KUPT6BB3)",
+    "titre": "[GC] Réseaux d'opérateurs",
     "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-07",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "[GC] Réseaux d'opérateurs /TP",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-07",
-    "start": "18h00",
-    "end": "20h00",
-    "titre": "[PJ] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-11",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "[PJ] BE - PJ",
-    "room": "KINR6AE2",
     "prof": "Inconnu"
   },
   {
     "date": "2026-05-11",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] [GC] TCP/IP TD (Cédric TEYSSIE / Emmanuel LAVINAL)",
+    "titre": "[EXAMEN] TCP/IP TD (Cédric CHAMBAULT, Cédric TEYSSIE, Emmanuel LAVINAL)",
     "room": "Non attribuée",
-    "prof": "Cédric TEYSSIE / Emmanuel LAVINAL"
+    "prof": "Cédric CHAMBAULT, Cédric TEYSSIE, Emmanuel LAVINAL"
   },
   {
     "date": "2026-05-11",
@@ -241,17 +153,9 @@
   },
   {
     "date": "2026-05-11",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "[GB] Réseaux d'opérateurs /TP",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-11",
     "start": "18h00",
     "end": "20h00",
-    "titre": "[GB] Réseaux d'opérateurs /TP",
+    "titre": "[GB] Réseaux d'opérateurs",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -265,51 +169,11 @@
   },
   {
     "date": "2026-05-12",
-    "start": "10h00",
-    "end": "10h30",
-    "titre": "[PJ] BE (KIN)",
-    "room": "Non attribuée",
-    "prof": "KIN"
-  },
-  {
-    "date": "2026-05-12",
-    "start": "10h30",
-    "end": "12h00",
-    "titre": "[PJ] R6AE2",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-12",
     "start": "13h30",
     "end": "15h30",
     "titre": "[EXAMEN] BD /CC (MUSTAPHA MOJAHID)",
     "room": "Non attribuée",
     "prof": "MUSTAPHA MOJAHID"
-  },
-  {
-    "date": "2026-05-12",
-    "start": "16h00",
-    "end": "17h45",
-    "titre": "[PJ] PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-13",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "[PJ] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "KINR6AE2"
-  },
-  {
-    "date": "2026-05-13",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "[PJ] BE - PJ (KINR6AE2)",
-    "room": "Non attribuée",
-    "prof": "KINR6AE2"
   },
   {
     "date": "2026-05-13",
