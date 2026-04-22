@@ -1,14 +1,6 @@
 [
   {
     "date": "2026-04-21",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[GB] Réseaux d'opérateurs /TP",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-04-21",
     "start": "15h45",
     "end": "17h45",
     "titre": "[GB] BE (André AOUN)",
@@ -27,7 +19,7 @@
     "date": "2026-05-04",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] [GC] CPO (Andréi ANDRÉI / Patrice TORGUET)",
+    "titre": "[EXAMEN] C P O /CC (Andréi ANDRÉI / Patrice TORGUET)",
     "room": "Non attribuée",
     "prof": "Andréi ANDRÉI / Patrice TORGUET"
   },
@@ -36,7 +28,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Réseaux d'opérateurs (Cédric TEYSSIE)",
-    "room": "Non attribuée",
+    "room": "U3-Amphi",
     "prof": "Cédric TEYSSIE"
   },
   {
@@ -68,7 +60,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Télécoms (Jean-Guy TARTARIN)",
-    "room": "Non attribuée",
+    "room": "U3-Amphi",
     "prof": "Jean-Guy TARTARIN"
   },
   {
@@ -81,27 +73,19 @@
   },
   {
     "date": "2026-05-06",
-    "start": "08h00",
-    "end": "09h45",
-    "titre": "[GC] IP",
-    "room": "U3-307",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-06",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[GC] TCP/IP",
+    "titre": "[GC] TCP/IP (Emmanuel LAVINAL)",
     "room": "U3-307",
-    "prof": "Inconnu"
+    "prof": "Emmanuel LAVINAL"
   },
   {
     "date": "2026-05-06",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[GB] Réseaux d'opérateurs",
+    "titre": "Réseaux d'opérateurs (Cédric TEYSSIE)",
     "room": "Non attribuée",
-    "prof": "Inconnu"
+    "prof": "Cédric TEYSSIE"
   },
   {
     "date": "2026-05-06",
@@ -113,16 +97,8 @@
   },
   {
     "date": "2026-05-07",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "PHP (André AOUN)",
-    "room": "Non attribuée",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-05-07",
     "start": "10h00",
-    "end": "12h00",
+    "end": "11h15",
     "titre": "Réseaux d'opérateurs (Cédric TEYSSIE)",
     "room": "Non attribuée",
     "prof": "Cédric TEYSSIE"
@@ -131,25 +107,25 @@
     "date": "2026-05-07",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[GC] TCP/IP",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
+    "titre": "[GC] TCP/IP (Cédric TEYSSIE)",
+    "room": "U3-307",
+    "prof": "Cédric TEYSSIE"
   },
   {
     "date": "2026-05-07",
     "start": "15h45",
     "end": "17h45",
-    "titre": "[GC] Réseaux d'opérateurs",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
+    "titre": "[GC] TCP/IP (Cédric TEYSSIE)",
+    "room": "U3-307",
+    "prof": "Cédric TEYSSIE"
   },
   {
     "date": "2026-05-11",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] [GC] TCP/IP TD (Cédric TEYSSIE, Emmanuel LAVINAL)",
-    "room": "Non attribuée",
-    "prof": "Cédric TEYSSIE, Emmanuel LAVINAL"
+    "titre": "[EXAMEN] [GC] TCP/IP (Thierry DESPRATS / Cédric TEYSSIE / Emmanuel LAVINAL)",
+    "room": "U3-Amphi",
+    "prof": "Thierry DESPRATS / Cédric TEYSSIE / Emmanuel LAVINAL"
   },
   {
     "date": "2026-05-11",
@@ -163,17 +139,17 @@
     "date": "2026-05-11",
     "start": "15h45",
     "end": "17h45",
-    "titre": "[GB] Réseaux d'opérateurs",
+    "titre": "Réseaux d'opérateurs /TP (Cédric TEYSSIE, Abir LARABA)",
     "room": "Non attribuée",
-    "prof": "Inconnu"
+    "prof": "Cédric TEYSSIE, Abir LARABA"
   },
   {
     "date": "2026-05-11",
     "start": "18h00",
     "end": "20h00",
-    "titre": "[GB] Réseaux d'opérateurs",
+    "titre": "Réseaux d'opérateurs /TP (Cédric TEYSSIE, Abir LARABA)",
     "room": "Non attribuée",
-    "prof": "Inconnu"
+    "prof": "Cédric TEYSSIE, Abir LARABA"
   },
   {
     "date": "2026-05-12",
@@ -187,9 +163,17 @@
     "date": "2026-05-12",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[EXAMEN] BD /CC (MUSTAPHA MOJAHID)",
+    "titre": "[EXAMEN] [GC] BD (MUSTAPHA MOJAHID)",
     "room": "Non attribuée",
     "prof": "MUSTAPHA MOJAHID"
+  },
+  {
+    "date": "2026-05-13",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Réseaux d'opérateurs (Rahim KACIMI)",
+    "room": "Non attribuée",
+    "prof": "Rahim KACIMI"
   },
   {
     "date": "2026-05-13",
