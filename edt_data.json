@@ -27,7 +27,7 @@
     "date": "2026-05-04",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] CPO /CC (Andréi ANDRÉI / Patrice TORGUET)",
+    "titre": "[EXAMEN] [GC] CPO (Andréi ANDRÉI / Patrice TORGUET)",
     "room": "Non attribuée",
     "prof": "Andréi ANDRÉI / Patrice TORGUET"
   },
@@ -38,6 +38,14 @@
     "titre": "Réseaux d'opérateurs (Cédric TEYSSIE)",
     "room": "Non attribuée",
     "prof": "Cédric TEYSSIE"
+  },
+  {
+    "date": "2026-05-04",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GC] TCP/IP",
+    "room": "U3-307",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-05-04",
@@ -139,9 +147,9 @@
     "date": "2026-05-11",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] TCP/IP TD (Cédric CHAMBAULT, Cédric TEYSSIE, Emmanuel LAVINAL)",
+    "titre": "[EXAMEN] [GC] TCP/IP TD (Cédric TEYSSIE, Emmanuel LAVINAL)",
     "room": "Non attribuée",
-    "prof": "Cédric CHAMBAULT, Cédric TEYSSIE, Emmanuel LAVINAL"
+    "prof": "Cédric TEYSSIE, Emmanuel LAVINAL"
   },
   {
     "date": "2026-05-11",
@@ -150,6 +158,14 @@
     "titre": "Télécoms (Jean-Guy TARTARIN)",
     "room": "Non attribuée",
     "prof": "Jean-Guy TARTARIN"
+  },
+  {
+    "date": "2026-05-11",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "[GB] Réseaux d'opérateurs",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-05-11",
