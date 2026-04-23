@@ -315,7 +315,7 @@ def analyser_image_creneau_avec_ia(image_bytes, start_model_idx, start_key_idx):
     - Si l'image est complètement blanche ou illisible, réponds avec un seul élément FULL avec course="Inconnu".
     - Si la case de la salle est rouge vide ou verte vide ou blanche vide, room="Non attribuée".
     - Si /TP ou /TD dans le titre, on le garde dans le résultat titre.
-    - Après extraction de /GB ou /GC ou /PJ dans le titre, on les retire du titre et on les met dans le champ "group".
+    - Après extraction de /GB ou /GC ou /PJ dans le titre, on les retire du titre et on les met dans le champ "group". Si tu vois /CC ça veut dire controle controle continue donc [EXAMEN] pas un groupe.
     - Si y'a "+" à côté de l'initiale de prof (Ex : "AA +" ou "TD ++"), on l'ignore.
     - Si sur l'image, devant ou après la case d'un cours (BOTTOM) on a des traits verticaux (ex : "| | | [Titre /GC (prof)] | | |), on ignore le cours.
 
