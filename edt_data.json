@@ -19,7 +19,7 @@
     "date": "2026-05-04",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] [GC] CPO (Andréi ANDRÉI / Patrice TORGUET)",
+    "titre": "[EXAMEN] CPO /CC (Andréi ANDRÉI / Patrice TORGUET)",
     "room": "Non attribuée",
     "prof": "Andréi ANDRÉI / Patrice TORGUET"
   },
@@ -30,6 +30,14 @@
     "titre": "Réseaux d'opérateurs (Cédric TEYSSIE)",
     "room": "U3-Amphi",
     "prof": "Cédric TEYSSIE"
+  },
+  {
+    "date": "2026-05-04",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GC] TCP/IP",
+    "room": "U3-307",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-05-04",
@@ -65,14 +73,6 @@
   },
   {
     "date": "2026-05-06",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "PHP (André AOUN)",
-    "room": "Non attribuée",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-05-06",
     "start": "10h00",
     "end": "12h00",
     "titre": "[GC] TCP/IP (Emmanuel LAVINAL)",
@@ -97,8 +97,24 @@
   },
   {
     "date": "2026-05-07",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "PHP (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-05-07",
+    "start": "09h15",
+    "end": "09h45",
+    "titre": "U3-306",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-05-07",
     "start": "10h00",
-    "end": "11h15",
+    "end": "11h00",
     "titre": "Réseaux d'opérateurs (Cédric TEYSSIE)",
     "room": "Non attribuée",
     "prof": "Cédric TEYSSIE"
@@ -123,9 +139,9 @@
     "date": "2026-05-11",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] [GC] TCP /IP (Thierry DESPRATS / Cédric TEYSSIE / Emmanuel LAVINAL)",
+    "titre": "[EXAMEN] TCP/IP /CC (Thierry DESPRATS/Cédric TEYSSIE/Emmanuel LAVINAL)",
     "room": "U3-Amphi",
-    "prof": "Thierry DESPRATS / Cédric TEYSSIE / Emmanuel LAVINAL"
+    "prof": "Thierry DESPRATS/Cédric TEYSSIE/Emmanuel LAVINAL"
   },
   {
     "date": "2026-05-11",
@@ -163,7 +179,7 @@
     "date": "2026-05-12",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[EXAMEN] [GC] BD (MUSTAPHA MOJAHID)",
+    "titre": "[EXAMEN] BD /CC (MUSTAPHA MOJAHID)",
     "room": "Non attribuée",
     "prof": "MUSTAPHA MOJAHID"
   },
