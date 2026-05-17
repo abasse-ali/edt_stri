@@ -1,81 +1,9 @@
 [
   {
-    "date": "2026-05-11",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "[EXAMEN] TCP/IP (Thierry DESPRATS/Cédric TEYSSIE/Emmanuel LAVINAL)",
-    "room": "U3-Amphi",
-    "prof": "Thierry DESPRATS/Cédric TEYSSIE/Emmanuel LAVINAL"
-  },
-  {
-    "date": "2026-05-11",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Télécoms (Jean-Guy TARTARIN)",
-    "room": "U3-Amphi",
-    "prof": "Jean-Guy TARTARIN"
-  },
-  {
-    "date": "2026-05-11",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Réseaux d'opérateurs /TP (Cédric TEYSSIE, Abir LARABA)",
-    "room": "U3-308",
-    "prof": "Cédric TEYSSIE, Abir LARABA"
-  },
-  {
-    "date": "2026-05-11",
-    "start": "18h00",
-    "end": "20h00",
-    "titre": "Réseaux d'opérateurs /TP (Cédric TEYSSIE)",
-    "room": "U3-308",
-    "prof": "Cédric TEYSSIE"
-  },
-  {
-    "date": "2026-05-12",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Anglais",
-    "room": "4A K01",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-05-12",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[EXAMEN] BD (MUSTAPHA MOJAHID)",
-    "room": "U3-Amphi",
-    "prof": "MUSTAPHA MOJAHID"
-  },
-  {
-    "date": "2026-05-13",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Réseaux d'opérateurs (Rahim KACIMI)",
-    "room": "Non attribuée",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-05-13",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "[EXAMEN] Soutenances Projets BD/PHP/WEB",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-05-18",
     "start": "07h45",
     "end": "08h45",
-    "titre": "Réseaux d'opérateurs (Rahim KACIMI)",
-    "room": "Non attribuée",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-05-18",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "[EXAMEN] Soutenances Projets BD/PHP/WEB",
+    "titre": "Réseaux d'opérateurs",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -99,9 +27,17 @@
     "date": "2026-05-20",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] Réseaux d'opérateurs (Rahim KACIMI/Cédric TEYSSIE)",
+    "titre": "[EXAMEN] Réseaux d'opérateurs (Rahim KACIMI / Cédric TEYSSIE)",
     "room": "U3-Amphi",
-    "prof": "Rahim KACIMI/Cédric TEYSSIE"
+    "prof": "Rahim KACIMI / Cédric TEYSSIE"
+  },
+  {
+    "date": "2026-05-20",
+    "start": "13h30",
+    "end": "15h15",
+    "titre": "[EXAMEN] Soutenances Projets BD/PHP/WEB",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-05-21",
