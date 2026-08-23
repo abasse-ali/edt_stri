@@ -1,8 +1,8 @@
 name: Actualisation EDT
 
 on:
-  #schedule:
-    #- cron: '0 * * * *' # Toutes les heures
+  schedule:
+    - cron: '0 * * * *' # Toutes les heures
   workflow_dispatch: # Bouton manuel
 
 permissions:
@@ -37,7 +37,7 @@ jobs:
           import time
           from playwright.sync_api import sync_playwright
 
-          pdf_url = 'https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf'
+          pdf_url = 'https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf'
           base_url = 'https://stri.fr/'
 
           with sync_playwright() as p:
