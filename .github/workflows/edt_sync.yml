@@ -1,5 +1,8 @@
 name: Actualisation EDT
 
+# Le téléchargement n'est plus un script Python recopié dans le YAML : la CI
+# appelle `edt_stri.py --telecharger`, unique source de vérité pour l'URL.
+
 on:
   schedule:
     - cron: '0 * * * *' # Toutes les heures
@@ -8,78 +11,47 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  # Évite deux exécutions simultanées qui pousseraient des commits conflictuels.
+  group: edt-sync
+  cancel-in-progress: false
+
 jobs:
   run-edt-updater:
     runs-on: ubuntu-latest
+    timeout-minutes: 45 # garde-fou : un job bloqué ne consomme plus 6 h
 
     steps:
-      # 1. Récupère ton code ET l'ancien PDF (edt.pdf) stocké sur GitHub
+      # 1. Récupère le code ET l'ancien PDF (edt.pdf) stocké sur GitHub
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2. Initialiser Python DÈS LE DÉBUT (nécessaire pour le téléchargement anti-bot)
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.14.3'
+          # Même version qu'en local : évite de découvrir une incompatibilité
+          # de dépendance uniquement en CI.
+          python-version: '3.13'
 
-      # 3. Installer les outils pour contourner l'anti-bot (Playwright)
+      # 2. Outils nécessaires au téléchargement anti-bot
       - name: Install download tools
         run: |
           pip install playwright requests
-          playwright install chromium
+          playwright install --with-deps chromium
 
-      # 4. Télécharger le PDF en contournant le WAF "Tiger Protect" via Playwright
-      - name: Télécharger le nouveau PDF via Playwright
-        run: |
-          cat << 'EOF' > download_pdf.py
-          import requests
-          import time
-          from playwright.sync_api import sync_playwright
+      # 3. Télécharge le PDF via la fonction du dépôt (URL définie une seule
+      #    fois dans edt_stri.py, surchargeable par la variable EDT_PDF_URL)
+      - name: Télécharger le nouveau PDF
+        env:
+          EDT_PDF_URL: ${{ vars.EDT_PDF_URL }}
+        run: python edt_stri.py --telecharger edt_nouveau.pdf
 
-          pdf_url = 'https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf'
-          base_url = 'https://stri.fr/'
-
-          with sync_playwright() as p:
-              print("🌐 Lancement du navigateur fantôme...")
-              browser = p.chromium.launch(headless=True)
-              context = browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-              page = context.new_page()
-              
-              print("🛡️ Passage de la vérification anti-bot (Tiger Protect)...")
-              page.goto(base_url)
-              time.sleep(10) # Laisse le temps au JavaScript de valider
-              
-              print("🍪 Récupération du cookie d'accès...")
-              cookies = context.cookies()
-              cookie_dict = {c['name']: c['value'] for c in cookies}
-              browser.close()
-
-          print("📥 Téléchargement du fichier PDF...")
-          headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-          response = requests.get(pdf_url, headers=headers, cookies=cookie_dict)
-
-          with open('edt_nouveau.pdf', 'wb') as f:
-              f.write(response.content)
-
-          print("✅ Téléchargement terminé !")
-          EOF
-          
-          python download_pdf.py
-          
-          # Sécurité : On vérifie que les 4 premiers caractères sont bien "%PDF"
-          if ! head -c 4 edt_nouveau.pdf | grep -q "%PDF"; then
-            echo "❌ Erreur : Le fichier téléchargé n'est pas un PDF valide !"
-            head -n 10 edt_nouveau.pdf
-            exit 1
-          fi
-
-      # 5. Compare le nouveau avec l'ancien
+      # 4. Compare le nouveau avec l'ancien
       - name: Comparer les PDF
         id: verification
         run: |
-          touch edt.pdf 
-          
+          touch edt.pdf
+
           if cmp -s edt_nouveau.pdf edt.pdf; then
             echo "📄 Aucun changement détecté dans le PDF. Arrêt."
             echo "run_script=false" >> $GITHUB_OUTPUT
@@ -99,28 +71,54 @@ jobs:
         if: steps.verification.outputs.run_script == 'true'
         run: pip install -r requirements.txt
 
-      - name: Prepare Google Drive Secrets
+      # GDRIVE_TOKEN : nom historique, le jeton ne sert plus qu'à l'API
+      # Calendar. Le fichier de client OAuth n'est plus écrit — il ne servait
+      # qu'au flux d'autorisation interactif, impossible en CI de toute façon.
+      - name: Prepare Google token
         if: steps.verification.outputs.run_script == 'true'
         env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
           GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
         run: |
-          echo "$GDRIVE_CREDENTIALS" > credentials.json
-          echo "$GDRIVE_TOKEN" > token.json
+          printf '%s' "$GDRIVE_TOKEN" > token.json
+
+          python - <<'PY'
+          import json, sys
+          try:
+              jeton = json.load(open("token.json"))
+          except Exception as e:
+              sys.exit(f"::error::GDRIVE_TOKEN illisible ({e}).")
+          if "https://www.googleapis.com/auth/calendar" not in jeton.get("scopes", []):
+              sys.exit("::error::GDRIVE_TOKEN ne couvre pas l'agenda. Regenere "
+                       "token.json en local (python test_local.py) puis mets a jour le secret.")
+          if not jeton.get("refresh_token"):
+              sys.exit("::error::GDRIVE_TOKEN sans refresh_token : inutilisable en CI.")
+          PY
 
       - name: Run Python script
+        id: traitement
         if: steps.verification.outputs.run_script == 'true'
         env:
-          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          EDT_PDF_URL: ${{ vars.EDT_PDF_URL }}
+          # Agenda cible : laisser vide pour le retrouver par son nom.
+          GOOGLE_CALENDAR_ID: ${{ vars.GOOGLE_CALENDAR_ID }}
         run: python edt_stri.py
 
-      # 6. On sauvegarde le PDF ET les données JSON sur GitHub
+      # Les secrets ne doivent pas survivre à l'étape suivante, qui commite.
+      - name: Effacer le jeton
+        if: always()
+        run: rm -f token.json
+
+      # 5. Sauvegarde le PDF ET les données JSON.
+      #    Le script rend un code de sortie non nul si l'extraction est
+      #    incomplète : dans ce cas l'étape est sautée, edt.pdf n'est PAS
+      #    commité, et la prochaine exécution horaire réessaiera.
       - name: Sauvegarder les fichiers sur le dépôt
-        if: steps.verification.outputs.run_script == 'true'
+        if: steps.traitement.outcome == 'success'
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
           git add edt.pdf edt_data.json
           git commit -m "Mise à jour automatique de l'EDT" || echo "Rien à commiter"
+          git pull --rebase --autostash origin ${{ github.ref_name }}
           git push
