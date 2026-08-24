@@ -8,9 +8,11 @@ Reprend `edt_stri.py` + `test_local.py` avec les correctifs de la revue de code.
 |---|---|
 | `edt_stri.py` | Script unique (CI **et** local) |
 | `test_local.py` | Lanceur local : `.env`, images de debug, téléchargement |
-| `professeurs.txt` | Prompt Gemini, extrait à l'identique de l'ancien code |
+| `lecture_pdf.py` | Lecture des cours dans la couche texte du PDF |
+| `google_agenda.py` | Écriture des cours dans Google Agenda (API Calendar) |
+| `professeurs.txt` | Table des enseignants : initiales -> nom complet |
 | `requirements.txt` | + `playwright`, + `python-dotenv` |
-| `edt_sync.yml` | Workflow corrigé (à copier dans `.github/workflows/`) |
+| `.github/workflows/edt_sync.yml` | Workflow horaire |
 
 ## Utilisation
 
@@ -25,8 +27,9 @@ python new_test/edt_stri.py --telecharger edt_nouveau.pdf
 python new_test/edt_stri.py
 ```
 
-Variables d'environnement : `GEMINI_API_KEYS` (obligatoire), `DISCORD_WEBHOOK_URL`,
-`EDT_PDF_URL`, `EDT_PDF`, `EDT_DEBUG`, `POPPLER_PATH`, `DRIVE_FOLDER_ID`.
+Variables d'environnement, toutes facultatives : `DISCORD_WEBHOOK_URL`,
+`EDT_PDF_URL`, `EDT_PDF`, `EDT_DEBUG`, `POPPLER_PATH`, `GOOGLE_CALENDAR_ID`,
+`EDT_COURS_HAUT`, `EDT_AGENDA_PUBLIC`, `EDT_AUTORISER`.
 
 ## Correctifs appliqués
 
