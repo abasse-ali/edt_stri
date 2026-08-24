@@ -89,36 +89,6 @@ def _nom_complet(initiales):
 
 # --- Découpage géométrique ---------------------------------------------------
 
-def _reparer(barres, obstacles, jeu=1.5):
-    """Recolle les morceaux d'une bordure interrompue par une case de couleur.
-
-    Les cases vertes (salle) et les fonds d'examen sont dessinés PAR-DESSUS les
-    bordures de cellule : la barre se retrouve coupée en deux à leur endroit, ce
-    qui faisait croire à deux cours au lieu d'un.
-    """
-    spans = sorted((b['x0'], b['x1']) for b in barres)
-    fusionnes = []
-    for gauche, droite in spans:
-        if not fusionnes:
-            fusionnes.append([gauche, droite])
-            continue
-
-        precedent = fusionnes[-1]
-        trou_g, trou_d = precedent[1], gauche
-        if trou_d - trou_g <= jeu:
-            precedent[1] = max(precedent[1], droite)
-            continue
-        # Le trou est-il exactement occupé par une case de couleur ?
-        bouche = any(o['x0'] <= trou_g + jeu and o['x1'] >= trou_d - jeu for o in obstacles)
-        if bouche:
-            precedent[1] = max(precedent[1], droite)
-        else:
-            fusionnes.append([gauche, droite])
-
-    return [{'x0': g, 'x1': d, 'top': barres[0]['top'], 'bottom': barres[0]['bottom']}
-            for g, d in fusionnes] if barres else []
-
-
 class GrilleJour:
     """Cellules d'une journée, reconstruites depuis les bordures du PDF.
 
@@ -161,9 +131,7 @@ class GrilleJour:
         self.examens = [r for r in dans_bande
                         if est_jaune(r['non_stroking_color']) or est_orange(r['non_stroking_color'])]
 
-        self.barres_haut = [r for r in barres if abs(r['top'] - self.haut) < 2]
         self.barres_milieu = [r for r in barres if abs(r['top'] - self.milieu) < 2.5]
-        self.barres_bas = [r for r in barres if abs(r['top'] - self.bas) < 2]
 
         # Bordures verticales des cases. Elles ne peuvent PAS être cherchées
         # dans `dans_bande` : le PDF ne dessine pas un trait par journée mais un
@@ -177,10 +145,6 @@ class GrilleJour:
                            and r['width'] < 3 and r['height'] > 3
                            and r['top'] < self.bas - 1 and r['bottom'] > self.haut + 1
                            and x_min_pdf - 3 <= (r['x0'] + r['x1']) / 2 <= x_max_pdf + 3]
-
-    @staticmethod
-    def _couvre(barres, x):
-        return any(b['x0'] - 1 <= x <= b['x1'] + 1 for b in barres)
 
     def _est_bord_de_salle(self, barre, jeu=2.0):
         """Le bord supérieur d'une case de salle passe à mi-hauteur et ressemble
@@ -268,19 +232,6 @@ class GrilleJour:
         if position == "BOTTOM":
             return self.milieu, self.bas
         return self.haut, self.bas
-
-    def zones_pleines(self):
-        """Plages sans barre médiane : cellules pleine hauteur."""
-        coupees = self.zones_coupees()
-        plages = []
-        curseur = self.x_min
-        for gauche, droite in coupees:
-            if gauche - curseur > 4:
-                plages.append((curseur, gauche))
-            curseur = max(curseur, droite)
-        if self.x_max - curseur > 4:
-            plages.append((curseur, self.x_max))
-        return plages
 
     def couleur(self, x0, x1, y0, y1):
         """Couleur de FOND de la cellule.
@@ -425,70 +376,7 @@ def _coupe_un_titre(dedans, dans_moitie, gauche, droite, grille, y0, y1, colle=5
     return False
 
 
-def _grouper_par_ecart(elements, ecart_min=8.0):
-    """Sépare des éléments alignés horizontalement dès qu'un vide les sépare."""
-    groupes = []
-    for gauche, droite in sorted(elements):
-        if groupes and gauche - groupes[-1][1] < ecart_min:
-            groupes[-1][1] = max(groupes[-1][1], droite)
-        else:
-            groupes.append([gauche, droite])
-    return groupes
-
-
-def lire_journee(page, zone, vers_heure, x_min_pdf, x_max_pdf):
-    """Extrait les cours d'une journée. `vers_heure(x_pdf)` rend un libellé horaire."""
-    grille = GrilleJour(page, zone, x_min_pdf, x_max_pdf)
-    bande = page.crop((0, zone['top'], page.width, zone['bottom']), strict=False)
-
-    # La bordure du haut est partagée avec la veille : les mots posés dessus
-    # appartiennent à la journée précédente.
-    tous = [m for m in bande.extract_words(extra_attrs=["fontname"])
-            if m['top'] > grille.haut + 1.0 and m['x0'] >= x_min_pdf - 2]
-
-    blocs = []
-
-    # 1) Plages coupées en deux : un cours en haut, un cours en bas.
-    for gauche, droite in grille.zones_coupees():
-        for position, y0, y1 in (("TOP", grille.haut, grille.milieu),
-                                 ("BOTTOM", grille.milieu, grille.bas)):
-            dedans = [m for m in tous
-                      if gauche - 2 <= m['x0'] and m['x1'] <= droite + 4
-                      and y0 - 0.5 <= m['top'] < y1 + 1.5]
-            bloc = _construire(grille, gauche, droite, position, y0, y1, dedans, vers_heure)
-            if bloc:
-                blocs.append(bloc)
-
-    # 2) Plages pleine hauteur : aucune barre médiane. Les cours y sont séparés
-    #    par des vides ; on regroupe textes et cases de salle, puis on aligne les
-    #    bords sur la grille horaire.
-    for gauche, droite in grille.zones_pleines():
-        dans_zone = [m for m in tous if gauche - 2 <= m['x0'] and m['x1'] <= droite + 4]
-        # On regroupe sur les TITRES seuls : l'espace entre « TCP/IP /GB » et sa
-        # case de salle dépasse largement le seuil, et regrouper les deux coupait
-        # le cours de sa propre salle.
-        titres = [m for m in dans_zone
-                  if not grille.est_salle(m, grille.haut, grille.bas)]
-        if not titres:
-            continue
-
-        groupes = _grouper_par_ecart([(m['x0'], m['x1']) for m in titres])
-
-        # Un cours occupe toute sa cellule, pas seulement la largeur de son
-        # texte. Seul le vide entre deux titres voisins fixe une frontière.
-        for i, (g_texte, d_texte) in enumerate(groupes):
-            g_cours = gauche if i == 0 else (groupes[i - 1][1] + g_texte) / 2
-            d_cours = droite if i == len(groupes) - 1 else (d_texte + groupes[i + 1][0]) / 2
-            dedans = [m for m in dans_zone if g_cours - 2 <= m['x0'] and m['x1'] <= d_cours + 4]
-            bloc = _construire(grille, g_cours, d_cours, "FULL",
-                               grille.haut, grille.bas, dedans, vers_heure, aligner=True)
-            if bloc:
-                blocs.append(bloc)
-
-    return blocs
-
-
-def _construire(grille, gauche, droite, position, y0, y1, mots, vers_heure, aligner=False):
+def _construire(grille, gauche, droite, position, y0, y1, mots, vers_heure):
     if not mots:
         return None
 
