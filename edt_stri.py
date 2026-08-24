@@ -3,7 +3,8 @@ Synchronisation de l'emploi du temps STRI (PDF -> Google Agenda).
 
 Ce module sert à la fois en CI (GitHub Actions) et en local :
   python edt_stri.py               -> traite le edt.pdf présent dans le dossier courant
-  python edt_stri.py --telecharger -> télécharge le PDF puis s'arrête
+  python telechargement.py         -> télécharge le PDF seul (sans numpy ni OpenCV)
+  python edt_stri.py --telecharger -> idem, via le module de téléchargement
   EDT_DEBUG=1 python edt_stri.py   -> exporte les images de debug dans export_cours/
 """
 
@@ -27,6 +28,9 @@ from pdf2image import convert_from_path
 
 import lecture_pdf
 import google_agenda
+# Le téléchargement vit dans un module sans dépendance lourde : la CI
+# l'appelle avant d'installer requirements.txt.
+from telechargement import FICHIER_PDF, telecharger_pdf
 
 # --- BIBLIOTHÈQUES GOOGLE ---
 from google.auth.transport.requests import Request
@@ -46,14 +50,6 @@ for _flux in (sys.stdout, sys.stderr):
 # CONFIGURATION
 # =====================================================================
 
-# CORRECTIF #5 : une seule et unique source pour l'URL du PDF (CI + local).
-# Surchargeable sans toucher au code : EDT_PDF_URL=... python edt_stri.py
-EDT_PDF_URL = os.environ.get(
-    "EDT_PDF_URL",
-    "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
-)
-EDT_BASE_URL = "https://stri.fr/"
-
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 # Agenda cible. Vide = recherché par son nom, puis créé s'il n'existe pas.
 CALENDAR_ID = os.environ.get("GOOGLE_CALENDAR_ID", "") or None
@@ -66,20 +62,15 @@ GARDER_COURS_DU_HAUT = os.environ.get("EDT_COURS_HAUT", "0") not in ("0", "false
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
 
-# CORRECTIF #9 : plus aucun appel réseau sans timeout.
+# Plus aucun appel réseau sans délai maximum (notifications Discord).
 TIMEOUT_HTTP = 20
 
 DEBUG = os.environ.get("EDT_DEBUG", "").strip() not in ("", "0", "false", "False")
 DOSSIER_DEBUG = Path("export_cours")
 
-FICHIER_PDF = os.environ.get("EDT_PDF", "edt.pdf")
 FICHIER_JSON = "edt_data.json"
 FICHIER_ICS = "edt.ics"
 
-USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-)
 
 DPI = 200
 
@@ -133,52 +124,6 @@ def _sauver_debug(image, *parties):
 # =====================================================================
 # TÉLÉCHARGEMENT DU PDF (contournement anti-bot)
 # =====================================================================
-
-def telecharger_pdf(chemin_sauvegarde=None):
-    """Récupère le PDF derrière le WAF « Tiger Protect ». Retourne True si OK."""
-    chemin_sauvegarde = chemin_sauvegarde or FICHIER_PDF
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        print("❌ playwright n'est pas installé (pip install playwright && playwright install chromium).")
-        return False
-
-    print(f"🌐 Téléchargement de {EDT_PDF_URL}")
-    try:
-        with sync_playwright() as p:
-            navigateur = p.chromium.launch(headless=True)
-            contexte = navigateur.new_context(user_agent=USER_AGENT)
-            page = contexte.new_page()
-
-            print("🛡️ Passage de la vérification anti-bot (Tiger Protect)...")
-            page.goto(EDT_BASE_URL)
-            page.wait_for_timeout(10000)  # laisse le JavaScript valider la session
-
-            print("🍪 Récupération du cookie d'accès...")
-            cookies = {c['name']: c['value'] for c in contexte.cookies()}
-            navigateur.close()
-
-        print("📥 Téléchargement du fichier PDF...")
-        reponse = requests.get(
-            EDT_PDF_URL,
-            headers={'User-Agent': USER_AGENT},
-            cookies=cookies,
-            timeout=TIMEOUT_HTTP,
-        )
-        reponse.raise_for_status()
-
-        if not reponse.content.startswith(b'%PDF'):
-            print("❌ Erreur : le fichier téléchargé n'est pas un PDF valide !")
-            return False
-
-        Path(chemin_sauvegarde).write_bytes(reponse.content)
-        print(f"✅ Téléchargement terminé ({len(reponse.content) // 1024} Ko).")
-        return True
-
-    except Exception as e:
-        print(f"❌ Erreur lors du téléchargement : {e}")
-        return False
-
 
 # =====================================================================
 # NOTIFICATIONS DISCORD

@@ -1,7 +1,7 @@
 name: Actualisation EDT
 
 # Le téléchargement n'est plus un script Python recopié dans le YAML : la CI
-# appelle `edt_stri.py --telecharger`, unique source de vérité pour l'URL.
+# appelle `telechargement.py`, unique source de vérité pour l'URL.
 
 on:
   schedule:
@@ -39,12 +39,15 @@ jobs:
           pip install playwright requests
           playwright install --with-deps chromium
 
-      # 3. Télécharge le PDF via la fonction du dépôt (URL définie une seule
-      #    fois dans edt_stri.py, surchargeable par la variable EDT_PDF_URL)
+      # 3. Télécharge le PDF via le module léger du dépôt (URL définie une
+      #    seule fois, surchargeable par la variable EDT_PDF_URL).
+      #    telechargement.py n'importe que requests et playwright : appeler
+      #    edt_stri.py ici échouerait, requirements.txt n'étant pas encore
+      #    installé et le module important numpy dès son chargement.
       - name: Télécharger le nouveau PDF
         env:
           EDT_PDF_URL: ${{ vars.EDT_PDF_URL }}
-        run: python edt_stri.py --telecharger edt_nouveau.pdf
+        run: python telechargement.py edt_nouveau.pdf
 
       # 4. Compare le nouveau avec l'ancien
       - name: Comparer les PDF
