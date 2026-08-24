@@ -51,7 +51,7 @@ _verifier_venv()
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(RACINE / ".env")  # DISCORD_WEBHOOK_URL / DRIVE_FOLDER_ID
+    load_dotenv(RACINE / ".env")  # DISCORD_WEBHOOK_URL / GOOGLE_CALENDAR_ID
 except ImportError:
     print("ℹ️  python-dotenv absent : les variables doivent être déjà exportées.")
 

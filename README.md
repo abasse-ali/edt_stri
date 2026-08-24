@@ -296,3 +296,39 @@ et ne retient que les plages contenant du texte. Trois pièges rencontrés :
 
 Résultat : 99 cours, aucun chevauchement, un seul cours sans professeur — et le
 PDF n'en indique effectivement aucun pour celui-là.
+
+## Abandon du Drive au profit de l'API Calendar (24/08)
+
+Le bot publiait `edt.ics` sur Google Drive, et l'agenda s'y abonnait. Deux
+impasses ont fait abandonner cette voie :
+
+1. **Google Agenda relit une URL externe quand il le décide** — 8 à 24 h,
+   parfois plus. Aucun en-tête HTTP ne force ce rythme. `X-PUBLISHED-TTL` et
+   `REFRESH-INTERVAL` sont bien émis, mais Google les ignore (Apple Calendar et
+   Outlook, eux, les respectent).
+2. **iOS réécrit l'URL d'abonnement en `http://`.** Or Drive répond 403 au HTTP
+   direct, et ne sert le fichier qu'en redirigeant vers `drive.usercontent.
+   google.com` en HTTPS — une redirection inter-domaines qu'iOS refuse de
+   suivre pour un calendrier. D'où l'« Échec de la validation » systématique.
+
+Le bot écrit désormais **directement dans un agenda Google** (`google_agenda.py`).
+Les cours apparaissent en quelques secondes, et sur l'iPhone via la
+synchronisation normale du compte : aucun abonnement, aucune URL, aucun réglage
+SSL.
+
+| | abonnement ICS | API Calendar |
+|---|---|---|
+| délai de mise à jour | 8 à 24 h | quelques secondes |
+| iOS | refusé | natif via le compte Google |
+| périmètre OAuth | `drive.file` | `calendar` |
+| partage du fichier | `anyone: writer` | aucun fichier exposé |
+
+Chaque cours porte un identifiant déterministe (MD5 de date + horaires + titre,
+dont l'alphabet hexadécimal est accepté tel quel par l'API) : un cours déplacé
+est modifié sur place, un cours retiré du PDF disparaît de l'agenda. Une seconde
+exécution rend « 0 ajout, 0 modification, 0 suppression ».
+
+Les examens sont colorés en rouge (`colorId` 11, « Tomate »).
+
+`edt.ics` continue d'être généré localement — export portable, ignoré par git —
+mais n'est plus téléversé nulle part.

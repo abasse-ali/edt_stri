@@ -71,32 +71,25 @@ jobs:
         if: steps.verification.outputs.run_script == 'true'
         run: pip install -r requirements.txt
 
-      # GDRIVE_TOKEN doit couvrir DEUX périmètres : drive.file ET calendar.
-      # Un jeton limité au Drive se rafraîchit sans erreur mais fait échouer la
-      # synchronisation de l'agenda en 403.
-      - name: Prepare Google Secrets
+      # GDRIVE_TOKEN : nom historique, le jeton ne sert plus qu'à l'API
+      # Calendar. Le fichier de client OAuth n'est plus écrit — il ne servait
+      # qu'au flux d'autorisation interactif, impossible en CI de toute façon.
+      - name: Prepare Google token
         if: steps.verification.outputs.run_script == 'true'
         env:
-          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
           GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
         run: |
-          printf '%s' "$GDRIVE_CREDENTIALS" > credentials.json
           printf '%s' "$GDRIVE_TOKEN" > token.json
 
           python - <<'PY'
           import json, sys
-          attendus = {
-              "https://www.googleapis.com/auth/drive.file",
-              "https://www.googleapis.com/auth/calendar",
-          }
           try:
               jeton = json.load(open("token.json"))
           except Exception as e:
               sys.exit(f"::error::GDRIVE_TOKEN illisible ({e}).")
-          manquants = attendus - set(jeton.get("scopes", []))
-          if manquants:
-              print(f"::warning::GDRIVE_TOKEN ne couvre pas {', '.join(sorted(manquants))}. "
-                    "Régénère token.json en local puis mets à jour le secret.")
+          if "https://www.googleapis.com/auth/calendar" not in jeton.get("scopes", []):
+              sys.exit("::error::GDRIVE_TOKEN ne couvre pas l'agenda. Regenere "
+                       "token.json en local (python test_local.py) puis mets a jour le secret.")
           if not jeton.get("refresh_token"):
               sys.exit("::error::GDRIVE_TOKEN sans refresh_token : inutilisable en CI.")
           PY
@@ -112,9 +105,9 @@ jobs:
         run: python edt_stri.py
 
       # Les secrets ne doivent pas survivre à l'étape suivante, qui commite.
-      - name: Effacer les identifiants
+      - name: Effacer le jeton
         if: always()
-        run: rm -f credentials.json token.json
+        run: rm -f token.json
 
       # 5. Sauvegarde le PDF ET les données JSON.
       #    Le script rend un code de sortie non nul si l'extraction est

@@ -1,5 +1,5 @@
 """
-Synchronisation de l'emploi du temps STRI (PDF -> JSON -> ICS -> Google Drive).
+Synchronisation de l'emploi du temps STRI (PDF -> Google Agenda).
 
 Ce module sert à la fois en CI (GitHub Actions) et en local :
   python edt_stri.py               -> traite le edt.pdf présent dans le dossier courant
@@ -28,12 +28,11 @@ from pdf2image import convert_from_path
 import lecture_pdf
 import google_agenda
 
-# --- BIBLIOTHÈQUES GOOGLE DRIVE ---
+# --- BIBLIOTHÈQUES GOOGLE ---
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
 
 # CORRECTIF : sur une console Windows en cp1252, le moindre print contenant un
 # emoji lève UnicodeEncodeError et tue le script en cours de traitement.
@@ -56,7 +55,6 @@ EDT_PDF_URL = os.environ.get(
 EDT_BASE_URL = "https://stri.fr/"
 
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
-DRIVE_FOLDER_ID = os.environ.get("DRIVE_FOLDER_ID", "1ID97m9gVzOqcLvdYBAabUo5wZKzZ5Nj-")
 # Agenda cible. Vide = recherché par son nom, puis créé s'il n'existe pas.
 CALENDAR_ID = os.environ.get("GOOGLE_CALENDAR_ID", "") or None
 
@@ -254,17 +252,14 @@ def obtenir_heure_proche(x_detecte):
 
 
 # =====================================================================
-# GOOGLE DRIVE
+# GOOGLE AGENDA
 # =====================================================================
 
-SCOPES_GOOGLE = [
-    'https://www.googleapis.com/auth/drive.file',
-    google_agenda.SCOPE,
-]
+SCOPES_GOOGLE = [google_agenda.SCOPE]
 
 
 def obtenir_identifiants(scopes=None, interactif=None):
-    """Identifiants Google partagés par l'agenda et le Drive.
+    """Identifiants Google pour l'API Calendar.
 
     Renvoie None plutôt que de bloquer : en CI, `run_local_server()` attendrait
     une autorisation navigateur qui ne viendra jamais et le job tournerait
@@ -284,11 +279,11 @@ def obtenir_identifiants(scopes=None, interactif=None):
         except ValueError as e:
             print(f"⚠️ token.json illisible ({e}).")
 
-    # Le périmètre a grandi (l'agenda s'ajoute au Drive) : un jeton qui ne
-    # couvre que le Drive se rafraîchit sans erreur mais fait échouer l'API
-    # Calendar en 403. Mieux vaut redemander l'autorisation tout de suite.
+    # Un jeton qui ne couvre pas l'agenda se rafraîchit sans erreur mais fait
+    # échouer l'API Calendar en 403 : mieux vaut redemander l'autorisation tout
+    # de suite que laisser l'agenda muet sans explication.
     if creds and not creds.has_scopes(scopes):
-        print("🔑 Autorisation à renouveler : l'accès à l'agenda s'ajoute à celui du Drive.")
+        print("🔑 Autorisation à renouveler : le jeton ne couvre pas l'agenda.")
         creds = None
 
     if creds and creds.valid:
@@ -340,7 +335,7 @@ def synchroniser_agenda(cours_list, creds):
 def afficher_lien_abonnement(agenda_id, creds):
     """Affiche l'adresse ICS de l'agenda, servie par calendar.google.com.
 
-    Contrairement au fichier posé sur le Drive, cette adresse est servie en
+    Cette adresse est servie en
     `text/calendar`, sans redirection vers un autre domaine : c'est la seule
     forme qu'iOS accepte quand il réécrit l'URL d'abonnement en `http://`.
 
@@ -376,35 +371,6 @@ def afficher_lien_abonnement(agenda_id, creds):
             print("   partageable, relancer avec EDT_AGENDA_PUBLIC=1.")
     except Exception as e:
         print(f"⚠️ Lien d'abonnement indisponible ({e}).")
-
-
-def televerser_sur_google_drive(nom_fichier, dossier_id, creds):
-    """Publie aussi l'ICS sur le Drive, pour les abonnements déjà en place."""
-    if creds is None:
-        return False
-    print("☁️  Téléversement Drive...")
-    try:
-        service = build('drive', 'v3', credentials=creds)
-        query = f"name = '{nom_fichier}' and '{dossier_id}' in parents and trashed = false"
-        resultats = service.files().list(q=query, fields="files(id)").execute()
-        items = resultats.get('files', [])
-        media = MediaFileUpload(nom_fichier, mimetype='text/calendar')
-
-        if not items:
-            service.files().create(
-                body={'name': nom_fichier, 'parents': [dossier_id]},
-                media_body=media, fields='id').execute()
-        else:
-            service.files().update(
-                fileId=items[0]['id'], body={'name': nom_fichier},
-                media_body=media, fields='id').execute()
-
-        print("✅ Fichier mis à jour sur Drive.")
-        return True
-
-    except Exception as e:
-        print(f"❌ Erreur Upload : {e}")
-        return False
 
 
 # =====================================================================
@@ -1124,7 +1090,7 @@ def principale():
 
     # CORRECTIF #2 : on n'écrase JAMAIS des données valides par un résultat
     # partiel — sinon une extraction ratée annonce l'annulation de tous les
-    # cours et vide l'agenda publié sur Drive.
+    # cours et vide l'agenda.
     if anciennes_donnees and (jours_en_echec or not nouvelles_donnees):
         detail = ", ".join(jours_en_echec) if jours_en_echec else "aucun cours extrait"
         print(f"❌ Extraction incomplète ({detail}). Données précédentes conservées.")
@@ -1150,7 +1116,6 @@ def principale():
     agenda_id = synchroniser_agenda(nouvelles_donnees, creds)
     if agenda_id:
         afficher_lien_abonnement(agenda_id, creds)
-    televerser_sur_google_drive(FICHIER_ICS, DRIVE_FOLDER_ID, creds)
     return 0
 
 
