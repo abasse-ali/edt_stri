@@ -8,7 +8,7 @@ Reprend `edt_stri.py` + `test_local.py` avec les correctifs de la revue de code.
 |---|---|
 | `edt_stri.py` | Script unique (CI **et** local) |
 | `test_local.py` | Lanceur local : `.env`, images de debug, téléchargement |
-| `prompt_creneau.txt` | Prompt Gemini, extrait à l'identique de l'ancien code |
+| `professeurs.txt` | Prompt Gemini, extrait à l'identique de l'ancien code |
 | `requirements.txt` | + `playwright`, + `python-dotenv` |
 | `edt_sync.yml` | Workflow corrigé (à copier dans `.github/workflows/`) |
 
@@ -63,12 +63,12 @@ Variables d'environnement : `GEMINI_API_KEYS` (obligatoire), `DISCORD_WEBHOOK_UR
 ## Migration
 
 ```bash
-cp new_test/edt_stri.py new_test/prompt_creneau.txt new_test/requirements.txt .
+cp new_test/edt_stri.py professeurs.txt new_test/requirements.txt .
 cp new_test/edt_sync.yml .github/workflows/edt_sync.yml
 ```
 
 En cas de copie à la racine, adapter les chemins `new_test/` du workflow.
-`prompt_creneau.txt` doit toujours accompagner `edt_stri.py`.
+`professeurs.txt` doit toujours accompagner `edt_stri.py`.
 
 ## Correctifs supplémentaires (validés sur le PDF M1 réel)
 
@@ -101,7 +101,7 @@ En cas de copie à la racine, adapter les chemins `new_test/` du workflow.
 
 ## Enseignants
 
-`prompt_creneau.txt` contient 42 entrées (L3 + M1). Vérifié sur des créneaux
+`professeurs.txt` contient 42 entrées (L3 + M1). Vérifié sur des créneaux
 réels : `KPS` → Karen PINEL-SAUVAGNAT, `PL` → Philippe LATU, `CC` → Cédric
 CHAMBAULT, `AA` → André AOUN, `TG` → Thierry GAYRAUD.
 
@@ -210,7 +210,7 @@ Architecture retenue — tout vient du vectoriel du PDF :
 | durée | ~20 min | **7,2 s** |
 | dépendances externes | 10 clés API, quotas, 403 | aucune |
 
-`prompt_creneau.txt` est conservé : il n'est plus envoyé à un modèle, mais reste
+`professeurs.txt` est conservé : il n'est plus envoyé à un modèle, mais reste
 la source unique de la table des enseignants, relue par `charger_profs()`.
 
 ### Ce qui disparaît

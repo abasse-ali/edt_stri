@@ -1,0 +1,34 @@
+# Table des enseignants : initiales telles qu'elles figurent dans le PDF de
+# l'emploi du temps -> nom complet affiché dans l'agenda.
+#
+# Lue par lecture_pdf.charger_profs(), qui découpe sur le marqueur d'ouverture
+# de la table puis sur la première accolade fermante. Ne pas écrire ce marqueur
+# ailleurs dans ce fichier, pas même dans un commentaire : la lecture
+# s'arrêterait dessus et ne ramènerait qu'une seule entrée.
+#
+# Une initiale absente de cette table est laissée telle quelle dans le titre du
+# cours — rien n'est perdu, mais l'agenda affiche « MA » au lieu du nom.
+#
+# Deux pièges hérités de la mise en page du PDF, traités dans lecture_pdf.py :
+#   - « GB » et « GC » précédés d'un « / » (« Adm. Linux /GB ») désignent des
+#     GROUPES, jamais un professeur. « GB » n'est Guillaume BARANGER que
+#     lorsqu'il occupe une place d'initiales : en italique sous le titre, ou
+#     entre parenthèses après le titre.
+#   - « EG » seul est Eric GONNEAU ; « EG Sécurité » est Etienne GÉRAIN.
+
+PROFS = {
+    "AA": "André AOUN", "AB": "Abdelmalek BENZEKRI", "AL": "Abir LARABA",
+    "AnAn": "Andréi ANDRÉI", "BA": "BA", "BC": "Bilal CHEBARO",
+    "BTJ": "Boris TIOMELA JOU", "CC": "Cédric CHAMBAULT", "CG": "Christine GALY",
+    "CJA": "Carole JEAN-AMANS", "CT": "Cédric TEYSSIE", "EG": "Eric GONNEAU",
+    "EG Sécurité": "Etienne GÉRAIN", "EL": "Emmanuel LAVINAL", "FM": "Frédéric MOUTIER",
+    "GB": "Guillaume BARANGER", "GR": "Gérard ROUZIES", "JGT": "Jean-Guy TARTARIN",
+    "JS": "Jérôme SOKOLOFF", "KB": "Ketty BRAVO", "KPS": "Karen PINEL-SAUVAGNAT",
+    "LC": "Louisa COT", "MCL": "Marie-Christine LAGASQUIÉ", "MM": "MUSTAPHA MOJAHID",
+    "MS": "Michelle SIBILLA", "OA": "Omar ALLAOUI", "OC": "Olivier CRIVELLARO",
+    "OM": "Olfa MECHI", "PA": "Philippe ARGUEL", "PIL": "Pierre LOTTE",
+    "PL": "Philippe LATU", "PM": "Philippe MURILLO", "PP": "Philippe PALANQUE",
+    "PT": "Patrice TORGUET", "RK": "Rahim KACIMI", "RL": "Romain LABORDE",
+    "RM": "Riad MOKADEM", "SB": "Sonia BADENE", "SL": "Séverine LALANDE",
+    "TD": "Thierry DESPRATS", "TG": "Thierry GAYRAUD", "YP": "Yannick PTAK"
+}

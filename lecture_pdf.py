@@ -49,11 +49,16 @@ def est_noir(c):
 
 # --- Table des enseignants ---------------------------------------------------
 
-def charger_profs(chemin_prompt=None):
-    """Relit la table PROFS du prompt : une seule source pour l'IA et le parseur."""
-    chemin_prompt = Path(chemin_prompt or Path(__file__).with_name("prompt_creneau.txt"))
+def charger_profs(chemin=None):
+    """Lit la table des enseignants : initiales du PDF -> nom complet.
+
+    Elle vivait dans `prompt_creneau.txt`, le prompt envoyé à Gemini. L'IA
+    ayant été retirée, le reste du fichier ne servait plus à rien : la table
+    est désormais seule dans `professeurs.txt`.
+    """
+    chemin = Path(chemin or Path(__file__).with_name("professeurs.txt"))
     try:
-        texte = chemin_prompt.read_text(encoding="utf-8")
+        texte = chemin.read_text(encoding="utf-8")
         bloc = texte.split("PROFS = {")[1].split("}")[0]
         return dict(re.findall(r'"([^"]+)"\s*:\s*"([^"]+)"', bloc))
     except (OSError, IndexError):
