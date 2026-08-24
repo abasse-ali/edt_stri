@@ -2,21 +2,28 @@
 requests>=2.32.0
 ics>=0.8.0.dev0
 
+# --- Téléchargement du PDF derrière le WAF (anti-bot) ---
+# Nécessite aussi : playwright install chromium
+playwright>=1.44.0
+
+# --- Lecture du PDF (couche texte : titres, salles, bordures) ---
+# pdfplumber porte l'extraction des cours ; OpenCV ne sert plus qu'à repérer
+# la géométrie des cases.
+
 # --- Manipulation et extraction PDF/Images ---
 pdfplumber>=0.11.0
 pdf2image>=1.17.0
 numpy>=2.0.0
 
 # --- Traitement d'images OpenCV ---
-# Utilisation de la version headless (sans interface graphique)
-# Idéale pour les scripts automatisés/serveurs.
-# Si tu as besoin d'afficher les fenêtres cv2.imshow(), remplace par: opencv-python>=4.9.0
+# Version headless (sans interface graphique), adaptée aux serveurs/CI.
+# Pour utiliser cv2.imshow() en local, remplacer par : opencv-python>=4.9.0
 opencv-python-headless>=4.9.0
-
-# --- IA Générative Google (Gemini) ---
-google-genai>=0.3.0
 
 # --- Google Drive API ---
 google-api-python-client>=2.115.0
 google-auth-oauthlib>=1.2.0
 google-auth>=2.27.0
+
+# --- Chargement du .env en local (utilisé par test_local.py) ---
+python-dotenv>=1.0.0

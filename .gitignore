@@ -1,0 +1,17 @@
+.env
+.vscode/
+__pycache__/
+export_cours/
+venv/
+poppler/
+
+# Secrets Google : fournis en CI par les secrets du dépôt, jamais versionnés.
+token.json
+token.*.json
+credentials.json
+
+# Sorties régénérées à chaque exécution.
+edt.ics
+
+# Ancien bac à sable, remplacé par le code à la racine.
+new_test/
