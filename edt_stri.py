@@ -30,7 +30,7 @@ import lecture_pdf
 import google_agenda
 # Le téléchargement vit dans un module sans dépendance lourde : la CI
 # l'appelle avant d'installer requirements.txt.
-from telechargement import FICHIER_PDF, telecharger_pdf
+from telechargement import FICHIER_PDF, telecharger_pdf, variable_env
 
 # --- BIBLIOTHÈQUES GOOGLE ---
 from google.auth.transport.requests import Request
@@ -50,14 +50,14 @@ for _flux in (sys.stdout, sys.stderr):
 # CONFIGURATION
 # =====================================================================
 
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
+DISCORD_WEBHOOK_URL = variable_env("DISCORD_WEBHOOK_URL")
 # Agenda cible. Vide = recherché par son nom, puis créé s'il n'existe pas.
-CALENDAR_ID = os.environ.get("GOOGLE_CALENDAR_ID", "") or None
+CALENDAR_ID = variable_env("GOOGLE_CALENDAR_ID") or None
 
 # L'emploi du temps M1 n'indique aucun groupe (« /GB », « /GC » : zéro
 # occurrence). Quand deux cours sont empilés dans un même créneau, seul celui du
 # BAS est retenu. Mettre à True pour publier aussi ceux du haut.
-GARDER_COURS_DU_HAUT = os.environ.get("EDT_COURS_HAUT", "0") not in ("0", "false", "False")
+GARDER_COURS_DU_HAUT = variable_env("EDT_COURS_HAUT", "0") not in ("0", "false", "False")
 
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
@@ -65,7 +65,7 @@ ANNEE_FORCEE = None
 # Plus aucun appel réseau sans délai maximum (notifications Discord).
 TIMEOUT_HTTP = 20
 
-DEBUG = os.environ.get("EDT_DEBUG", "").strip() not in ("", "0", "false", "False")
+DEBUG = variable_env("EDT_DEBUG", "0") not in ("0", "false", "False")
 DOSSIER_DEBUG = Path("export_cours")
 
 FICHIER_JSON = "edt_data.json"
@@ -98,8 +98,8 @@ GLOBAL_END_X = 0
 
 def _trouver_poppler():
     """CORRECTIF #10 : détection automatique de poppler (le chemin était faux)."""
-    if os.environ.get("POPPLER_PATH"):
-        return os.environ["POPPLER_PATH"]
+    if variable_env("POPPLER_PATH"):
+        return variable_env("POPPLER_PATH")
     if sys.platform != "win32":
         return None  # poppler-utils est dans le PATH sous Linux/macOS
     ici = Path(__file__).resolve().parent
@@ -214,8 +214,8 @@ def obtenir_identifiants(scopes=None, interactif=None):
     if interactif is None:
         # EDT_AUTORISER=1 force le mode interactif quand le script est lancé
         # par un outil qui ne fournit pas de vrai terminal.
-        interactif = (os.environ.get("EDT_AUTORISER") == "1"
-                      or (not os.environ.get("CI") and sys.stdin.isatty()))
+        interactif = (variable_env("EDT_AUTORISER") == "1"
+                      or (not variable_env("CI") and sys.stdin.isatty()))
 
     creds = None
     if Path('token.json').exists():
@@ -296,7 +296,7 @@ def afficher_lien_abonnement(agenda_id, creds):
                      and r.get('role') in ('reader', 'freeBusyReader')
                      for r in regles)
 
-        if not public and os.environ.get("EDT_AGENDA_PUBLIC") == "1":
+        if not public and variable_env("EDT_AGENDA_PUBLIC") == "1":
             service.acl().insert(
                 calendarId=agenda_id,
                 body={'scope': {'type': 'default'}, 'role': 'reader'},

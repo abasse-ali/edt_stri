@@ -19,16 +19,29 @@ from pathlib import Path
 
 import requests
 
+def variable_env(nom, defaut=""):
+    """Lit une variable d'environnement en traitant le vide comme l'absence.
+
+    `os.environ.get(nom, defaut)` ne rend le défaut que si la CLÉ manque. Or
+    GitHub Actions définit toujours les variables citées dans `env:`, même
+    lorsque la variable de dépôt correspondante n'existe pas — avec une valeur
+    vide. `EDT_PDF_URL: ${{ vars.EDT_PDF_URL }}` non défini donnait donc une
+    URL vide, et le téléchargement échouait sur « No scheme supplied ».
+    """
+    valeur = os.environ.get(nom, "").strip()
+    return valeur or defaut
+
+
 # Une seule et unique source pour l'URL du PDF (CI + local), importée par
 # edt_stri.py. Surchargeable sans toucher au code :
 #     EDT_PDF_URL=... python telechargement.py
-EDT_PDF_URL = os.environ.get(
+EDT_PDF_URL = variable_env(
     "EDT_PDF_URL",
     "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
 )
 EDT_BASE_URL = "https://stri.fr/"
 
-FICHIER_PDF = os.environ.get("EDT_PDF", "edt.pdf")
+FICHIER_PDF = variable_env("EDT_PDF", "edt.pdf")
 
 # Plus aucun appel réseau sans délai maximum.
 TIMEOUT_HTTP = 20
