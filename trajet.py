@@ -11,10 +11,12 @@ Aucun script ne peut créer une alarme sur un téléphone : ni iOS ni Android
 n'exposent d'API pour l'app Horloge. L'événement « Réveil » est donc la donnée
 d'entrée d'une automatisation Raccourcis qui, elle, tourne sur l'iPhone.
 
-Le temps de trajet vient de l'API Google Routes, interrogée avec l'heure
-d'ARRIVÉE voulue : en transports en commun, c'est elle qui détermine le
-passage à prendre, pas une durée moyenne. Sans clé d'API, une durée fixe prend
-le relais et le script reste utilisable.
+Le temps de trajet vient de Tisséo par défaut — le réseau toulousain à la
+source, clé gratuite et sans facturation — ou de l'API Google Routes
+(TRAJET_FOURNISSEUR=google). Dans les deux cas la requête porte l'heure
+d'ARRIVÉE voulue : en transports en commun, c'est elle qui détermine le passage
+à prendre, pas une durée moyenne. Sans clé, une durée fixe prend le relais et
+le script reste utilisable.
 
     python trajet.py            -> prépare les prochains jours
     python trajet.py --essai    -> affiche le calcul sans rien écrire
@@ -58,8 +60,17 @@ NOM_AGENDA = variable_env("TRAJET_AGENDA", "STRI — Trajet")
 CLE_MARQUEUR = "TRAJET"
 COULEUR = variable_env("TRAJET_COULEUR", "myrtille")
 
+# Fournisseur du temps de trajet : « tisseo », « google » ou « fixe ».
+FOURNISSEUR = variable_env("TRAJET_FOURNISSEUR", "tisseo").lower()
+CLE_TISSEO = variable_env("TISSEO_API_KEY")
+
 ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes"
+TISSEO_URL = "https://api.tisseo.fr/v2"
 TIMEOUT_HTTP = 20
+
+# Coordonnées résolues une fois par exécution : une vingtaine de jours à
+# préparer ne doit pas déclencher quarante géocodages identiques.
+_COORDONNEES = {}
 
 
 # =====================================================================
@@ -69,13 +80,133 @@ TIMEOUT_HTTP = 20
 def duree_trajet(arrivee):
     """Durée domicile -> université pour arriver à `arrivee`, en minutes.
 
-    Renvoie (minutes, source). L'heure d'ARRIVÉE est envoyée à l'API plutôt
-    qu'une heure de départ : en transports en commun, arriver à 7h45 ne se
-    déduit pas d'une durée moyenne, il faut le passage qui convient.
+    Renvoie (minutes, source). C'est l'heure d'ARRIVÉE qui est envoyée, jamais
+    une heure de départ : en transports en commun, arriver à 7h45 ne se déduit
+    pas d'une durée moyenne, il faut le passage qui convient.
     """
-    if not (CLE_MAPS and DOMICILE and UNIVERSITE):
-        return DUREE_SECOURS, "durée fixe (API non configurée)"
+    if not (DOMICILE and UNIVERSITE):
+        return DUREE_SECOURS, "durée fixe (adresses non configurées)"
+    if FOURNISSEUR == "tisseo" and CLE_TISSEO:
+        return _tisseo(arrivee)
+    if FOURNISSEUR == "google" and CLE_MAPS:
+        return _google(arrivee)
+    return DUREE_SECOURS, "durée fixe (aucun fournisseur configuré)"
 
+
+# --- Tisséo ------------------------------------------------------------------
+# Le réseau toulousain à la source, avec une clé gratuite et sans facturation.
+# Attention : Tisséo attend les coordonnées en LONGITUDE,LATITUDE, l'inverse de
+# l'ordre affiché par Google Maps. La configuration accepte l'ordre habituel
+# (latitude d'abord) et l'inversion se fait ici.
+
+def _coordonnees(adresse):
+    """« lat,lon » tel quel, sinon géocodage par l'annuaire de lieux Tisséo."""
+    if adresse in _COORDONNEES:
+        return _COORDONNEES[adresse]
+
+    morceaux = adresse.replace(" ", "").split(",")
+    if len(morceaux) == 2:
+        try:
+            lat, lon = float(morceaux[0]), float(morceaux[1])
+            _COORDONNEES[adresse] = f"{lon},{lat}"
+            return _COORDONNEES[adresse]
+        except ValueError:
+            pass
+
+    reponse = requests.get(f"{TISSEO_URL}/places.json", timeout=TIMEOUT_HTTP,
+                           params={"key": CLE_TISSEO, "term": adresse,
+                                   "network": "Tisseo"})
+    if reponse.status_code != 200:
+        raise RuntimeError(f"géocodage refusé ({reponse.status_code} : "
+                           f"{reponse.text[:90]})")
+    lieux = _premiere_liste(reponse.json(), ("places", "place"))
+    if not lieux:
+        raise RuntimeError(f"adresse introuvable dans l'annuaire Tisséo : « {adresse} »")
+
+    lieu = lieux[0]
+    x, y = lieu.get("x") or lieu.get("lon"), lieu.get("y") or lieu.get("lat")
+    if x is None or y is None:
+        raise RuntimeError(f"lieu sans coordonnées : {str(lieu)[:110]}")
+    _COORDONNEES[adresse] = f"{x},{y}"
+    return _COORDONNEES[adresse]
+
+
+def _premiere_liste(donnees, cles):
+    """Première liste non vide trouvée sous l'une des clés, à n'importe quel niveau.
+
+    La forme exacte des réponses Tisséo varie selon les endpoints ; plutôt que
+    de figer un chemin, on va chercher la liste utile.
+    """
+    if isinstance(donnees, list):
+        return donnees
+    if not isinstance(donnees, dict):
+        return []
+    for cle in cles:
+        if isinstance(donnees.get(cle), list) and donnees[cle]:
+            return donnees[cle]
+    for valeur in donnees.values():
+        trouve = _premiere_liste(valeur, cles)
+        if trouve:
+            return trouve
+    return []
+
+
+def _instant_tisseo(texte):
+    """Tisséo date en « dd/MM/yyyy HH:mm:ss » ; l'ISO est accepté par sécurité."""
+    if not texte:
+        return None
+    for forme in ("%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M"):
+        try:
+            return datetime.strptime(texte, forme).replace(tzinfo=FUSEAU)
+        except ValueError:
+            continue
+    try:
+        moment = datetime.fromisoformat(texte)
+        return moment if moment.tzinfo else moment.replace(tzinfo=FUSEAU)
+    except ValueError:
+        return None
+
+
+def _tisseo(arrivee):
+    try:
+        params = {
+            "key": CLE_TISSEO,
+            "departurePlaceXY": _coordonnees(DOMICILE),
+            "arrivalPlaceXY": _coordonnees(UNIVERSITE),
+            "arrivalDatetime": arrivee.strftime("%d/%m/%Y %H:%M"),
+            "number": 1,
+        }
+        reponse = requests.get(f"{TISSEO_URL}/journeys.json", params=params,
+                               timeout=TIMEOUT_HTTP)
+        if reponse.status_code != 200:
+            print(f"   ⚠️ Tisséo : {reponse.status_code} — {reponse.text[:120]}")
+            return DUREE_SECOURS, "durée fixe (Tisséo a refusé)"
+
+        trajets = _premiere_liste(reponse.json(), ("journeys", "journey"))
+        if not trajets:
+            return DUREE_SECOURS, "durée fixe (aucun itinéraire)"
+
+        trajet = trajets[0].get("journey", trajets[0]) if isinstance(trajets[0], dict) else {}
+        secondes = trajet.get("duration")
+        if secondes is not None:
+            return max(1, round(int(secondes) / 60)), "Tisséo"
+
+        # Pas de durée explicite : on la déduit des deux horodatages.
+        depart = _instant_tisseo(trajet.get("departureDateTime"))
+        fin = _instant_tisseo(trajet.get("arrivalDateTime"))
+        if depart and fin and fin > depart:
+            return max(1, round((fin - depart).total_seconds() / 60)), "Tisséo"
+
+        print(f"   ⚠️ Réponse Tisséo inattendue : {str(trajet)[:160]}")
+        return DUREE_SECOURS, "durée fixe (réponse illisible)"
+    except Exception as e:
+        print(f"   ⚠️ Tisséo indisponible ({str(e)[:110]}).")
+        return DUREE_SECOURS, "durée fixe (Tisséo en échec)"
+
+
+# --- Google Routes -----------------------------------------------------------
+
+def _google(arrivee):
     corps = {
         "origin": {"address": DOMICILE},
         "destination": {"address": UNIVERSITE},
@@ -134,23 +265,40 @@ def _expliquer(reponse):
 
 def diagnostic():
     """Une requête, un verdict. `python trajet.py --diagnostic`."""
-    print("🔎 Diagnostic de l'API Routes")
-    for nom, valeur in (("TRAJET_DOMICILE", DOMICILE),
-                        ("TRAJET_UNIVERSITE", UNIVERSITE),
-                        ("GOOGLE_MAPS_API_KEY", CLE_MAPS)):
-        etat = f"« {valeur} »" if valeur and nom != "GOOGLE_MAPS_API_KEY" else (
-            f"définie ({len(valeur)} caractères)" if valeur else "ABSENTE")
+    print(f"🔎 Diagnostic du calcul de trajet — fournisseur « {FOURNISSEUR} »")
+
+    cle = CLE_TISSEO if FOURNISSEUR == "tisseo" else CLE_MAPS
+    nom_cle = "TISSEO_API_KEY" if FOURNISSEUR == "tisseo" else "GOOGLE_MAPS_API_KEY"
+    for nom, valeur, secrete in (("TRAJET_DOMICILE", DOMICILE, False),
+                                 ("TRAJET_UNIVERSITE", UNIVERSITE, False),
+                                 (nom_cle, cle, True)):
+        if not valeur:
+            etat = "ABSENTE"
+        elif secrete:
+            etat = f"définie ({len(valeur)} caractères)"
+        else:
+            etat = f"« {valeur} »"
         print(f"   {nom:22s} {etat}")
-    if not (CLE_MAPS and DOMICILE and UNIVERSITE):
+
+    if not (DOMICILE and UNIVERSITE and cle):
         print("   → Complète ces trois variables dans .env avant d'aller plus loin.")
         return 1
+
+    if FOURNISSEUR == "tisseo":
+        for nom, adresse in (("domicile", DOMICILE), ("université", UNIVERSITE)):
+            try:
+                print(f"   {nom:11s} → {_coordonnees(adresse)}  (longitude,latitude)")
+            except Exception as e:
+                print(f"   ❌ {nom} : {e}")
+                return 1
 
     demain = datetime.now(FUSEAU) + timedelta(days=1)
     cible = demain.replace(hour=8, minute=0, second=0, microsecond=0)
     minutes, source = duree_trajet(cible)
-    if source == "Google Routes":
-        print(f"   ✅ Itinéraire obtenu : {minutes} min pour arriver à "
-              f"{cible:%d/%m %Hh%M}.")
+    if source in ("Tisséo", "Google Routes"):
+        depart = cible - timedelta(minutes=minutes)
+        print(f"   ✅ {minutes} min via {source} : partir à {depart:%Hh%M} "
+              f"pour arriver à {cible:%d/%m %Hh%M}.")
         return 0
     print(f"   ❌ Pas de donnée réelle. Repli sur {minutes} min ({source}).")
     return 1
@@ -312,9 +460,11 @@ def principale():
         return diagnostic()
 
     essai = "--essai" in sys.argv
-    if not (CLE_MAPS and DOMICILE and UNIVERSITE):
-        print("ℹ️  TRAJET_DOMICILE, TRAJET_UNIVERSITE ou GOOGLE_MAPS_API_KEY "
-              f"absents : durée fixe de {DUREE_SECOURS} min.")
+    cle = CLE_TISSEO if FOURNISSEUR == "tisseo" else CLE_MAPS
+    if not (cle and DOMICILE and UNIVERSITE):
+        print(f"ℹ️  Fournisseur « {FOURNISSEUR} » non configuré : "
+              f"durée fixe de {DUREE_SECOURS} min. "
+              "Voir `python trajet.py --diagnostic`.")
 
     creds = edt_stri.obtenir_identifiants()
     if creds is None:
