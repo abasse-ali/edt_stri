@@ -909,8 +909,17 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
 
         col_txt = (block.get('color') or 'BLANC').upper()
 
+        # Un fond ORANGE désigne un cours des Ingé — pas un cours annulé, comme
+        # on l'a longtemps cru en les écartant tous. Ils étaient donc absents
+        # des agendas Ingé, à qui ils étaient précisément destinés : 4 cours du
+        # M1 et 18 de la L3, dont tout l'anglais, la physique et les SHS.
+        #
+        # La couleur fait autorité sur la position : les 22 cases orange
+        # mesurées sont toutes en moitié haute, mais si l'une passait un jour
+        # en pleine hauteur, elle resterait un cours d'Ingé.
         if 'ORANGE' in col_txt:
-            continue
+            if MOITIE_RETENUE != "HAUT":
+                continue
 
         # Une cellule de la moitié opposée appartient à l'autre demi-promo,
         # qu'un cours occupe ou non la moitié retenue (voir EDT_MOITIE). Les
@@ -921,7 +930,7 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         # concerné. Le TOEIC du 02/09 est en haut, donc pour les Ingés ; les
         # épreuves d'Adm. Linux du 18/09 sont réparties entre les deux. Les
         # publier partout mélangeait les deux promos.
-        if cellule['position'] == POSITION_ECARTEE:
+        elif cellule['position'] == POSITION_ECARTEE:
             continue
 
         c_txt = (block.get('course') or "Cours").strip()

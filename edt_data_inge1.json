@@ -96,6 +96,22 @@
     "prof": "Abdelmalek BENZEKRI"
   },
   {
+    "date": "2026-09-01",
+    "start": "13h30",
+    "end": "15h00",
+    "titre": "Réunion Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-01",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "SHS - C (KUPX5BA4)",
+    "room": "Non attribuée",
+    "prof": "KUPX5BA4"
+  },
+  {
     "date": "2026-09-02",
     "start": "07h45",
     "end": "09h45",
@@ -145,6 +161,14 @@
   },
   {
     "date": "2026-09-04",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS",
+    "room": "U3-amphi",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-04",
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths (Abdelmalek BENZEKRI)",
@@ -169,11 +193,27 @@
   },
   {
     "date": "2026-09-07",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-07",
     "start": "15h45",
     "end": "17h45",
     "titre": "Informatique (André AOUN)",
     "room": "Non attribuée",
     "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
+    "room": "Non attribuée",
+    "prof": "KUPT5BB3"
   },
   {
     "date": "2026-09-08",
@@ -224,6 +264,22 @@
     "prof": "Inconnu"
   },
   {
+    "date": "2026-09-11",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS - C (KUPX5BA4) (Séverine LALANDE)",
+    "room": "Non attribuée",
+    "prof": "Séverine LALANDE"
+  },
+  {
+    "date": "2026-09-11",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (SLA)",
+    "room": "Non attribuée",
+    "prof": "SLA"
+  },
+  {
     "date": "2026-09-14",
     "start": "07h45",
     "end": "09h45",
@@ -238,6 +294,14 @@
     "titre": "Outils Maths (Jérôme SOKOLOFF)",
     "room": "Non attribuée",
     "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-09-14",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
   },
   {
     "date": "2026-09-15",
@@ -273,11 +337,43 @@
   },
   {
     "date": "2026-09-17",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - TD (KUPT5BB3)",
+    "room": "Non attribuée",
+    "prof": "KUPT5BB3"
+  },
+  {
+    "date": "2026-09-17",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-17",
     "start": "15h45",
     "end": "17h45",
     "titre": "Réseaux (André AOUN)",
     "room": "U3-306",
     "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-18",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS - C (KUPX5BA4)",
+    "room": "Non attribuée",
+    "prof": "KUPX5BA4"
+  },
+  {
+    "date": "2026-09-18",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (SLA)",
+    "room": "Non attribuée",
+    "prof": "SLA"
   },
   {
     "date": "2026-09-21",
@@ -294,6 +390,14 @@
     "titre": "Outils Maths - C (KINX5AA2)",
     "room": "Non attribuée",
     "prof": "KINX5AA2"
+  },
+  {
+    "date": "2026-09-21",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
   },
   {
     "date": "2026-09-21",
@@ -353,11 +457,51 @@
   },
   {
     "date": "2026-09-24",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD (SLA)",
+    "room": "Non attribuée",
+    "prof": "SLA"
+  },
+  {
+    "date": "2026-09-24",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - TD (KUPT5BB3)",
+    "room": "Non attribuée",
+    "prof": "KUPT5BB3"
+  },
+  {
+    "date": "2026-09-24",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-24",
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths - TD (KINX5AA2) - AB",
     "room": "Non attribuée",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-25",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS - C (KUPX5BA4)",
+    "room": "Non attribuée",
+    "prof": "KUPX5BA4"
+  },
+  {
+    "date": "2026-09-25",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (KBR)",
+    "room": "Non attribuée",
+    "prof": "KBR"
   },
   {
     "date": "2026-09-25",

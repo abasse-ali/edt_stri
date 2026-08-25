@@ -153,6 +153,14 @@
   },
   {
     "date": "2026-09-01",
+    "start": "13h30",
+    "end": "14h30",
+    "titre": "Réunion Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-01",
     "start": "15h45",
     "end": "17h45",
     "titre": "Interco (Thierry DESPRATS)",
@@ -472,6 +480,14 @@
     "prof": "Thierry DESPRATS"
   },
   {
+    "date": "2026-09-17",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Sport (Ingé)",
+    "room": "Non attribuée",
+    "prof": "Ingé"
+  },
+  {
     "date": "2026-09-18",
     "start": "07h45",
     "end": "09h45",
@@ -576,6 +592,14 @@
     "prof": "Thierry GAYRAUD"
   },
   {
+    "date": "2026-09-24",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Sport (Ingé)",
+    "room": "Non attribuée",
+    "prof": "Ingé"
+  },
+  {
     "date": "2026-09-25",
     "start": "10h00",
     "end": "12h00",
@@ -670,6 +694,14 @@
     "titre": "Tél. Spat. (MA & Frédéric MOUTIER)",
     "room": "U4-307/308",
     "prof": "MA & Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-10-01",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Sport (Ingé)",
+    "room": "Non attribuée",
+    "prof": "Ingé"
   },
   {
     "date": "2026-10-02",
