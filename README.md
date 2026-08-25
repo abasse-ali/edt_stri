@@ -418,4 +418,27 @@ pistache** : le vert le plus proche est le basilic. Surchargeable par
 
 Limite qui subsiste : l'app **Calendrier d'iOS** ignore les couleurs par
 événement et peint tout à la couleur de l'agenda. Aucun réglage côté serveur
-n'y change rien — seul le titre, qui porte `[EXAMEN]`, reste lisible partout.
+n'y change rien — seul le titre reste lisible partout (voir ci-dessous).
+
+
+## Le titre plutôt que la couleur (25/08)
+
+Une personne abonnée en `reader`, sur Google Agenda, voyait ses cours à la
+teinte de son propre agenda — examens compris — alors que les événements
+portaient bien `colorId` 10 et 11 depuis dix heures. Ni les droits ni les
+données n'étaient en cause, et la raison n'a pas pu être établie depuis le
+compte propriétaire : il faudrait s'authentifier comme l'abonné.
+
+Constat retenu : **on ne peut pas compter sur la couleur** pour transmettre une
+information à des personnes dont on ne maîtrise pas le client. Le titre, si :
+c'est la seule chose que tous affichent à l'identique.
+
+    avant : [EXAMEN] BD (Karen PINEL-SAUVAGNAT)
+    après : 🔴 EXAMEN · BD (Karen PINEL-SAUVAGNAT)
+
+Les couleurs restent en place — elles ne coûtent rien là où elles s'affichent.
+
+Le marqueur vit dans `google_agenda.MARQUEUR_EXAMEN`, utilisé à la fois pour
+construire le titre et pour reconnaître un examen à colorer : une seule source.
+Le changer déplace les événements concernés, l'identifiant étant dérivé du
+titre — cinq suppressions suivies de cinq créations, une seule fois.

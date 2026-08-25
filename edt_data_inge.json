@@ -163,7 +163,7 @@
     "date": "2026-09-02",
     "start": "07h45",
     "end": "12h00",
-    "titre": "[EXAMEN] TOEIC (STRI4A)",
+    "titre": "🔴 EXAMEN · TOEIC (STRI4A)",
     "room": "Non attribuée",
     "prof": "STRI4A"
   },
@@ -579,7 +579,7 @@
     "date": "2026-09-25",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] BD (Karen PINEL-SAUVAGNAT)",
+    "titre": "🔴 EXAMEN · BD (Karen PINEL-SAUVAGNAT)",
     "room": "U3-Amphi",
     "prof": "Karen PINEL-SAUVAGNAT"
   },
@@ -675,7 +675,7 @@
     "date": "2026-10-02",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] Interco (Thierry DESPRATS)",
+    "titre": "🔴 EXAMEN · Interco (Thierry DESPRATS)",
     "room": "U3-Amphi",
     "prof": "Thierry DESPRATS"
   }

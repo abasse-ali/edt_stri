@@ -882,7 +882,7 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
 
         titre = titre.replace("[] ", "")
         if 'JAUNE' in col_txt:
-            titre = "[EXAMEN] " + titre
+            titre = f"{google_agenda.MARQUEUR_EXAMEN} {titre}"
 
         salle = block.get('room') or "Non attribuée"
         print(f"    [+] {titre} ({cellule['start']}-{cellule['end']}) en {salle}")

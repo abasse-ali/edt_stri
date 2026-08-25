@@ -37,7 +37,12 @@ TAILLE_PAGE = 2500
 #   7 Paon      8 Graphite  9 Myrtille 10 Basilic 11 Tomate (rouge)
 # Les autres cours n'en portent aucune et gardent la couleur de l'agenda.
 COULEUR_EXAMEN = "11"
-MARQUEUR_EXAMEN = "[EXAMEN]"
+# Marqueur d'examen. Il vit dans le TITRE, et pas seulement dans la couleur :
+# le titre est la seule chose qu'absolument tous les clients affichent à
+# l'identique, pour le propriétaire comme pour les personnes abonnées. La
+# couleur, elle, dépend de l'application — un abonné a rapporté voir ses cours
+# à la teinte de son agenda, examens compris.
+MARQUEUR_EXAMEN = "🔴 EXAMEN ·"
 
 # Correspondance nom -> numéro dans la palette des ÉVÉNEMENTS.
 COULEURS_EVENEMENT = {
