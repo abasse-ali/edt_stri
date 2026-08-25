@@ -12,8 +12,6 @@ credentials.json
 
 # Sorties régénérées à chaque exécution.
 edt*.ics
-# Archive d'horaires Tisséo : 19 Mo retéléchargés tous les 14 jours.
-tisseo_gtfs.zip
 
 # Ancien bac à sable, remplacé par le code à la racine.
 new_test/
