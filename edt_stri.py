@@ -2,11 +2,16 @@
 Synchronisation de l'emploi du temps STRI (PDF -> Google Agenda).
 
 Ce module sert à la fois en CI (GitHub Actions) et en local :
-  python edt_stri.py               -> traite le PDF de la promotion (EDT_PROMO)
-  EDT_PROMO=L3 python edt_stri.py  -> traite la L3 au lieu du M1
-  python telechargement.py         -> télécharge le PDF seul (sans numpy ni OpenCV)
-  python edt_stri.py --telecharger -> idem, via le module de téléchargement
-  EDT_DEBUG=1 python edt_stri.py   -> exporte les images de debug dans export_cours/
+Une exécution ne traite QU'UNE combinaison promotion × demi-promo : la
+configuration est lue au chargement du module. Pour les quatre, passer par
+`test_local.py`, qui lance un processus par combinaison — c'est aussi ce que
+fait la CI.
+
+  python test_local.py                       -> les 4 combinaisons
+  python edt_stri.py                         -> M1 / moitié basse seulement
+  EDT_PROMO=L3 EDT_MOITIE=HAUT python edt_stri.py  -> une autre combinaison
+  python telechargement.py --promo L3        -> télécharge un PDF (sans numpy)
+  EDT_DEBUG=1 python edt_stri.py             -> images dans export_cours/<promo>/
 """
 
 import os

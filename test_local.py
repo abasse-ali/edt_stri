@@ -1,31 +1,36 @@
 """
 Lanceur local du bot EDT.
 
-Contrairement à l'ancien test_local.py (qui dupliquait ~850 lignes et avait
-divergé du script de production : mauvaise URL de PDF, chemin poppler erroné,
-fonction de téléchargement jamais appelée), ce fichier ne fait que configurer
-l'environnement puis appeler edt_stri.py — il ne peut donc plus diverger.
+Fait exactement ce que fait la CI : télécharge les PDF de chaque promotion, puis
+traite les quatre combinaisons promotion × demi-promo. Sans lui, `python
+edt_stri.py` ne traite QUE le M1 en moitié basse — la configuration étant lue au
+chargement du module, une exécution ne peut couvrir qu'une combinaison.
+
+Chaque passe tourne dans son propre processus, comme en CI, pour la même raison.
 
 Usage (depuis la racine du dépôt) :
-    python new_test/test_local.py                # télécharge le PDF puis traite
-    python new_test/test_local.py --no-download  # réutilise le edt.pdf existant
-    python new_test/test_local.py --no-debug     # sans export des images
+    python test_local.py                  # tout : 2 téléchargements, 4 passes
+    python test_local.py --no-download    # réutilise les PDF déjà présents
+    python test_local.py --promo L3       # une seule promotion
+    python test_local.py --moitie HAUT    # une seule demi-promo
+    python test_local.py --no-debug       # sans export des images
 """
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
-RACINE = Path(__file__).resolve().parent.parent
+RACINE = Path(__file__).resolve().parent
 
 # Console Windows en cp1252 : sans ceci, le premier print contenant un emoji
-# lève UnicodeEncodeError. À faire avant tout affichage, donc avant d'importer
-# edt_stri (qui applique le même réglage de son côté).
+# lève UnicodeEncodeError. À faire avant tout affichage.
 for _flux in (sys.stdout, sys.stderr):
     try:
         _flux.reconfigure(encoding="utf-8", errors="replace")
     except (AttributeError, ValueError):
         pass
+
 
 def _verifier_venv():
     """Échoue immédiatement si le venv du projet n'est pas activé.
@@ -44,42 +49,73 @@ def _verifier_venv():
             print("   Active-le :")
             print("     .\\venv\\Scripts\\Activate.ps1")
             print("   ou lance directement :")
-            print(f"     .\\{relatif} new_test\\{Path(__file__).name}")
+            print(f"     .\\{relatif} {Path(__file__).name}")
             sys.exit(1)
+
 
 _verifier_venv()
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(RACINE / ".env")  # DISCORD_WEBHOOK_URL / GOOGLE_CALENDAR_ID
-except ImportError:
-    print("ℹ️  python-dotenv absent : les variables doivent être déjà exportées.")
-
-# CORRECTIF #11 : les exports de debug sont activés ici, pas en dur dans le
-# script de production (qui gaspillait des copies d'images en CI).
+# Les exports de debug sont activés ici, pas en dur dans le script de
+# production, qui gaspillerait des copies d'images en CI.
 if "--no-debug" not in sys.argv:
     os.environ.setdefault("EDT_DEBUG", "1")
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(RACINE))
 
-import edt_stri  # noqa: E402  (import après configuration de l'environnement)
+# telechargement est le module léger : il porte la table des promotions et ne
+# tire ni numpy ni OpenCV.
+from telechargement import PROMOS, telecharger_pdf  # noqa: E402
+
+
+def _option(nom, valeurs):
+    """Lit `--nom VALEUR` dans la ligne de commande."""
+    if nom not in sys.argv:
+        return None
+    i = sys.argv.index(nom)
+    valeur = sys.argv[i + 1].upper() if i + 1 < len(sys.argv) else ""
+    if valeur not in valeurs:
+        sys.exit(f"⛔ {nom} {valeur!r} inconnu. Valeurs : {', '.join(valeurs)}.")
+    return valeur
+
 
 def main():
+    promo_voulue = _option("--promo", PROMOS)
+    moitie_voulue = _option("--moitie", ("BAS", "HAUT"))
+
+    promos = [promo_voulue] if promo_voulue else list(PROMOS)
+    moities = [moitie_voulue] if moitie_voulue else ["BAS", "HAUT"]
+
     print(f"📂 Dossier de travail : {Path.cwd()}")
-    print(f"🔧 Poppler : {edt_stri.POPPLER_PATH or 'PATH système'}")
+    print(f"🎓 Promotions : {', '.join(promos)}   demi-promos : {', '.join(moities)}")
 
-    # CORRECTIF #12 : le téléchargement est réellement appelé (l'ancienne
-    # version définissait telecharger_pdf() sans jamais l'utiliser, on
-    # retraitait donc indéfiniment un PDF périmé).
-    if "--no-download" not in sys.argv:
-        if not edt_stri.telecharger_pdf():
-            print("⛔ Téléchargement impossible. Utilise --no-download pour "
-                  "retraiter le PDF déjà présent.")
-            return 1
-    else:
+    if "--no-download" in sys.argv:
         print("⏭️  Téléchargement ignoré (--no-download).")
+    else:
+        for promo in promos:
+            print(f"\n─── Téléchargement {promo} ───")
+            if not telecharger_pdf(PROMOS[promo]["pdf"], url=PROMOS[promo]["url"]):
+                print(f"⛔ Téléchargement {promo} impossible. Utilise --no-download "
+                      "pour retraiter les PDF déjà présents.")
+                return 1
 
-    return edt_stri.principale()
+    echecs = []
+    for promo in promos:
+        for moitie in moities:
+            nom = PROMOS[promo]["agendas"][moitie]
+            print(f"\n─── {promo} / {moitie} → {nom} ───")
+            code = subprocess.call(
+                [sys.executable, str(RACINE / "edt_stri.py")],
+                env={**os.environ, "EDT_PROMO": promo, "EDT_MOITIE": moitie},
+            )
+            if code != 0:
+                echecs.append(f"{promo}/{moitie}")
+
+    if echecs:
+        print(f"\n❌ Échec sur : {', '.join(echecs)}")
+        return 1
+    print(f"\n✅ {len(promos) * len(moities)} passe(s) terminée(s) sans erreur.")
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
