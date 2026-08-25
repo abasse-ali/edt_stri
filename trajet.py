@@ -32,6 +32,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 import google_agenda
+import gtfs
 from telechargement import variable_env
 
 for _flux in (sys.stdout, sys.stderr):
@@ -62,12 +63,17 @@ NOM_AGENDA = variable_env("TRAJET_AGENDA", "STRI — Trajet")
 CLE_MARQUEUR = "TRAJET"
 COULEUR = variable_env("TRAJET_COULEUR", "myrtille")
 
-# Fournisseur du temps de trajet : « navitia », « tisseo » ou « google ».
-# Navitia par défaut : jeton gratuit sans carte bancaire, et il couvre le
-# réseau Tisséo via les données nationales de transport.data.gouv.fr. L'API
-# Tisséo, elle, exige une clé que son portail ne délivre plus publiquement :
-# data.tisseo.fr répond 403 à tout le monde.
-FOURNISSEUR = variable_env("TRAJET_FOURNISSEUR", "navitia").lower()
+# Fournisseur : « gtfs », « navitia », « tisseo » ou « google ».
+#
+# GTFS par défaut : les horaires publiés par Tisséo lui-même, sans clé, sans
+# quota et sans inscription. Il suit un itinéraire connu (voir gtfs.py) au
+# lieu de calculer un trajet quelconque, ce qui suffit largement pour un
+# trajet quotidien et donne les passages réels plutôt qu'une moyenne.
+#
+# Les trois autres restent disponibles : navitia (jeton gratuit en libre-
+# service), tisseo (clé sur demande à opendata@tisseo.fr) et google (API
+# Routes, facturation requise).
+FOURNISSEUR = variable_env("TRAJET_FOURNISSEUR", "gtfs").lower()
 CLE_NAVITIA = variable_env("NAVITIA_TOKEN")
 CLE_TISSEO = variable_env("TISSEO_API_KEY")
 
@@ -97,6 +103,10 @@ def duree_trajet(arrivee):
     if not (DOMICILE and UNIVERSITE):
         return DUREE_SECOURS, "durée fixe (adresses non configurées)"
 
+    # Le GTFS ne demande aucune clé : il est traité à part.
+    if FOURNISSEUR == "gtfs":
+        return _gtfs(arrivee)
+
     calculs = {"navitia": (_navitia, CLE_NAVITIA),
                "tisseo": (_tisseo, CLE_TISSEO),
                "google": (_google, CLE_MAPS)}
@@ -108,9 +118,22 @@ def duree_trajet(arrivee):
     return calcul(arrivee)
 
 
+def _gtfs(arrivee):
+    """Horaires réels Tisséo, sans clé. Voir gtfs.py."""
+    try:
+        minutes, detail = gtfs.planifier(arrivee, _point(DOMICILE), _point(UNIVERSITE))
+        if minutes is None:
+            return DUREE_SECOURS, f"durée fixe ({detail})"
+        return minutes, detail
+    except Exception as e:
+        print(f"   ⚠️ GTFS indisponible ({str(e)[:110]}).")
+        return DUREE_SECOURS, "durée fixe (GTFS en échec)"
+
+
 def cle_du_fournisseur():
     """(nom de la variable, valeur) de la clé attendue par le fournisseur actif."""
-    return {"navitia": ("NAVITIA_TOKEN", CLE_NAVITIA),
+    return {"gtfs": ("(aucune clé requise)", "sans objet"),
+            "navitia": ("NAVITIA_TOKEN", CLE_NAVITIA),
             "tisseo": ("TISSEO_API_KEY", CLE_TISSEO),
             "google": ("GOOGLE_MAPS_API_KEY", CLE_MAPS)}.get(
                 FOURNISSEUR, ("(fournisseur inconnu)", ""))
@@ -369,9 +392,14 @@ def diagnostic():
     print(f"🔎 Diagnostic du calcul de trajet — fournisseur « {FOURNISSEUR} »")
 
     nom_cle, cle = cle_du_fournisseur()
-    for nom, valeur, secrete in (("TRAJET_DOMICILE", DOMICILE, False),
-                                 ("TRAJET_UNIVERSITE", UNIVERSITE, False),
-                                 (nom_cle, cle, True)):
+    champs = [("TRAJET_DOMICILE", DOMICILE, False),
+              ("TRAJET_UNIVERSITE", UNIVERSITE, False)]
+    if FOURNISSEUR == "gtfs":
+        print("   horaires              archive GTFS Tisséo, aucune clé requise")
+    else:
+        champs.append((nom_cle, cle, True))
+
+    for nom, valeur, secrete in champs:
         if not valeur:
             etat = "ABSENTE"
         elif secrete:
@@ -395,7 +423,7 @@ def diagnostic():
     demain = datetime.now(FUSEAU) + timedelta(days=1)
     cible = demain.replace(hour=8, minute=0, second=0, microsecond=0)
     minutes, source = duree_trajet(cible)
-    if source.startswith(("Navitia", "Tisséo", "Google Routes")):
+    if not source.startswith("durée fixe"):
         depart = cible - timedelta(minutes=minutes)
         print(f"   ✅ {minutes} min via {source} : partir à {depart:%Hh%M} "
               f"pour arriver à {cible:%d/%m %Hh%M}.")
