@@ -474,3 +474,15 @@ d'être posées — elles ne coûtent rien là où elles s'affichent.
 
 Contrepartie : les agendas d'examens doivent être partagés séparément avec les
 mêmes personnes.
+
+
+### Un examen n'est pas toujours en pleine hauteur
+
+Mesuré sur le PDF M1 : trois cellules d'examen, **deux `FULL` et une `TOP`**.
+Le filtre de demi-promo faisait donc disparaître le TOEIC du 02/09 de la
+version `BAS`, alors qu'il concerne toute la promo.
+
+Les examens échappent désormais au filtre et sont publiés dans les deux
+versions. Rater un examen coûte bien plus cher que d'en voir un qui ne nous
+concerne pas — et ils vivent de toute façon dans leur propre agenda, où un
+chevauchement avec un cours reste lisible.

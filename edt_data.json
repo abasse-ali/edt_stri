@@ -177,6 +177,14 @@
   },
   {
     "date": "2026-09-02",
+    "start": "07h45",
+    "end": "12h00",
+    "titre": "[EXAMEN] TOEIC (STRI4A)",
+    "room": "Non attribuée",
+    "prof": "STRI4A"
+  },
+  {
+    "date": "2026-09-02",
     "start": "13h30",
     "end": "15h30",
     "titre": "Interop (André AOUN)",

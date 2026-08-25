@@ -899,7 +899,14 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         # Une cellule de la moitié opposée appartient à l'autre demi-promo,
         # qu'un cours occupe ou non la moitié retenue (voir EDT_MOITIE). Les
         # cellules pleine hauteur, elles, passent toujours.
-        if cellule['position'] == POSITION_ECARTEE:
+        #
+        # EXCEPTION : les examens. Ils ne sont pas toujours dessinés en pleine
+        # hauteur — le TOEIC du 02/09 occupe la moitié haute — et le filtre les
+        # faisait disparaître d'une des deux versions. Rater un examen coûte
+        # bien plus cher que d'en voir un qui ne nous concerne pas, et ils sont
+        # de toute façon dans leur propre agenda : un chevauchement avec un
+        # cours y est lisible, pas gênant.
+        if cellule['position'] == POSITION_ECARTEE and 'JAUNE' not in col_txt:
             continue
 
         c_txt = (block.get('course') or "Cours").strip()
