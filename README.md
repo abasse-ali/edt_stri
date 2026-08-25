@@ -442,3 +442,35 @@ Le marqueur vit dans `google_agenda.MARQUEUR_EXAMEN`, utilisé à la fois pour
 construire le titre et pour reconnaître un examen à colorer : une seule source.
 Le changer déplace les événements concernés, l'identifiant étant dérivé du
 titre — cinq suppressions suivies de cinq créations, une seule fois.
+
+
+## Les examens dans un agenda séparé (25/08)
+
+Constat après trois tentatives : **aucune couleur ne franchit le partage.**
+
+| réglage | où il vit | qui peut le fixer |
+|---|---|---|
+| couleur de fond d'un agenda | `calendarList` de chaque personne | elle seule |
+| couleur d'un événement | vérifié : ne se propage pas non plus | elle seule |
+
+Une personne abonnée en `reader` recevait bien les mises à jour — donc sur le
+bon agenda, pas sur un vieil abonnement ICS — mais voyait tous ses cours à la
+teinte que Google avait attribuée à son abonnement, examens compris, alors que
+les événements portaient `colorId` 10 et 11 depuis dix heures.
+
+Le seul mécanisme dont la distinction est garantie pour tout le monde est donc
+la **séparation en deux agendas** : Google attribue une teinte différente à
+chaque agenda ajouté, et toutes les applications colorent par agenda — y
+compris celle d'Apple, qui ignore les couleurs par événement.
+
+    STRI M1 G2                 84 cours
+    STRI M1 G2 — Examens        2 examens
+    STRI Ingé G1               82 cours
+    STRI Ingé G1 — Examens      3 examens
+
+Le nom de l'agenda d'examens suit celui de l'agenda principal, renommage
+compris, et son marqueur est `[edt-stri:BAS-EXAMENS]`. Les couleurs continuent
+d'être posées — elles ne coûtent rien là où elles s'affichent.
+
+Contrepartie : les agendas d'examens doivent être partagés séparément avec les
+mêmes personnes.

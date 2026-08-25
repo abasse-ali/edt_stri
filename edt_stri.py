@@ -93,6 +93,11 @@ COULEUR_AGENDA = variable_env(
 COULEUR_COURS = variable_env(
     "EDT_COULEUR_COURS", "basilic" if MOITIE_RETENUE == "BAS" else "raisin")
 
+# Les examens vivent dans leur propre agenda : c'est ce qui garantit une
+# couleur différente chez les personnes abonnées, Google en attribuant une
+# distincte à chaque agenda ajouté.
+COULEUR_AGENDA_EXAMENS = variable_env("EDT_COULEUR_EXAMENS", "tomate")
+
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
 
@@ -294,24 +299,54 @@ def obtenir_identifiants(scopes=None, interactif=None):
 
 
 def synchroniser_agenda(cours_list, creds):
-    """Écrit les cours dans Google Agenda. Retourne l'ID de l'agenda ou None."""
+    """Écrit les cours dans Google Agenda. Retourne l'ID de l'agenda principal.
+
+    Les examens partent dans un agenda distinct. C'est le seul moyen de les
+    distinguer chez les personnes abonnées : ni la couleur d'un agenda ni celle
+    d'un événement ne franchit le partage — les deux sont des réglages
+    personnels, qu'aucune API n'expose pour quelqu'un d'autre que soi. Google
+    attribue en revanche une teinte différente à chaque agenda ajouté, donc
+    deux agendas font deux couleurs, dans toutes les applications.
+    """
     if creds is None:
         return None
     print("📅 Synchronisation Google Agenda...")
     try:
         service = build('calendar', 'v3', credentials=creds)
+        couleur_cours = google_agenda.couleur_evenement(COULEUR_COURS)
+
+        examens = [c for c in cours_list
+                   if c['titre'].startswith(google_agenda.MARQUEUR_EXAMEN)]
+        ordinaires = [c for c in cours_list
+                      if not c['titre'].startswith(google_agenda.MARQUEUR_EXAMEN)]
+
         agenda_id = google_agenda.trouver_ou_creer_agenda(
             service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=MOITIE_RETENUE)
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
-        ajouts, modifs, retraits = google_agenda.synchroniser(
-            service, cours_list, identifiant_agenda=agenda_id,
-            couleur_cours=google_agenda.couleur_evenement(COULEUR_COURS))
-        print(f"✅ Agenda à jour : {ajouts} ajout(s), {modifs} modification(s), "
-              f"{retraits} suppression(s).")
+        _rapporter("Cours", google_agenda.synchroniser(
+            service, ordinaires, identifiant_agenda=agenda_id,
+            couleur_cours=couleur_cours))
+
+        # Le nom suit celui de l'agenda principal, y compris après un
+        # renommage : « STRI M1 G2 » donne « STRI M1 G2 — Examens ».
+        principal = service.calendars().get(calendarId=agenda_id).execute()
+        agenda_examens = google_agenda.trouver_ou_creer_agenda(
+            service, nom=f"{principal['summary']} — Examens",
+            cle=f"{MOITIE_RETENUE}-EXAMENS")
+        google_agenda.appliquer_couleur(service, agenda_examens, COULEUR_AGENDA_EXAMENS)
+        _rapporter("Examens", google_agenda.synchroniser(
+            service, examens, identifiant_agenda=agenda_examens))
+
         return agenda_id
     except Exception as e:
         print(f"❌ Erreur de synchronisation de l'agenda : {e}")
         return None
+
+
+def _rapporter(quoi, bilan):
+    ajouts, modifs, retraits = bilan
+    print(f"✅ {quoi} : {ajouts} ajout(s), {modifs} modification(s), "
+          f"{retraits} suppression(s).")
 
 
 def afficher_lien_abonnement(agenda_id, creds):
