@@ -900,13 +900,12 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         # qu'un cours occupe ou non la moitié retenue (voir EDT_MOITIE). Les
         # cellules pleine hauteur, elles, passent toujours.
         #
-        # EXCEPTION : les examens. Ils ne sont pas toujours dessinés en pleine
-        # hauteur — le TOEIC du 02/09 occupe la moitié haute — et le filtre les
-        # faisait disparaître d'une des deux versions. Rater un examen coûte
-        # bien plus cher que d'en voir un qui ne nous concerne pas, et ils sont
-        # de toute façon dans leur propre agenda : un chevauchement avec un
-        # cours y est lisible, pas gênant.
-        if cellule['position'] == POSITION_ECARTEE and 'JAUNE' not in col_txt:
+        # Les examens ne font PAS exception : ils sont dessinés en moitié haute
+        # ou basse comme les cours, et cette position désigne le groupe
+        # concerné. Le TOEIC du 02/09 est en haut, donc pour les Ingés ; les
+        # épreuves d'Adm. Linux du 18/09 sont réparties entre les deux. Les
+        # publier partout mélangeait les deux promos.
+        if cellule['position'] == POSITION_ECARTEE:
             continue
 
         c_txt = (block.get('course') or "Cours").strip()

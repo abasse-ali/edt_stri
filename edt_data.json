@@ -177,14 +177,6 @@
   },
   {
     "date": "2026-09-02",
-    "start": "07h45",
-    "end": "12h00",
-    "titre": "[EXAMEN] TOEIC (STRI4A)",
-    "room": "Non attribuée",
-    "prof": "STRI4A"
-  },
-  {
-    "date": "2026-09-02",
     "start": "13h30",
     "end": "15h30",
     "titre": "Interop (André AOUN)",
@@ -478,14 +470,6 @@
     "titre": "Adm. Windows (Cédric CHAMBAULT)",
     "room": "U3-307/308",
     "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-09-18",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "[EXAMEN] Adm. Linux (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
   },
   {
     "date": "2026-09-18",

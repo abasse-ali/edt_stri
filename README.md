@@ -478,14 +478,22 @@ mêmes personnes.
 
 ### Un examen n'est pas toujours en pleine hauteur
 
-Mesuré sur le PDF M1 : trois cellules d'examen, **deux `FULL` et une `TOP`**.
-Le filtre de demi-promo faisait donc disparaître le TOEIC du 02/09 de la
-version `BAS`, alors qu'il concerne toute la promo.
+Mesuré sur le PDF M1 : six cellules d'examen, **deux `FULL`, deux `TOP` et deux
+`BOTTOM`**. Un examen est donc dessiné en moitié haute ou basse exactement comme
+un cours, et **cette position désigne le groupe concerné**.
 
-Les examens échappent désormais au filtre et sont publiés dans les deux
-versions. Rater un examen coûte bien plus cher que d'en voir un qui ne nous
-concerne pas — et ils vivent de toute façon dans leur propre agenda, où un
-chevauchement avec un cours reste lisible.
+Les examens suivent donc le même filtre que les cours : `FULL` pour tout le
+monde, `TOP` pour les Ingés, `BOTTOM` pour le M1. Les publier dans les deux
+versions mélangeait les promos.
+
+| | M1 (`BAS`) | Ingé (`HAUT`) |
+|---|---|---|
+| 02/09 TOEIC (`TOP`) | | ✔ |
+| 18/09 Adm. Linux 07h45 (`TOP`) | | ✔ |
+| 18/09 Adm. Linux 10h00 (`BOTTOM`) | ✔ | |
+| 18/09 Adm. Linux 13h30 (`BOTTOM`) | ✔ | |
+| 25/09 BD (`FULL`) | ✔ | ✔ |
+| 02/10 Interco (`FULL`) | ✔ | ✔ |
 
 
 ### Un fond d'examen ne couvre pas toujours toute la cellule
