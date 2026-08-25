@@ -73,6 +73,9 @@ CLE_TISSEO = variable_env("TISSEO_API_KEY")
 
 ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes"
 TISSEO_URL = "https://api.tisseo.fr/v2"
+# Tisséo ne sait partir que d'une heure de DÉPART : on balaie cette fenêtre
+# avant l'heure d'arrivée voulue pour trouver le dernier départ qui convient.
+FENETRE_TISSEO = int(variable_env("TRAJET_FENETRE", "120"))
 TIMEOUT_HTTP = 20
 
 # Coordonnées résolues une fois par exécution : une vingtaine de jours à
@@ -232,13 +235,25 @@ def _navitia(arrivee):
 # Coordonnées attendues en LONGITUDE,LATITUDE.
 
 def _tisseo(arrivee):
+    """Itinéraire Tisséo arrivant au plus tard à `arrivee`.
+
+    L'API ne connaît QUE l'heure de départ : il n'existe pas de paramètre
+    d'arrivée (doc v2 du 21/05/2025, § 4.9.2). On demande donc les huit
+    prochaines solutions à partir de `arrivee - FENETRE_TISSEO`, puis on retient
+    celle qui part le plus tard tout en arrivant à temps.
+
+    La durée rendue est l'écart entre ce départ et l'heure voulue : elle inclut
+    donc l'attente à l'arrêt, ce que la seule durée du trajet ignorerait.
+    """
     try:
         params = {
             "key": CLE_TISSEO,
+            # § 3.4 : coordonnées en WGS84, LONGITUDE puis LATITUDE.
             "departurePlaceXY": "{1},{0}".format(*_point(DOMICILE)),
             "arrivalPlaceXY": "{1},{0}".format(*_point(UNIVERSITE)),
-            "arrivalDatetime": arrivee.strftime("%d/%m/%Y %H:%M"),
-            "number": 1,
+            "firstDepartureDatetime":
+                (arrivee - timedelta(minutes=FENETRE_TISSEO)).strftime("%Y-%m-%d %H:%M"),
+            "number": 8,
         }
         reponse = requests.get(f"{TISSEO_URL}/journeys.json", params=params,
                                timeout=TIMEOUT_HTTP)
@@ -246,29 +261,39 @@ def _tisseo(arrivee):
             print(f"   ⚠️ Tisséo : {reponse.status_code} — {reponse.text[:120]}")
             return DUREE_SECOURS, "durée fixe (Tisséo a refusé)"
 
-        trajets = _premiere_liste(reponse.json(), ("journeys", "journey"))
-        if not trajets:
+        solutions = []
+        for entree in _premiere_liste(reponse.json(), ("journeys",)):
+            trajet = entree.get("journey", entree) if isinstance(entree, dict) else {}
+            depart = _instant_tisseo(trajet.get("departureDateTime"))
+            fin_trajet = _instant_tisseo(trajet.get("arrivalDateTime"))
+            if depart and fin_trajet:
+                solutions.append((depart, fin_trajet))
+
+        if not solutions:
             return DUREE_SECOURS, "durée fixe (aucun itinéraire)"
-        trajet = trajets[0].get("journey", trajets[0]) if isinstance(trajets[0], dict) else {}
-        secondes = trajet.get("duration")
-        if secondes is not None:
-            return max(1, round(int(secondes) / 60)), "Tisséo"
-        depart = _instant_tisseo(trajet.get("departureDateTime"))
-        fin = _instant_tisseo(trajet.get("arrivalDateTime"))
-        if depart and fin and fin > depart:
-            return max(1, round((fin - depart).total_seconds() / 60)), "Tisséo"
-        print(f"   ⚠️ Réponse Tisséo inattendue : {str(trajet)[:160]}")
-        return DUREE_SECOURS, "durée fixe (réponse illisible)"
+
+        a_temps = [s for s in solutions if s[1] <= arrivee]
+        if a_temps:
+            depart = max(a_temps)[0]
+            return max(1, round((arrivee - depart).total_seconds() / 60)), "Tisséo"
+
+        # Aucune solution n'arrive à l'heure : on prend la plus tôt et on le dit,
+        # plutôt que de laisser croire à un horaire tenable.
+        depart, fin_trajet = min(solutions)
+        retard = round((fin_trajet - arrivee).total_seconds() / 60)
+        print(f"   ⚠️ Tisséo : aucune solution avant {arrivee:%Hh%M}, "
+              f"la plus tôt arrive {retard} min trop tard.")
+        return max(1, round((fin_trajet - depart).total_seconds() / 60)), "Tisséo (en retard)"
     except Exception as e:
         print(f"   ⚠️ Tisséo indisponible ({str(e)[:110]}).")
         return DUREE_SECOURS, "durée fixe (Tisséo en échec)"
 
 
 def _instant_tisseo(texte):
-    """Tisséo date en « dd/MM/yyyy HH:mm:ss » ; l'ISO est accepté par sécurité."""
+    """« 2014-12-10 18:11:25 » -> datetime. Format confirmé par la doc § 4.9.4.2."""
     if not texte:
         return None
-    for forme in ("%d/%m/%Y %H:%M:%S", "%d/%m/%Y %H:%M"):
+    for forme in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
         try:
             return datetime.strptime(texte, forme).replace(tzinfo=FUSEAU)
         except ValueError:
@@ -370,7 +395,7 @@ def diagnostic():
     demain = datetime.now(FUSEAU) + timedelta(days=1)
     cible = demain.replace(hour=8, minute=0, second=0, microsecond=0)
     minutes, source = duree_trajet(cible)
-    if source in ("Navitia", "Tisséo", "Google Routes"):
+    if source.startswith(("Navitia", "Tisséo", "Google Routes")):
         depart = cible - timedelta(minutes=minutes)
         print(f"   ✅ {minutes} min via {source} : partir à {depart:%Hh%M} "
               f"pour arriver à {cible:%d/%m %Hh%M}.")
