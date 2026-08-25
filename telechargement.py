@@ -46,6 +46,12 @@ FICHIER_PDF = variable_env("EDT_PDF", "edt.pdf")
 # Plus aucun appel réseau sans délai maximum.
 TIMEOUT_HTTP = 20
 
+# Navigation vers stri.fr : le WAF est nettement plus lent depuis un runner
+# GitHub que depuis une machine personnelle (30 s ne suffisaient pas).
+DELAI_NAVIGATION = 90_000   # ms
+ATTENTE_WAF = 10_000        # ms laissés au JavaScript pour valider la session
+ESSAIS_MAX = 3
+
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -58,6 +64,32 @@ for _flux in (sys.stdout, sys.stderr):
         _flux.reconfigure(encoding="utf-8", errors="replace")
     except (AttributeError, ValueError):
         pass
+
+
+def _ouvrir_accueil(page):
+    """Ouvre stri.fr en laissant au WAF le temps de répondre.
+
+    Depuis un runner GitHub, `page.goto()` échouait en « Timeout 30000ms
+    exceeded » : le défaut de Playwright attend l'événement `load`, donc la
+    totalité des images et scripts du site, et « Tiger Protect » sert d'abord
+    une page de contrôle depuis un datacenter qu'il traite avec méfiance.
+
+    `domcontentloaded` suffit — la validation se fait ensuite en JavaScript,
+    pendant l'attente qui suit. Trois essais couvrent les lenteurs passagères.
+    """
+    derniere = None
+    for essai in range(1, ESSAIS_MAX + 1):
+        try:
+            page.goto(EDT_BASE_URL, wait_until="domcontentloaded",
+                      timeout=DELAI_NAVIGATION)
+            return
+        except Exception as e:
+            derniere = e
+            print(f"   ⚠️ Accès à {EDT_BASE_URL} en échec "
+                  f"(essai {essai}/{ESSAIS_MAX}) : {str(e).splitlines()[0]}")
+            if essai < ESSAIS_MAX:
+                page.wait_for_timeout(5000 * essai)
+    raise derniere
 
 
 def telecharger_pdf(chemin_sauvegarde=None):
@@ -77,8 +109,8 @@ def telecharger_pdf(chemin_sauvegarde=None):
             page = contexte.new_page()
 
             print("🛡️ Passage de la vérification anti-bot (Tiger Protect)...")
-            page.goto(EDT_BASE_URL)
-            page.wait_for_timeout(10000)  # laisse le JavaScript valider la session
+            _ouvrir_accueil(page)
+            page.wait_for_timeout(ATTENTE_WAF)  # laisse le JavaScript valider la session
 
             print("🍪 Récupération du cookie d'accès...")
             cookies = {c['name']: c['value'] for c in contexte.cookies()}

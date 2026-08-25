@@ -97,6 +97,10 @@ jobs:
               sys.exit("::error::GDRIVE_TOKEN sans refresh_token : inutilisable en CI.")
           PY
 
+      # Les deux demi-promos sont empilées dans les mêmes cases du PDF, seule
+      # leur position les distingue. Une passe par version : chacune écrit dans
+      # son propre agenda (« EDT STRI M1 » et « EDT STRI M1 Ingé ») et son
+      # propre JSON. Supprimer la seconde ligne si une seule sert.
       - name: Run Python script
         id: traitement
         if: steps.verification.outputs.run_script == 'true'
@@ -105,7 +109,9 @@ jobs:
           EDT_PDF_URL: ${{ vars.EDT_PDF_URL }}
           # Agenda cible : laisser vide pour le retrouver par son nom.
           GOOGLE_CALENDAR_ID: ${{ vars.GOOGLE_CALENDAR_ID }}
-        run: python edt_stri.py
+        run: |
+          EDT_MOITIE=BAS  python edt_stri.py
+          EDT_MOITIE=HAUT python edt_stri.py
 
       # Les secrets ne doivent pas survivre à l'étape suivante, qui commite.
       - name: Effacer le jeton
@@ -121,7 +127,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add edt.pdf edt_data.json
+          git add edt.pdf edt_data.json edt_data_inge.json
           git commit -m "Mise à jour automatique de l'EDT" || echo "Rien à commiter"
           git pull --rebase --autostash origin ${{ github.ref_name }}
           git push

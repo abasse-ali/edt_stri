@@ -29,7 +29,7 @@ python new_test/edt_stri.py
 
 Variables d'environnement, toutes facultatives : `DISCORD_WEBHOOK_URL`,
 `EDT_PDF_URL`, `EDT_PDF`, `EDT_DEBUG`, `POPPLER_PATH`, `GOOGLE_CALENDAR_ID`,
-`EDT_COURS_HAUT`, `EDT_AGENDA_PUBLIC`, `EDT_AUTORISER`.
+`EDT_MOITIE`, `EDT_AGENDA_PUBLIC`, `EDT_AUTORISER`.
 
 ## Correctifs appliqués
 
@@ -232,9 +232,7 @@ Le L3 est sorti du périmètre. Ce qui a été retiré :
   qu'à faire disparaître systématiquement les cours de la moitié haute.
 - Les valeurs de secours codées en dur (grille L3 07h45→20h00).
 
-À la place, un réglage explicite : `GARDER_COURS_DU_HAUT` (défaut `False`,
-surchargeable par `EDT_COURS_HAUT=1`). Quand deux cours sont empilés dans un
-créneau, seul celui du bas est publié — c'est ce qui avait été retenu.
+À la place, un réglage explicite : `EDT_MOITIE` (voir plus bas).
 
 Les mesures faites sur le L3 restent citées dans les commentaires : elles
 documentent *pourquoi* un correctif existe (par exemple « 41 créneaux
@@ -292,10 +290,11 @@ et ne retient que les plages contenant du texte. Trois pièges rencontrés :
    10,5) : celle du lendemain commençait avant la fin de la journée courante et
    sa bordure passait pour une séparation TOP/BOTTOM. `dans_bande` se cale
    désormais sur le centre du rectangle.
-3. **Un cours seul dans son créneau est en haut, pas en bas.** La règle « on ne
-   garde que le cours du bas » supprimait le TOEIC du 02/09 et « Interco (PL) »
-   du 25/09, qui n'avaient rien en dessous. Elle ne s'applique plus qu'aux
-   cours réellement empilés (`_cours_du_bas_concurrent`).
+3. **La moitié écartée l'est sans condition.** Une tentative de ne l'appliquer
+   qu'aux cours réellement empilés a été retirée : elle rendait le résultat
+   difficile à prévoir. Une cellule de la moitié opposée est écartée, point.
+   Conséquence assumée : un cours seul dans son créneau, comme le TOEIC du
+   02/09, n'apparaît que dans la version correspondant à sa position.
 
 Résultat : 99 cours, aucun chevauchement, un seul cours sans professeur — et le
 PDF n'en indique effectivement aucun pour celui-là.
@@ -335,3 +334,29 @@ Les examens sont colorés en rouge (`colorId` 11, « Tomate »).
 
 `edt.ics` continue d'être généré localement — export portable, ignoré par git —
 mais n'est plus téléversé nulle part.
+
+
+## Deux demi-promos, deux agendas (25/08)
+
+Le PDF empile les deux demi-promos dans la même case : celle du haut et celle
+du bas. Aucun marqueur de groupe ne les distingue (`/GB`, `/GC` : zéro
+occurrence), **seule leur position compte**. Les cases pleine hauteur
+concernent tout le monde.
+
+| `EDT_MOITIE` | cellules retenues | agenda | fichiers |
+|---|---|---|---|
+| `BAS` (défaut) | `BOTTOM` + `FULL` | `EDT STRI M1` | `edt_data.json`, `edt.ics` |
+| `HAUT` (Ingé) | `TOP` + `FULL` | `EDT STRI M1 Ingé` | `edt_data_inge.json`, `edt_inge.ics` |
+
+Mesuré sur le PDF M1 : 86 cours en `BAS`, 85 en `HAUT`, dont **41 communs** —
+les cellules pleine hauteur.
+
+Chaque version écrit dans son propre agenda et son propre JSON de comparaison :
+lancer l'une n'efface jamais les cours de l'autre. La CI fait les deux passes à
+la suite, dans le même job — le téléchargement et l'installation des
+dépendances ne sont payés qu'une fois.
+
+    EDT_MOITIE=HAUT python edt_stri.py
+
+Pour n'en garder qu'une, supprimer la ligne correspondante de l'étape
+*Run Python script* du workflow.

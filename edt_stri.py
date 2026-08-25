@@ -55,9 +55,31 @@ DISCORD_WEBHOOK_URL = variable_env("DISCORD_WEBHOOK_URL")
 CALENDAR_ID = variable_env("GOOGLE_CALENDAR_ID") or None
 
 # L'emploi du temps M1 n'indique aucun groupe (« /GB », « /GC » : zéro
-# occurrence). Quand deux cours sont empilés dans un même créneau, seul celui du
-# BAS est retenu. Mettre à True pour publier aussi ceux du haut.
-GARDER_COURS_DU_HAUT = variable_env("EDT_COURS_HAUT", "0") not in ("0", "false", "False")
+# occurrence dans le PDF). Quand deux cours sont empilés dans un même créneau,
+# la seule chose qui distingue les deux demi-promos est leur POSITION : l'une
+# est en haut de la case, l'autre en bas.
+#
+#   EDT_MOITIE=BAS   (défaut) -> cours du bas + pleine hauteur
+#   EDT_MOITIE=HAUT  (Ingé)   -> cours du haut + pleine hauteur
+#
+# Les cellules pleine hauteur concernent tout le monde : elles sont retenues
+# dans les deux cas.
+MOITIE_RETENUE = variable_env("EDT_MOITIE", "BAS").upper()
+if MOITIE_RETENUE not in ("BAS", "HAUT"):
+    print(f"⚠️ EDT_MOITIE={MOITIE_RETENUE!r} inconnu, valeurs admises : BAS, HAUT. "
+          "Retour au défaut BAS.")
+    MOITIE_RETENUE = "BAS"
+
+# Position à écarter : l'opposée de celle qu'on garde.
+POSITION_ECARTEE = "TOP" if MOITIE_RETENUE == "BAS" else "BOTTOM"
+
+# Suffixe appliqué aux sorties de la version Ingé, pour que les deux jeux
+# coexistent sans s'écraser : agenda, JSON de comparaison et fichier ICS.
+SUFFIXE = "" if MOITIE_RETENUE == "BAS" else "_inge"
+
+# Agenda distinct par version : sans ça, la version Ingé viendrait remplacer
+# les cours de l'autre demi-promo dans le même agenda.
+NOM_AGENDA = google_agenda.NOM_AGENDA + ("" if MOITIE_RETENUE == "BAS" else " Ingé")
 
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
@@ -68,8 +90,8 @@ TIMEOUT_HTTP = 20
 DEBUG = variable_env("EDT_DEBUG", "0") not in ("0", "false", "False")
 DOSSIER_DEBUG = Path("export_cours")
 
-FICHIER_JSON = "edt_data.json"
-FICHIER_ICS = "edt.ics"
+FICHIER_JSON = f"edt_data{SUFFIXE}.json"
+FICHIER_ICS = f"edt{SUFFIXE}.ics"
 
 
 DPI = 200
@@ -266,7 +288,8 @@ def synchroniser_agenda(cours_list, creds):
     print("📅 Synchronisation Google Agenda...")
     try:
         service = build('calendar', 'v3', credentials=creds)
-        agenda_id = google_agenda.trouver_ou_creer_agenda(service, identifiant=CALENDAR_ID)
+        agenda_id = google_agenda.trouver_ou_creer_agenda(
+            service, nom=NOM_AGENDA, identifiant=CALENDAR_ID)
         ajouts, modifs, retraits = google_agenda.synchroniser(
             service, cours_list, identifiant_agenda=agenda_id)
         print(f"✅ Agenda à jour : {ajouts} ajout(s), {modifs} modification(s), "
@@ -824,10 +847,10 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         if 'ORANGE' in col_txt:
             continue
 
-        # Toute cellule de la moitié HAUTE est écartée, qu'un cours occupe ou
-        # non la moitié basse : le haut appartient à l'autre demi-promo.
-        # Mettre EDT_COURS_HAUT=1 pour les publier quand même.
-        if cellule['position'] == "TOP" and not GARDER_COURS_DU_HAUT:
+        # Une cellule de la moitié opposée appartient à l'autre demi-promo,
+        # qu'un cours occupe ou non la moitié retenue (voir EDT_MOITIE). Les
+        # cellules pleine hauteur, elles, passent toujours.
+        if cellule['position'] == POSITION_ECARTEE:
             continue
 
         c_txt = (block.get('course') or "Cours").strip()

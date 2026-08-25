@@ -11,7 +11,7 @@ token.*.json
 credentials.json
 
 # Sorties régénérées à chaque exécution.
-edt.ics
+edt*.ics
 
 # Ancien bac à sable, remplacé par le code à la racine.
 new_test/
