@@ -19,6 +19,17 @@ from pathlib import Path
 
 import requests
 
+# Le .env est chargé ici, dans le module que tous les autres importent : sinon
+# seul test_local.py le lisait, et `python trajet.py` ne voyait ni les adresses
+# ni les clés. Sans effet en CI, où le fichier n'existe pas et où tout vient de
+# l'environnement.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass
+
+
 def variable_env(nom, defaut=""):
     """Lit une variable d'environnement en traitant le vide comme l'absence.
 
