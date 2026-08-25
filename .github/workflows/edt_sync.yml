@@ -112,8 +112,8 @@ jobs:
       # quatre d'examens. Les demi-promos sont empilées dans les mêmes cases du
       # PDF, seule leur position les distingue.
       #
-      #   M1 BAS  -> M1 G2          M1 HAUT  -> Ingé G1
-      #   L3 BAS  -> L3 IRT         L3 HAUT  -> Ingé1
+      #   M1 BAS  -> STRI M1 G2     M1 HAUT  -> STRI Ingé2 G1
+      #   L3 BAS  -> IRT L3          L3 HAUT  -> STRI Ingé1
       - name: Run Python script
         id: traitement
         if: steps.verification.outputs.run_script == 'true'

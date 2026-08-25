@@ -44,16 +44,18 @@ def variable_env(nom, defaut=""):
 
 
 # --- Promotions ------------------------------------------------------------
-# Chaque promotion a son PDF, ses agendas et ses fichiers. Les noms sont figés
-# ici plutôt que dérivés : ceux du M1 existent depuis le début et les renommer
-# créerait des doublons chez les personnes abonnées.
+# Chaque promotion a son PDF, ses agendas et ses fichiers. Les noms ne servent
+# qu'à la CRÉATION : ensuite, les agendas sont retrouvés par leur marqueur, si
+# bien qu'un renommage dans l'interface Google ne casse rien. En revanche les
+# clés et les suffixes, eux, ne doivent jamais changer — ils étiquettent des
+# agendas déjà partagés et des fichiers déjà versionnés.
 #
 # Ajouter une promotion = ajouter une entrée. Rien d'autre à toucher.
 PROMOS = {
     "M1": {
         "url": "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
         "pdf": "edt.pdf",
-        "agendas": {"BAS": "EDT STRI M1", "HAUT": "EDT STRI M1 Ingé"},
+        "agendas": {"BAS": "STRI M1 G2", "HAUT": "STRI Ingé2 G1"},
         "suffixes": {"BAS": "", "HAUT": "_inge"},
         # Clés historiques, sans préfixe : elles étiquettent déjà les agendas
         # existants et doivent le rester.
@@ -65,7 +67,7 @@ PROMOS = {
         "pdf": "edt_l3.pdf",
         # La moitié haute de la L3, c'est la promotion Ingé1 — exactement comme
         # la moitié haute du M1 est celle des Ingé.
-        "agendas": {"BAS": "EDT STRI L3", "HAUT": "EDT STRI Ingé1"},
+        "agendas": {"BAS": "IRT L3", "HAUT": "STRI Ingé1"},
         "suffixes": {"BAS": "_l3", "HAUT": "_inge1"},
         "cles": {"BAS": "L3-BAS", "HAUT": "L3-HAUT"},
         "couleurs": {"BAS": ("myrtille", "myrtille"), "HAUT": ("amethyste", "lavande")},
