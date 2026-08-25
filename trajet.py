@@ -18,6 +18,7 @@ le relais et le script reste utilisable.
 
     python trajet.py            -> prépare les prochains jours
     python trajet.py --essai    -> affiche le calcul sans rien écrire
+    python trajet.py --diagnostic -> teste la clé API et explique tout refus
 """
 
 import sys
@@ -44,8 +45,10 @@ CLE_MAPS = variable_env("GOOGLE_MAPS_API_KEY")
 
 # Minutes entre le réveil et le départ effectif.
 PREPARATION = int(variable_env("TRAJET_PREPARATION", "45"))
-# Minutes d'avance visées à l'arrivée, avant le début du cours.
-MARGE = int(variable_env("TRAJET_MARGE", "10"))
+# Tout part de l'heure d'ARRIVÉE voulue, qui est l'heure de début du premier
+# cours. `TRAJET_MARGE` permet d'arriver en avance : à 0, on vise l'heure du
+# cours à la minute près.
+MARGE = int(variable_env("TRAJET_MARGE", "0"))
 # Durée retenue quand l'API n'est pas joignable ou pas configurée.
 DUREE_SECOURS = int(variable_env("TRAJET_DUREE_SECOURS", "40"))
 # Horizon de préparation.
@@ -88,15 +91,69 @@ def duree_trajet(arrivee):
             headers={"X-Goog-Api-Key": CLE_MAPS,
                      "X-Goog-FieldMask": "routes.duration"},
         )
-        reponse.raise_for_status()
+        if reponse.status_code != 200:
+            print(f"   ⚠️ API Routes : {_expliquer(reponse)}")
+            return DUREE_SECOURS, "durée fixe (API refusée)"
         routes = reponse.json().get("routes") or []
         if not routes:
             return DUREE_SECOURS, "durée fixe (aucun itinéraire trouvé)"
         secondes = int(str(routes[0]["duration"]).rstrip("s"))
         return max(1, round(secondes / 60)), "Google Routes"
     except Exception as e:
-        print(f"   ⚠️ API Routes indisponible ({str(e)[:90]}).")
+        print(f"   ⚠️ API Routes injoignable ({str(e)[:90]}).")
         return DUREE_SECOURS, "durée fixe (API en échec)"
+
+
+def _expliquer(reponse):
+    """Traduit le refus de l'API en cause concrète et en geste à faire."""
+    try:
+        erreur = reponse.json().get("error", {})
+    except Exception:
+        return f"HTTP {reponse.status_code} — {reponse.text[:120]}"
+
+    message = erreur.get("message", "")
+    statut = erreur.get("status", "")
+    causes = [
+        ("has not been used in project", "l'API Routes n'est pas activée sur le projet."
+         " Console → API et services → Bibliothèque → Routes API → Activer."),
+        ("billing", "la facturation n'est pas activée sur le projet."
+         " Console → Facturation → Associer un compte."),
+        ("API key not valid", "la clé est invalide ou mal recopiée."),
+        ("not authorized to use this API", "la clé est restreinte à d'autres API."
+         " Console → Identifiants → ta clé → Restrictions relatives aux API →"
+         " autoriser Routes API."),
+        ("referer", "la clé est restreinte à des sites web."
+         " Une clé appelée depuis un script ne doit avoir aucune restriction"
+         " d'application, ou une restriction par adresse IP."),
+    ]
+    for motif, explication in causes:
+        if motif.lower() in message.lower():
+            return explication
+    return f"{statut or reponse.status_code} — {message[:160]}"
+
+
+def diagnostic():
+    """Une requête, un verdict. `python trajet.py --diagnostic`."""
+    print("🔎 Diagnostic de l'API Routes")
+    for nom, valeur in (("TRAJET_DOMICILE", DOMICILE),
+                        ("TRAJET_UNIVERSITE", UNIVERSITE),
+                        ("GOOGLE_MAPS_API_KEY", CLE_MAPS)):
+        etat = f"« {valeur} »" if valeur and nom != "GOOGLE_MAPS_API_KEY" else (
+            f"définie ({len(valeur)} caractères)" if valeur else "ABSENTE")
+        print(f"   {nom:22s} {etat}")
+    if not (CLE_MAPS and DOMICILE and UNIVERSITE):
+        print("   → Complète ces trois variables dans .env avant d'aller plus loin.")
+        return 1
+
+    demain = datetime.now(FUSEAU) + timedelta(days=1)
+    cible = demain.replace(hour=8, minute=0, second=0, microsecond=0)
+    minutes, source = duree_trajet(cible)
+    if source == "Google Routes":
+        print(f"   ✅ Itinéraire obtenu : {minutes} min pour arriver à "
+              f"{cible:%d/%m %Hh%M}.")
+        return 0
+    print(f"   ❌ Pas de donnée réelle. Repli sur {minutes} min ({source}).")
+    return 1
 
 
 # =====================================================================
@@ -158,7 +215,9 @@ def _construire(jour, premier, minutes, source):
     detail = (f"Premier cours : {titre_cours}"
               f"{f' en {salle}' if salle else ''} à {debut_cours:%Hh%M}.\n"
               f"Trajet estimé : {minutes} min ({source}).\n"
-              f"Préparation : {PREPARATION} min. Marge à l'arrivée : {MARGE} min.")
+              f"Arrivée visée : {arrivee:%Hh%M}"
+              f"{f' ({MARGE} min avant le cours)' if MARGE else ' (heure du cours)'}.\n"
+              f"Préparation avant le départ : {PREPARATION} min.")
 
     return [
         {
@@ -248,6 +307,9 @@ def synchroniser(service, jours=JOURS, cle_agenda="BAS", essai=False):
 def principale():
     import edt_stri
     from googleapiclient.discovery import build
+
+    if "--diagnostic" in sys.argv:
+        return diagnostic()
 
     essai = "--essai" in sys.argv
     if not (CLE_MAPS and DOMICILE and UNIVERSITE):
