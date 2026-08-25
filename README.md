@@ -388,3 +388,34 @@ la même teinte :
 « Pistache » et « Raisin » n'existent que dans la seconde. La couleur est
 appliquée sur l'entrée `calendarList`, pas sur l'agenda : elle appartient à
 l'abonnement de l'utilisateur. Surchargeable par `EDT_COULEUR`.
+
+
+## Imposer une couleur aux personnes abonnées (25/08)
+
+Google distingue deux choses, et une seule est partageable :
+
+| | où c'est stocké | qui le voit |
+|---|---|---|
+| couleur de fond de l'agenda | `calendarList`, l'abonnement de chaque personne | son propriétaire seul |
+| couleur d'un événement | l'événement lui-même | **tout le monde** |
+
+Régler la teinte d'un agenda **pour quelqu'un d'autre est impossible** : aucune
+API n'expose la `calendarList` d'un tiers, et c'est délibéré. Chacun choisit la
+sienne, Google en attribuant une au hasard à l'ajout.
+
+Le script pose donc une couleur sur **chaque cours**, pas seulement sur les
+examens. Elle est stockée sur l'événement, donc identique pour toute personne
+avec qui l'agenda est partagé.
+
+| version | couleur des cours | examens |
+|---|---|---|
+| `BAS` | basilic `#51b749` (colorId 10) | tomate `#dc2127` |
+| `HAUT` | raisin `#dbadff` (colorId 3) | tomate `#dc2127` |
+
+La palette des événements ne compte que onze teintes et **n'a pas de
+pistache** : le vert le plus proche est le basilic. Surchargeable par
+`EDT_COULEUR_COURS`.
+
+Limite qui subsiste : l'app **Calendrier d'iOS** ignore les couleurs par
+événement et peint tout à la couleur de l'agenda. Aucun réglage côté serveur
+n'y change rien — seul le titre, qui porte `[EXAMEN]`, reste lisible partout.

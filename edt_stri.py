@@ -81,9 +81,17 @@ SUFFIXE = "" if MOITIE_RETENUE == "BAS" else "_inge"
 # les cours de l'autre demi-promo dans le même agenda.
 NOM_AGENDA = google_agenda.NOM_AGENDA + ("" if MOITIE_RETENUE == "BAS" else " Ingé")
 
-# Couleur de fond de chaque agenda, pour les distinguer d'un coup d'œil.
+# Couleur de fond de l'agenda. Elle n'est visible que par le propriétaire :
+# elle vit dans son abonnement, pas dans l'agenda.
 COULEUR_AGENDA = variable_env(
     "EDT_COULEUR", "pistache" if MOITIE_RETENUE == "BAS" else "raisin")
+
+# Couleur posée sur CHAQUE cours. Contrairement à la précédente, elle est
+# stockée sur l'événement, donc imposée à toutes les personnes avec qui
+# l'agenda est partagé. La palette des événements ne compte que onze teintes
+# et n'a pas de pistache : le vert le plus proche est le basilic.
+COULEUR_COURS = variable_env(
+    "EDT_COULEUR_COURS", "basilic" if MOITIE_RETENUE == "BAS" else "raisin")
 
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
@@ -296,7 +304,8 @@ def synchroniser_agenda(cours_list, creds):
             service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=MOITIE_RETENUE)
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
         ajouts, modifs, retraits = google_agenda.synchroniser(
-            service, cours_list, identifiant_agenda=agenda_id)
+            service, cours_list, identifiant_agenda=agenda_id,
+            couleur_cours=google_agenda.couleur_evenement(COULEUR_COURS))
         print(f"✅ Agenda à jour : {ajouts} ajout(s), {modifs} modification(s), "
               f"{retraits} suppression(s).")
         return agenda_id

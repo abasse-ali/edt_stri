@@ -39,6 +39,28 @@ TAILLE_PAGE = 2500
 COULEUR_EXAMEN = "11"
 MARQUEUR_EXAMEN = "[EXAMEN]"
 
+# Correspondance nom -> numéro dans la palette des ÉVÉNEMENTS.
+COULEURS_EVENEMENT = {
+    "lavande": ("1", "#a4bdfc"), "sauge": ("2", "#7ae7bf"),
+    "raisin": ("3", "#dbadff"), "flamant": ("4", "#ff887c"),
+    "banane": ("5", "#fbd75b"), "mandarine": ("6", "#ffb878"),
+    "paon": ("7", "#46d6db"), "graphite": ("8", "#e1e1e1"),
+    "myrtille": ("9", "#5484ed"), "basilic": ("10", "#51b749"),
+    "tomate": ("11", "#dc2127"),
+}
+
+
+def couleur_evenement(nom):
+    """Numéro de palette d'une couleur d'événement, ou None si le nom est inconnu."""
+    if not nom:
+        return None
+    trouve = COULEURS_EVENEMENT.get(nom.strip().lower())
+    if trouve is None:
+        print(f"   ⚠️ Couleur de cours « {nom} » inconnue. "
+              f"Valeurs admises : {', '.join(sorted(COULEURS_EVENEMENT))}.")
+        return None
+    return trouve[0]
+
 # Couleur de FOND d'un agenda. Attention : ce n'est pas la même palette que
 # celle des événements ci-dessus. Google en expose deux, de tailles
 # différentes, et le même numéro n'y désigne pas la même teinte :
@@ -102,8 +124,16 @@ def _horodatage(date_str, heure_str):
     return jour.replace(hour=heures, minute=minutes).isoformat()
 
 
-def _en_evenement(cours):
-    """Traduit un cours en ressource Event de l'API."""
+def _en_evenement(cours, couleur_cours=None):
+    """Traduit un cours en ressource Event de l'API.
+
+    `couleur_cours` est posé sur CHAQUE événement, et pas seulement sur les
+    examens. C'est le seul moyen d'imposer une couleur aux personnes avec qui
+    l'agenda est partagé : la teinte de fond d'un agenda appartient à
+    l'abonnement de chacun (`calendarList`), et aucune API ne permet de la
+    fixer à leur place. La couleur d'un événement, elle, est stockée sur
+    l'événement — donc identique pour tout le monde.
+    """
     evenement = {
         "id": _identifiant(cours),
         "summary": cours['titre'],
@@ -115,6 +145,8 @@ def _en_evenement(cours):
     }
     if cours['titre'].startswith(MARQUEUR_EXAMEN):
         evenement["colorId"] = COULEUR_EXAMEN
+    elif couleur_cours:
+        evenement["colorId"] = couleur_cours
     return evenement
 
 
@@ -222,14 +254,15 @@ def _evenements_existants(service, agenda_id):
             return existants
 
 
-def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None):
+def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
+                 couleur_cours=None):
     """Aligne l'agenda sur la liste de cours. Renvoie (ajouts, modifs, retraits)."""
     agenda_id = trouver_ou_creer_agenda(service, nom, identifiant_agenda)
 
     voulus = {}
     for cours in cours_list:
         try:
-            evt = _en_evenement(cours)
+            evt = _en_evenement(cours, couleur_cours)
         except (ValueError, KeyError) as e:
             print(f"   ⚠️ Cours ignoré ({cours.get('titre', '?')}) : {e}")
             continue
