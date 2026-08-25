@@ -43,16 +43,42 @@ def variable_env(nom, defaut=""):
     return valeur or defaut
 
 
-# Une seule et unique source pour l'URL du PDF (CI + local), importée par
-# edt_stri.py. Surchargeable sans toucher au code :
-#     EDT_PDF_URL=... python telechargement.py
-EDT_PDF_URL = variable_env(
-    "EDT_PDF_URL",
-    "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
-)
+# --- Promotions ------------------------------------------------------------
+# Chaque promotion a son PDF, ses agendas et ses fichiers. Les noms sont figés
+# ici plutôt que dérivés : ceux du M1 existent depuis le début et les renommer
+# créerait des doublons chez les personnes abonnées.
+#
+# Ajouter une promotion = ajouter une entrée. Rien d'autre à toucher.
+PROMOS = {
+    "M1": {
+        "url": "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
+        "pdf": "edt.pdf",
+        "agendas": {"BAS": "EDT STRI M1", "HAUT": "EDT STRI M1 Ingé"},
+        "suffixes": {"BAS": "", "HAUT": "_inge"},
+        # Clés historiques, sans préfixe : elles étiquettent déjà les agendas
+        # existants et doivent le rester.
+        "cles": {"BAS": "BAS", "HAUT": "HAUT"},
+        "couleurs": {"BAS": ("pistache", "basilic"), "HAUT": ("raisin", "raisin")},
+    },
+    "L3": {
+        "url": "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf",
+        "pdf": "edt_l3.pdf",
+        # La moitié haute de la L3, c'est la promotion Ingé1 — exactement comme
+        # la moitié haute du M1 est celle des Ingé.
+        "agendas": {"BAS": "EDT STRI L3", "HAUT": "EDT STRI Ingé1"},
+        "suffixes": {"BAS": "_l3", "HAUT": "_inge1"},
+        "cles": {"BAS": "L3-BAS", "HAUT": "L3-HAUT"},
+        "couleurs": {"BAS": ("myrtille", "myrtille"), "HAUT": ("amethyste", "lavande")},
+    },
+}
+
 EDT_BASE_URL = "https://stri.fr/"
 
-FICHIER_PDF = variable_env("EDT_PDF", "edt.pdf")
+# URL et fichier par défaut, surchargeables sans toucher au code :
+#     EDT_PDF_URL=... python telechargement.py
+#     python telechargement.py --promo L3 sortie.pdf
+EDT_PDF_URL = variable_env("EDT_PDF_URL", PROMOS["M1"]["url"])
+FICHIER_PDF = variable_env("EDT_PDF", PROMOS["M1"]["pdf"])
 
 # Plus aucun appel réseau sans délai maximum.
 TIMEOUT_HTTP = 20
@@ -103,16 +129,17 @@ def _ouvrir_accueil(page):
     raise derniere
 
 
-def telecharger_pdf(chemin_sauvegarde=None):
+def telecharger_pdf(chemin_sauvegarde=None, url=None):
     """Récupère le PDF derrière le WAF « Tiger Protect ». Retourne True si OK."""
     chemin_sauvegarde = chemin_sauvegarde or FICHIER_PDF
+    url = url or EDT_PDF_URL
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         print("❌ playwright n'est pas installé (pip install playwright && playwright install chromium).")
         return False
 
-    print(f"🌐 Téléchargement de {EDT_PDF_URL}")
+    print(f"🌐 Téléchargement de {url}")
     try:
         with sync_playwright() as p:
             navigateur = p.chromium.launch(headless=True)
@@ -129,7 +156,7 @@ def telecharger_pdf(chemin_sauvegarde=None):
 
         print("📥 Téléchargement du fichier PDF...")
         reponse = requests.get(
-            EDT_PDF_URL,
+            url,
             headers={'User-Agent': USER_AGENT},
             cookies=cookies,
             timeout=TIMEOUT_HTTP,
@@ -150,5 +177,17 @@ def telecharger_pdf(chemin_sauvegarde=None):
 
 
 if __name__ == "__main__":
-    cibles = [a for a in sys.argv[1:] if not a.startswith("--")]
-    sys.exit(0 if telecharger_pdf(cibles[0] if cibles else None) else 1)
+    arguments = sys.argv[1:]
+    promo = None
+    if "--promo" in arguments:
+        i = arguments.index("--promo")
+        promo = arguments[i + 1].upper() if i + 1 < len(arguments) else ""
+        del arguments[i:i + 2]
+        if promo not in PROMOS:
+            sys.exit(f"❌ --promo {promo!r} inconnu. Valeurs : {', '.join(PROMOS)}.")
+
+    cibles = [a for a in arguments if not a.startswith("--")]
+    choisie = PROMOS[promo] if promo else None
+    sys.exit(0 if telecharger_pdf(
+        cibles[0] if cibles else (choisie["pdf"] if choisie else None),
+        url=choisie["url"] if choisie else None) else 1)

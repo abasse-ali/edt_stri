@@ -1,0 +1,450 @@
+[
+  {
+    "date": "2026-08-26",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Présentation de la formaion",
+    "room": "U3-amphi",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-08-26",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Eric GONNEAU)",
+    "room": "U3-amphi",
+    "prof": "Eric GONNEAU"
+  },
+  {
+    "date": "2026-08-26",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Réseaux d'entreprise (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-08-27",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Eric GONNEAU)",
+    "room": "U3-amphi",
+    "prof": "Eric GONNEAU"
+  },
+  {
+    "date": "2026-08-27",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Tech. de trans.",
+    "room": "U3-amphi",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-08-28",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Réseaux d'entreprise (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-08-28",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Présentation UPSSITECH",
+    "room": "U3-amphi",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-08-28",
+    "start": "13h30",
+    "end": "17h30",
+    "titre": "Activités UPSSITECH",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-08-31",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils de modélisation info (FB)",
+    "room": "U3-amphi",
+    "prof": "FB"
+  },
+  {
+    "date": "2026-08-31",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Informatique (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-01",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-307",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-01",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "U3-amphi",
+    "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-09-01",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "Non attribuée",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-02",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Tech. de trans. (LF)",
+    "room": "U3-amphi",
+    "prof": "LF"
+  },
+  {
+    "date": "2026-09-02",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils Maths (Jérôme SOKOLOFF)",
+    "room": "U3-amphi",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-09-02",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "U3-amphi",
+    "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-09-03",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Réseaux d'entreprise (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-03",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Informatique (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-03",
+    "start": "13h30",
+    "end": "17h45",
+    "titre": "Activités / Conférences UPSSITECH",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-04",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-04",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "U3-amphi",
+    "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-09-07",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils de modélisation info (FB)",
+    "room": "U3-amphi",
+    "prof": "FB"
+  },
+  {
+    "date": "2026-09-07",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils Maths (Jérôme SOKOLOFF)",
+    "room": "U3-amphi",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-09-07",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-07",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Informatique (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info - TD",
+    "room": "U3-04",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. - TD",
+    "room": "U3-04",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "Non attribuée",
+    "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-09-10",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Informatique (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-10",
+    "start": "13h30",
+    "end": "17h45",
+    "titre": "Activités / Conférences UPSSITECH",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-11",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "SHS (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-14",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils de modélisation info (FB)",
+    "room": "Non attribuée",
+    "prof": "FB"
+  },
+  {
+    "date": "2026-09-14",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils Maths (Jérôme SOKOLOFF)",
+    "room": "Non attribuée",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-09-14",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-09-15",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info - TD (KINX5AB1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-15",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
+    "room": "U3-306",
+    "prof": "KUPT5BB3"
+  },
+  {
+    "date": "2026-09-15",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-16",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (LF)",
+    "room": "Non attribuée",
+    "prof": "LF"
+  },
+  {
+    "date": "2026-09-16",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "BE (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-18",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "SHS (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-21",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "room": "Non attribuée",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-09-21",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils Maths - C (KINX5AA2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AA2"
+  },
+  {
+    "date": "2026-09-21",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-21",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths - TD (KINX5AA2)",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-21",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPB (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-09-22",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info - TD (KINX5AB1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-22",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
+    "room": "Non attribuée",
+    "prof": "KUPT5BB3"
+  },
+  {
+    "date": "2026-09-22",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-22",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPC (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-09-23",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils Maths - C (KINX5AA2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AA2"
+  },
+  {
+    "date": "2026-09-23",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils Maths - TD (KINX5AA2) - AB",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-23",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "BE - TD (KINR5AE1)",
+    "room": "Non attribuée",
+    "prof": "KINR5AE1"
+  },
+  {
+    "date": "2026-09-25",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "SHS (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-25",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Outils Maths - TD (KINX5AA2) -J",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-25",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths - C (KINX5AA2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AA2"
+  }
+]

@@ -2,7 +2,8 @@
 Synchronisation de l'emploi du temps STRI (PDF -> Google Agenda).
 
 Ce module sert à la fois en CI (GitHub Actions) et en local :
-  python edt_stri.py               -> traite le edt.pdf présent dans le dossier courant
+  python edt_stri.py               -> traite le PDF de la promotion (EDT_PROMO)
+  EDT_PROMO=L3 python edt_stri.py  -> traite la L3 au lieu du M1
   python telechargement.py         -> télécharge le PDF seul (sans numpy ni OpenCV)
   python edt_stri.py --telecharger -> idem, via le module de téléchargement
   EDT_DEBUG=1 python edt_stri.py   -> exporte les images de debug dans export_cours/
@@ -30,7 +31,7 @@ import lecture_pdf
 import google_agenda
 # Le téléchargement vit dans un module sans dépendance lourde : la CI
 # l'appelle avant d'installer requirements.txt.
-from telechargement import FICHIER_PDF, telecharger_pdf, variable_env
+from telechargement import PROMOS, telecharger_pdf, variable_env
 
 # --- BIBLIOTHÈQUES GOOGLE ---
 from google.auth.transport.requests import Request
@@ -54,13 +55,19 @@ DISCORD_WEBHOOK_URL = variable_env("DISCORD_WEBHOOK_URL")
 # Agenda cible. Vide = recherché par son nom, puis créé s'il n'existe pas.
 CALENDAR_ID = variable_env("GOOGLE_CALENDAR_ID") or None
 
-# L'emploi du temps M1 n'indique aucun groupe (« /GB », « /GC » : zéro
-# occurrence dans le PDF). Quand deux cours sont empilés dans un même créneau,
+PROMO = variable_env("EDT_PROMO", "M1").upper()
+if PROMO not in PROMOS:
+    print(f"⚠️ EDT_PROMO={PROMO!r} inconnu, valeurs admises : "
+          f"{', '.join(PROMOS)}. Retour au défaut M1.")
+    PROMO = "M1"
+
+# Les emplois du temps STRI n'indiquent aucun groupe (« /GB », « /GC » : zéro
+# occurrence dans les PDF). Quand deux cours sont empilés dans un même créneau,
 # la seule chose qui distingue les deux demi-promos est leur POSITION : l'une
 # est en haut de la case, l'autre en bas.
 #
 #   EDT_MOITIE=BAS   (défaut) -> cours du bas + pleine hauteur
-#   EDT_MOITIE=HAUT  (Ingé)   -> cours du haut + pleine hauteur
+#   EDT_MOITIE=HAUT           -> cours du haut + pleine hauteur
 #
 # Les cellules pleine hauteur concernent tout le monde : elles sont retenues
 # dans les deux cas.
@@ -70,28 +77,30 @@ if MOITIE_RETENUE not in ("BAS", "HAUT"):
           "Retour au défaut BAS.")
     MOITIE_RETENUE = "BAS"
 
+_PROMO = PROMOS[PROMO]
+
 # Position à écarter : l'opposée de celle qu'on garde.
 POSITION_ECARTEE = "TOP" if MOITIE_RETENUE == "BAS" else "BOTTOM"
 
-# Suffixe appliqué aux sorties de la version Ingé, pour que les deux jeux
-# coexistent sans s'écraser : agenda, JSON de comparaison et fichier ICS.
-SUFFIXE = "" if MOITIE_RETENUE == "BAS" else "_inge"
+# Suffixe des sorties, pour que les jeux coexistent sans s'écraser.
+SUFFIXE = _PROMO["suffixes"][MOITIE_RETENUE]
 
-# Agenda distinct par version : sans ça, la version Ingé viendrait remplacer
-# les cours de l'autre demi-promo dans le même agenda.
-NOM_AGENDA = google_agenda.NOM_AGENDA + ("" if MOITIE_RETENUE == "BAS" else " Ingé")
+# Agenda distinct par promotion ET par moitié : sans ça, une version viendrait
+# remplacer les cours d'une autre dans le même agenda.
+NOM_AGENDA = _PROMO["agendas"][MOITIE_RETENUE]
+CLE_AGENDA = _PROMO["cles"][MOITIE_RETENUE]
+
+_couleur_agenda, _couleur_cours = _PROMO["couleurs"][MOITIE_RETENUE]
 
 # Couleur de fond de l'agenda. Elle n'est visible que par le propriétaire :
 # elle vit dans son abonnement, pas dans l'agenda.
-COULEUR_AGENDA = variable_env(
-    "EDT_COULEUR", "pistache" if MOITIE_RETENUE == "BAS" else "raisin")
+COULEUR_AGENDA = variable_env("EDT_COULEUR", _couleur_agenda)
 
 # Couleur posée sur CHAQUE cours. Contrairement à la précédente, elle est
 # stockée sur l'événement, donc imposée à toutes les personnes avec qui
 # l'agenda est partagé. La palette des événements ne compte que onze teintes
 # et n'a pas de pistache : le vert le plus proche est le basilic.
-COULEUR_COURS = variable_env(
-    "EDT_COULEUR_COURS", "basilic" if MOITIE_RETENUE == "BAS" else "raisin")
+COULEUR_COURS = variable_env("EDT_COULEUR_COURS", _couleur_cours)
 
 # Les examens vivent dans leur propre agenda : c'est ce qui garantit une
 # couleur différente chez les personnes abonnées, Google en attribuant une
@@ -107,6 +116,8 @@ TIMEOUT_HTTP = 20
 DEBUG = variable_env("EDT_DEBUG", "0") not in ("0", "false", "False")
 DOSSIER_DEBUG = Path("export_cours")
 
+# EDT_PDF reste prioritaire : la CI télécharge sous un nom temporaire.
+FICHIER_PDF = variable_env("EDT_PDF", _PROMO["pdf"])
 FICHIER_JSON = f"edt_data{SUFFIXE}.json"
 FICHIER_ICS = f"edt{SUFFIXE}.ics"
 
@@ -321,7 +332,7 @@ def synchroniser_agenda(cours_list, creds):
                       if not c['titre'].startswith(google_agenda.MARQUEUR_EXAMEN)]
 
         agenda_id = google_agenda.trouver_ou_creer_agenda(
-            service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=MOITIE_RETENUE)
+            service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=CLE_AGENDA)
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
         _rapporter("Cours", google_agenda.synchroniser(
             service, ordinaires, identifiant_agenda=agenda_id,
@@ -332,7 +343,7 @@ def synchroniser_agenda(cours_list, creds):
         principal = service.calendars().get(calendarId=agenda_id).execute()
         agenda_examens = google_agenda.trouver_ou_creer_agenda(
             service, nom=f"{principal['summary']} — Examens",
-            cle=f"{MOITIE_RETENUE}-EXAMENS")
+            cle=f"{CLE_AGENDA}-EXAMENS")
         google_agenda.appliquer_couleur(service, agenda_examens, COULEUR_AGENDA_EXAMENS)
         _rapporter("Examens", google_agenda.synchroniser(
             service, examens, identifiant_agenda=agenda_examens))
@@ -708,7 +719,12 @@ def extraire_zones_jours_pdf(chemin_pdf):
     with pdfplumber.open(chemin_pdf) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             words = page.extract_words()
-            h_lines = [l['top'] for l in page.lines if l['width'] > 100 and l['orientation'] == 'h']
+            # L'horizontalité est déduite de la géométrie, pas du champ
+            # `orientation` : pdfplumber ne le fournit pas toujours, et l'EDT
+            # de L3 — qui contient de vrais objets `line`, contrairement au M1 —
+            # faisait échouer la lecture sur un KeyError.
+            h_lines = [l['top'] for l in page.lines
+                       if l['width'] > 100 and abs(l['top'] - l['bottom']) < 1]
             r_lines = [r['top'] for r in page.rects if r['width'] > 100 and r['height'] < 5]
             all_y_lines = sorted({round(y, 1) for y in h_lines + r_lines})
 
@@ -1145,5 +1161,6 @@ def principale():
 if __name__ == "__main__":
     if "--telecharger" in sys.argv:
         cibles = [a for a in sys.argv[1:] if not a.startswith("--")]
-        sys.exit(0 if telecharger_pdf(cibles[0] if cibles else None) else 1)
+        sys.exit(0 if telecharger_pdf(cibles[0] if cibles else FICHIER_PDF,
+                                      url=_PROMO["url"]) else 1)
     sys.exit(principale())
