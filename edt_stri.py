@@ -114,7 +114,9 @@ ANNEE_FORCEE = None
 TIMEOUT_HTTP = 20
 
 DEBUG = variable_env("EDT_DEBUG", "0") not in ("0", "false", "False")
-DOSSIER_DEBUG = Path("export_cours")
+# Un dossier par promotion : les deux emplois du temps couvrent les mêmes
+# dates, et un dossier commun ferait écraser les imagettes de l'un par l'autre.
+DOSSIER_DEBUG = Path("export_cours") / PROMO
 
 # EDT_PDF reste prioritaire : la CI télécharge sous un nom temporaire.
 FICHIER_PDF = variable_env("EDT_PDF", _PROMO["pdf"])
@@ -919,6 +921,14 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         # en pleine hauteur, elle resterait un cours d'Ingé.
         if 'ORANGE' in col_txt:
             if MOITIE_RETENUE != "HAUT":
+                continue
+
+        # Le vert olive de la L3 est le symétrique de l'orange : il marque
+        # l'autre demi-promo. Les dix cases mesurées sont toutes en moitié
+        # basse, la position suffirait — mais la couleur est plus explicite que
+        # la géométrie, et le PDF a déjà changé de mise en page par le passé.
+        elif 'OLIVE' in col_txt:
+            if MOITIE_RETENUE != "BAS":
                 continue
 
         # Une cellule de la moitié opposée appartient à l'autre demi-promo,

@@ -43,6 +43,12 @@ def est_orange(c):
     return _proche(c, (1.0, 0.75, 0.0))
 
 
+def est_olive(c):
+    """Le vert olive de la L3, symétrique de l'orange : il marque l'autre
+    demi-promo. Assez éloigné du vert vif des salles pour ne pas s'y confondre."""
+    return _proche(c, (0.573, 0.816, 0.314))
+
+
 def est_noir(c):
     return _proche(c, (0.0, 0.0, 0.0))
 
@@ -129,7 +135,20 @@ class GrilleJour:
 
         self.salles = [r for r in dans_bande if est_vert(r['non_stroking_color'])]
         self.examens = [r for r in dans_bande
-                        if est_jaune(r['non_stroking_color']) or est_orange(r['non_stroking_color'])]
+                        if est_jaune(r['non_stroking_color'])
+                        or est_orange(r['non_stroking_color'])]
+
+        # Fonds porteurs de sens, pour la seule lecture de `couleur()`.
+        #
+        # L'olive est DÉLIBÉRÉMENT absent de `self.examens` : cette liste sert
+        # aussi à `_est_bord_de_salle`, qui écarte les barres médianes n'étant
+        # qu'un bord de case colorée. Or un fond olive occupe exactement une
+        # demi-cellule, donc son bord supérieur EST une vraie séparation. L'y
+        # inclure masquait celle du 08/09 13h30 : la cellule passait en pleine
+        # hauteur et les deux demi-promos recevaient le même cours, avec les
+        # deux salles concaténées en « 4A-K02 U3-04 ».
+        self.fonds = self.examens + [r for r in dans_bande
+                                     if est_olive(r['non_stroking_color'])]
 
         self.barres_milieu = [r for r in barres if abs(r['top'] - self.milieu) < 2.5]
 
@@ -251,7 +270,7 @@ class GrilleJour:
         """
         largeur = max(x1 - x0, 1.0)
         hauteur = max(y1 - y0, 1.0)
-        for r in self.examens:
+        for r in self.fonds:
             part = (min(r['x1'], x1) - max(r['x0'], x0)) / largeur
             commence_au_bord = abs(r['x0'] - x0) <= 3
             if part < (0.35 if commence_au_bord else 0.6):
@@ -260,7 +279,10 @@ class GrilleJour:
             # vrai recouvrement vertical, pas un contact.
             if (min(r['bottom'], y1) - max(r['top'], y0)) / hauteur < 0.5:
                 continue
-            return "JAUNE" if est_jaune(r['non_stroking_color']) else "ORANGE"
+            couleur = r['non_stroking_color']
+            if est_jaune(couleur):
+                return "JAUNE"
+            return "ORANGE" if est_orange(couleur) else "OLIVE"
         return "BLANC"
 
     def est_salle(self, mot, y0, y1):
