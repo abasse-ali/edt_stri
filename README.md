@@ -486,3 +486,24 @@ Les examens échappent désormais au filtre et sont publiés dans les deux
 versions. Rater un examen coûte bien plus cher que d'en voir un qui ne nous
 concerne pas — et ils vivent de toute façon dans leur propre agenda, où un
 chevauchement avec un cours reste lisible.
+
+
+### Un fond d'examen ne couvre pas toujours toute la cellule
+
+`GrilleJour.couleur()` exigeait que le fond coloré recouvre 60 % de la largeur
+de la cellule, pour ne pas confondre une pastille orange sans rapport avec un
+vrai fond d'examen.
+
+Trop strict : le PDF est incohérent. Tantôt le fond jaune couvre toute la
+cellule et la case verte de salle est dessinée par-dessus, tantôt il s'arrête
+AVANT cette case — et ne couvre alors que 58 %. Les trois examens
+d'« Adm. Linux » du 18/09 passaient donc pour des cours ordinaires.
+
+Un fond qui **commence exactement au bord gauche** de la cellule lui appartient :
+c'est ce qui le distingue d'une pastille posée au milieu. Le seuil descend à
+35 % dans ce cas, reste à 60 % sinon.
+
+Mesuré : 8 rectangles jaunes dans le PDF pour 6 cellules — les journées dont le
+fond est dessiné en deux morceaux, un sous le titre et un sous le professeur.
+3 examens détectés avant le correctif, 6 après. Les 4 fonds orange (Sport) sont
+inchangés.

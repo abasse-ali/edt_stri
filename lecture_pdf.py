@@ -239,11 +239,22 @@ class GrilleJour:
         Un simple chevauchement ne suffit pas : les emplois du temps contiennent
         des pastilles orange sans rapport, qui faisaient passer des cours réels
         pour des cours annulés (et les faisaient disparaître de l'agenda).
+
+        Mais exiger 60 % de la largeur était trop strict. Le PDF est incohérent :
+        tantôt le fond d'examen couvre toute la cellule et la case verte de
+        salle est dessinée par-dessus, tantôt il s'arrête AVANT cette case. Dans
+        ce second cas il ne couvrait que 58 % — les trois examens d'« Adm. Linux »
+        du 18/09 passaient donc pour des cours ordinaires.
+
+        Un fond qui commence exactement au bord gauche de la cellule lui
+        appartient : c'est ce qui le distingue d'une pastille posée au milieu.
         """
         largeur = max(x1 - x0, 1.0)
         hauteur = max(y1 - y0, 1.0)
         for r in self.examens:
-            if (min(r['x1'], x1) - max(r['x0'], x0)) / largeur < 0.6:
+            part = (min(r['x1'], x1) - max(r['x0'], x0)) / largeur
+            commence_au_bord = abs(r['x0'] - x0) <= 3
+            if part < (0.35 if commence_au_bord else 0.6):
                 continue
             # Le fond d'un cours du haut effleure la moitié basse : il faut un
             # vrai recouvrement vertical, pas un contact.

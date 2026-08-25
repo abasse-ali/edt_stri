@@ -481,9 +481,17 @@
   },
   {
     "date": "2026-09-18",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Adm. Linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-09-18",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Adm. Linux (Philippe LATU)",
+    "titre": "[EXAMEN] Adm. Linux (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
   },
@@ -491,7 +499,7 @@
     "date": "2026-09-18",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Adm. Linux (Philippe LATU)",
+    "titre": "[EXAMEN] Adm. Linux (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
   },
