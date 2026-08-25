@@ -45,7 +45,7 @@ jobs:
       #    installé et le module important numpy dès son chargement.
       - name: Télécharger les nouveaux PDF
         run: |
-          python telechargement.py --promo M1 edt_nouveau.pdf
+          python telechargement.py --promo M1 edt_m1_nouveau.pdf
           python telechargement.py --promo L3 edt_l3_nouveau.pdf
 
       # 4. Compare chaque PDF avec sa version précédente. Une seule promotion
@@ -54,14 +54,14 @@ jobs:
       - name: Comparer les PDF
         id: verification
         run: |
-          touch edt.pdf edt_l3.pdf
+          touch edt_m1.pdf edt_l3.pdf
           change=false
 
-          if cmp -s edt_nouveau.pdf edt.pdf; then
+          if cmp -s edt_m1_nouveau.pdf edt_m1.pdf; then
             echo "📄 M1 inchangé."
           else
             echo "🚨 Le PDF M1 a changé."
-            mv edt_nouveau.pdf edt.pdf
+            mv edt_m1_nouveau.pdf edt_m1.pdf
             change=true
           fi
 
@@ -139,7 +139,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add edt.pdf edt_l3.pdf edt_data*.json
+          git add edt_m1.pdf edt_l3.pdf edt_data*.json
           git commit -m "Mise à jour automatique de l'EDT" || echo "Rien à commiter"
           git pull --rebase --autostash origin ${{ github.ref_name }}
           git push

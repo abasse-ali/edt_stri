@@ -54,11 +54,12 @@ def variable_env(nom, defaut=""):
 PROMOS = {
     "M1": {
         "url": "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
-        "pdf": "edt.pdf",
+        "pdf": "edt_m1.pdf",
         "agendas": {"BAS": "STRI M1 G2", "HAUT": "STRI Ingé2 G1"},
-        "suffixes": {"BAS": "", "HAUT": "_inge"},
+        "suffixes": {"BAS": "_m1g2", "HAUT": "_inge2g1"},
         # Clés historiques, sans préfixe : elles étiquettent déjà les agendas
-        # existants et doivent le rester.
+        # existants et ne doivent JAMAIS changer, contrairement aux noms et
+        # aux suffixes de fichiers, qui ne sont que cosmétiques.
         "cles": {"BAS": "BAS", "HAUT": "HAUT"},
         "couleurs": {"BAS": ("pistache", "basilic"), "HAUT": ("raisin", "raisin")},
     },
@@ -68,7 +69,7 @@ PROMOS = {
         # La moitié haute de la L3, c'est la promotion Ingé1 — exactement comme
         # la moitié haute du M1 est celle des Ingé.
         "agendas": {"BAS": "IRT L3", "HAUT": "STRI Ingé1"},
-        "suffixes": {"BAS": "_l3", "HAUT": "_inge1"},
+        "suffixes": {"BAS": "_irtl3", "HAUT": "_inge1"},
         "cles": {"BAS": "L3-BAS", "HAUT": "L3-HAUT"},
         "couleurs": {"BAS": ("myrtille", "myrtille"), "HAUT": ("amethyste", "lavande")},
     },
