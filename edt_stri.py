@@ -81,6 +81,10 @@ SUFFIXE = "" if MOITIE_RETENUE == "BAS" else "_inge"
 # les cours de l'autre demi-promo dans le même agenda.
 NOM_AGENDA = google_agenda.NOM_AGENDA + ("" if MOITIE_RETENUE == "BAS" else " Ingé")
 
+# Couleur de fond de chaque agenda, pour les distinguer d'un coup d'œil.
+COULEUR_AGENDA = variable_env(
+    "EDT_COULEUR", "pistache" if MOITIE_RETENUE == "BAS" else "raisin")
+
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
 
@@ -289,7 +293,8 @@ def synchroniser_agenda(cours_list, creds):
     try:
         service = build('calendar', 'v3', credentials=creds)
         agenda_id = google_agenda.trouver_ou_creer_agenda(
-            service, nom=NOM_AGENDA, identifiant=CALENDAR_ID)
+            service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=MOITIE_RETENUE)
+        google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
         ajouts, modifs, retraits = google_agenda.synchroniser(
             service, cours_list, identifiant_agenda=agenda_id)
         print(f"✅ Agenda à jour : {ajouts} ajout(s), {modifs} modification(s), "

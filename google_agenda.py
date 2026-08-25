@@ -39,6 +39,50 @@ TAILLE_PAGE = 2500
 COULEUR_EXAMEN = "11"
 MARQUEUR_EXAMEN = "[EXAMEN]"
 
+# Couleur de FOND d'un agenda. Attention : ce n'est pas la même palette que
+# celle des événements ci-dessus. Google en expose deux, de tailles
+# différentes, et le même numéro n'y désigne pas la même teinte :
+#   - événement : 11 couleurs (`colors().get()['event']`)
+#   - agenda    : 24 couleurs (`colors().get()['calendar']`)
+# « Pistache » et « Raisin » n'existent que dans la seconde.
+COULEURS_AGENDA = {
+    "pistache": ("9", "#7bd148"),
+    "avocat": ("10", "#b3dc6c"),
+    "raisin": ("23", "#cd74e6"),
+    "amethyste": ("24", "#a47ae2"),
+    "basilic": ("8", "#16a765"),
+    "myrtille": ("16", "#4986e7"),
+    "paon": ("14", "#9fe1e7"),
+    "tomate": ("3", "#f83a22"),
+    "mangue": ("6", "#ffad46"),
+    "graphite": ("19", "#c2c2c2"),
+}
+
+
+def appliquer_couleur(service, agenda_id, nom_couleur):
+    """Donne sa couleur de fond à l'agenda. Sans effet si elle est déjà bonne.
+
+    La couleur vit dans `calendarList`, pas dans `calendars` : elle appartient
+    à l'abonnement de l'utilisateur, pas à l'agenda lui-même.
+    """
+    if not nom_couleur:
+        return None
+    couleur = COULEURS_AGENDA.get(nom_couleur.strip().lower())
+    if couleur is None:
+        print(f"   ⚠️ Couleur d'agenda « {nom_couleur} » inconnue. "
+              f"Valeurs admises : {', '.join(sorted(COULEURS_AGENDA))}.")
+        return None
+
+    identifiant, teinte = couleur
+    entree = service.calendarList().get(calendarId=agenda_id).execute()
+    if entree.get("colorId") == identifiant:
+        return teinte
+
+    service.calendarList().patch(
+        calendarId=agenda_id, body={"colorId": identifiant}).execute()
+    print(f"   🎨 Couleur de l'agenda : {nom_couleur} ({teinte}).")
+    return teinte
+
 
 def _identifiant(cours):
     """Identifiant stable d'un cours, accepté tel quel par l'API.
@@ -102,36 +146,66 @@ def _instant(valeur, fuseau=None):
     return moment.timestamp()
 
 
-def trouver_ou_creer_agenda(service, nom=NOM_AGENDA, identifiant=None):
+def marqueur(cle):
+    """Étiquette invisible posée dans la description de l'agenda."""
+    return f"[edt-stri:{cle}]"
+
+
+def trouver_ou_creer_agenda(service, nom=NOM_AGENDA, identifiant=None, cle="BAS"):
     """Renvoie l'ID de l'agenda dédié, en le créant à la première exécution.
 
-    La correspondance sur le seul nom ne suffit pas : le fichier ICS publié par
-    ce même script porte `X-WR-CALNAME:EDT STRI M1`, donc un abonnement à ce
-    fichier apparaît dans la liste sous exactement ce nom. On tombait dessus en
-    premier, et l'écriture échouait en 403 — un agenda auquel on est abonné est
-    en lecture seule. Seul un agenda dont on est propriétaire convient.
+    La recherche se fait sur un MARQUEUR posé dans la description, pas sur le
+    nom : renommer son agenda dans l'interface Google est parfaitement légitime
+    et ne doit pas faire perdre sa trace. Chercher « EDT STRI M1 » après un
+    renommage en « STRI M1 G2 » créait un second agenda et dupliquait tous les
+    cours.
+
+    Le repli par nom sert aux agendas créés avant l'introduction du marqueur ;
+    ils sont étiquetés au passage. Un agenda auquel on est simplement abonné
+    est écarté : il est en lecture seule, l'écriture y échouerait en 403 — et
+    le fichier ICS publié par ce script porte justement `X-WR-CALNAME`.
     """
     if identifiant:
         return identifiant
 
-    jeton = None
+    etiquette = marqueur(cle)
+    proprietaires, jeton = [], None
     while True:
         page = service.calendarList().list(pageToken=jeton).execute()
-        for agenda in page.get("items", []):
-            if (agenda.get("summary") == nom
-                    and agenda.get("accessRole") == "owner"
-                    and not agenda.get("id", "").endswith("@import.calendar.google.com")):
-                return agenda["id"]
+        proprietaires += [a for a in page.get("items", [])
+                          if a.get("accessRole") == "owner"
+                          and not a.get("id", "").endswith("@import.calendar.google.com")]
         jeton = page.get("nextPageToken")
         if not jeton:
             break
 
+    for agenda in proprietaires:
+        if etiquette in (agenda.get("description") or ""):
+            return agenda["id"]
+
+    for agenda in proprietaires:
+        if agenda.get("summary") == nom:
+            _etiqueter(service, agenda["id"], etiquette)
+            return agenda["id"]
+
     print(f"   Création de l'agenda « {nom} »...")
     cree = service.calendars().insert(
         body={"summary": nom, "timeZone": FUSEAU,
-              "description": "Emploi du temps STRI, mis à jour automatiquement."}
+              "description": f"Emploi du temps STRI, mis à jour automatiquement. {etiquette}"}
     ).execute()
     return cree["id"]
+
+
+def _etiqueter(service, agenda_id, etiquette):
+    """Ajoute le marqueur à un agenda existant, sans toucher à son nom."""
+    agenda = service.calendars().get(calendarId=agenda_id).execute()
+    description = (agenda.get("description") or "").strip()
+    if etiquette in description:
+        return
+    service.calendars().patch(
+        calendarId=agenda_id,
+        body={"description": f"{description} {etiquette}".strip()}).execute()
+    print(f"   🏷️  Agenda « {agenda.get('summary')} » étiqueté {etiquette}.")
 
 
 def _evenements_existants(service, agenda_id):

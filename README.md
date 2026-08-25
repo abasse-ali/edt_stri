@@ -343,10 +343,10 @@ du bas. Aucun marqueur de groupe ne les distingue (`/GB`, `/GC` : zéro
 occurrence), **seule leur position compte**. Les cases pleine hauteur
 concernent tout le monde.
 
-| `EDT_MOITIE` | cellules retenues | agenda | fichiers |
+| `EDT_MOITIE` | cellules retenues | couleur | fichiers |
 |---|---|---|---|
-| `BAS` (défaut) | `BOTTOM` + `FULL` | `EDT STRI M1` | `edt_data.json`, `edt.ics` |
-| `HAUT` (Ingé) | `TOP` + `FULL` | `EDT STRI M1 Ingé` | `edt_data_inge.json`, `edt_inge.ics` |
+| `BAS` (défaut) | `BOTTOM` + `FULL` | pistache `#7bd148` | `edt_data.json`, `edt.ics` |
+| `HAUT` (Ingé) | `TOP` + `FULL` | raisin `#cd74e6` | `edt_data_inge.json`, `edt_inge.ics` |
 
 Mesuré sur le PDF M1 : 86 cours en `BAS`, 85 en `HAUT`, dont **41 communs** —
 les cellules pleine hauteur.
@@ -360,3 +360,31 @@ dépendances ne sont payés qu'une fois.
 
 Pour n'en garder qu'une, supprimer la ligne correspondante de l'étape
 *Run Python script* du workflow.
+
+
+## Retrouver son agenda après un renommage (25/08)
+
+L'agenda était cherché par son nom. Renommer « EDT STRI M1 » en « STRI M1 G2 »
+depuis l'interface Google — ce qui est parfaitement légitime — le rendait
+introuvable : le script en créait un second et **dupliquait les 86 cours**.
+
+La recherche se fait désormais sur un marqueur posé dans la description,
+`[edt-stri:BAS]` ou `[edt-stri:HAUT]`, qui survit au renommage. Le repli par
+nom sert aux agendas antérieurs au marqueur ; ils sont étiquetés au passage.
+Le nom choisi par l'utilisateur n'est jamais réécrit.
+
+`GOOGLE_CALENDAR_ID` reste prioritaire sur les deux.
+
+### Couleurs
+
+Google expose **deux palettes distinctes**, et le même numéro n'y désigne pas
+la même teinte :
+
+| palette | taille | usage ici |
+|---|---|---|
+| `event` | 11 couleurs | examens en tomate (`colorId` 11) |
+| `calendar` | 24 couleurs | fond de l'agenda : pistache, raisin |
+
+« Pistache » et « Raisin » n'existent que dans la seconde. La couleur est
+appliquée sur l'entrée `calendarList`, pas sur l'agenda : elle appartient à
+l'abonnement de l'utilisateur. Surchargeable par `EDT_COULEUR`.
