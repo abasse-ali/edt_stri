@@ -169,11 +169,11 @@
   },
   {
     "date": "2026-09-02",
-    "start": "07h45",
+    "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] TOEIC (STRI4A)",
-    "room": "Non attribuée",
-    "prof": "STRI4A"
+    "titre": "Interop (Patrice TORGUET)",
+    "room": "U3-215/216",
+    "prof": "Patrice TORGUET"
   },
   {
     "date": "2026-09-02",
@@ -310,14 +310,6 @@
     "titre": "Interop (André AOUN)",
     "room": "U3-Amphi",
     "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-09",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interop (Patrice TORGUET)",
-    "room": "U3-215/216",
-    "prof": "Patrice TORGUET"
   },
   {
     "date": "2026-09-09",

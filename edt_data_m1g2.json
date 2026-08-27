@@ -177,6 +177,14 @@
   },
   {
     "date": "2026-09-02",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Interop (Patrice TORGUET)",
+    "room": "U3-215/216",
+    "prof": "Patrice TORGUET"
+  },
+  {
+    "date": "2026-09-02",
     "start": "13h30",
     "end": "15h30",
     "titre": "Interop (André AOUN)",
@@ -294,14 +302,6 @@
     "titre": "Interco - BE (Thierry DESPRATS)",
     "room": "U3-Amphi",
     "prof": "Thierry DESPRATS"
-  },
-  {
-    "date": "2026-09-09",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Interop (Patrice TORGUET)",
-    "room": "U3-215/216",
-    "prof": "Patrice TORGUET"
   },
   {
     "date": "2026-09-09",
