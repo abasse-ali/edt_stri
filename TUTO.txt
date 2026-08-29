@@ -1,0 +1,181 @@
+========================================================================
+          RECEVOIR SON EMPLOI DU TEMPS STRI DANS SON TELEPHONE
+========================================================================
+
+Ton emploi du temps se met a jour tout seul. Des qu'un cours change dans
+le PDF de l'ecole, ton telephone le sait quelques secondes plus tard.
+Tu n'as rien a faire, sauf la premiere installation, decrite ici.
+
+Compte 5 minutes.
+
+
+------------------------------------------------------------------------
+ CE QUE TU VAS RECEVOIR
+------------------------------------------------------------------------
+
+DEUX agendas, pas un seul :
+
+   - tes cours
+   - tes examens
+
+Ils sont separes expres. Comme ils sont distincts, ton telephone leur
+donne deux couleurs differentes, et tu reperes tes examens d'un coup
+d'oeil. Pense bien a accepter les deux.
+
+Selon ta promo, ils s'appellent :
+
+   STRI M1 G2       et  STRI M1 G2 - Examens
+   STRI Inge2 G1    et  STRI Inge2 G1 - Examens
+   IRT L3           et  IRT L3 - Examens
+   STRI Inge1       et  STRI Inge1 - Examens
+
+
+========================================================================
+ ETAPE 1 - ACCEPTER L'INVITATION            (tout le monde, une fois)
+========================================================================
+
+Tu as recu deux mails intitules :
+
+   "... a partage un agenda avec vous"
+
+Ouvre chacun et clique sur "AJOUTER CET AGENDA".
+
+  /!\  Tant que tu n'as pas clique, tu ne vois RIEN.
+       Pas un agenda vide : rien du tout, aucun message d'erreur.
+       C'est la cause numero un des "ca marche pas chez moi".
+
+Tu n'as pas recu les mails ? Regarde dans les spams, puis demande
+qu'on te les renvoie.
+
+
+========================================================================
+ ETAPE 2 - L'AFFICHER SUR TON TELEPHONE
+========================================================================
+
+Choisis la section qui te correspond.
+
+
+   ---------------------------------------------------------------
+    A. TU AS UN IPHONE
+   ---------------------------------------------------------------
+
+   2.1  Verifie que ton compte Google est bien sur le telephone
+
+        Reglages  >  Apps  >  Calendrier  >  Comptes
+
+        Ton adresse Gmail doit apparaitre, avec "Calendriers" active.
+        Si elle n'y est pas :
+        Ajouter un compte  >  Google  >  connecte-toi.
+
+
+   2.2  L'ETAPE QUE TOUT LE MONDE RATE
+
+        iPhone ne synchronise que les agendas Google coches sur une
+        page speciale, qu'aucun menu n'affiche. Un agenda qu'on vient
+        de te partager y est DECOCHE par defaut.
+
+        Ouvre cette adresse dans ton navigateur :
+
+            calendar.google.com/calendar/syncselect
+
+        Coche tes DEUX agendas, puis "Enregistrer". C'est immediat.
+
+        Comment savoir que c'est ton probleme ?
+        Tu vois tes cours sur calendar.google.com dans un navigateur,
+        mais rien dans l'application Calendrier. C'est exactement ca.
+
+
+   2.3  Affiche-les
+
+        Ouvre l'app Calendrier, touche "Calendriers" en bas de l'ecran,
+        coche tes deux agendas. Termine.
+
+
+   ---------------------------------------------------------------
+    B. TU AS UN ANDROID
+   ---------------------------------------------------------------
+
+   Ouvre l'application Google Agenda.
+   Menu (les trois barres en haut a gauche), fais defiler tout en bas,
+   coche tes deux agendas.
+
+   S'ils n'apparaissent pas dans la liste : va d'abord sur
+   calendar.google.com dans un navigateur pour verifier qu'ils y sont,
+   puis rouvre l'application.
+
+
+   ---------------------------------------------------------------
+    C. TU N'AS PAS D'ADRESSE GMAIL
+   ---------------------------------------------------------------
+
+   Le partage par compte ne marche qu'avec un compte Google. Si ton
+   adresse est en @yahoo.fr, @proton.me, @outlook.com ou autre, deux
+   possibilites :
+
+   - creer un compte Google AVEC ton adresse actuelle (c'est gratuit
+     et tu n'es pas oblige de prendre une adresse Gmail) ;
+
+   - ou demander un LIEN D'ABONNEMENT, qui fonctionne avec n'importe
+     quelle adresse et n'importe quel telephone.
+
+   Dans le second cas, previens : la mise a jour n'est alors plus
+   immediate, elle peut prendre plusieurs heures.
+
+
+========================================================================
+ SI CA NE MARCHE TOUJOURS PAS
+========================================================================
+
+Dans l'ordre, ces trois gestes reglent la quasi-totalite des cas :
+
+   1. Decoche l'agenda dans l'application, attends 10 secondes,
+      recoche-le. Ca force une resynchronisation.
+
+   2. Verifie sur calendar.google.com, dans un navigateur, que tes
+      cours y sont bien.
+         - ils y sont       -> le probleme est sur le telephone,
+                               reprends l'etape 2.2 (iPhone)
+         - ils n'y sont pas -> l'invitation n'a pas ete acceptee,
+                               reprends l'etape 1
+
+   3. Redemarre le telephone. Oui, vraiment.
+
+
+========================================================================
+ QUESTIONS FREQUENTES
+========================================================================
+
+ "Mes couleurs sont differentes de celles des autres."
+
+   C'est normal, et personne ne peut y changer quoi que ce soit :
+   Google attribue une couleur au hasard a chaque personne. Tu peux
+   choisir la tienne sur calendar.google.com : passe la souris sur le
+   nom de l'agenda, clique sur les trois points, choisis ta couleur.
+
+   Les examens, eux, seront TOUJOURS d'une couleur differente des
+   cours, puisque ce sont deux agendas separes.
+
+
+ "Je vois des cours qui ne sont pas les miens."
+
+   Chaque demi-promo a son propre agenda. Si tu vois ceux d'a cote,
+   c'est que tu as accepte le mauvais partage : signale-le.
+
+
+ "Faut-il refaire quelque chose quand l'emploi du temps change ?"
+
+   Non, jamais. Une fois installe, tout arrive tout seul.
+
+
+ "Est-ce que je peux modifier un cours ?"
+
+   Non, tu es en lecture seule. Tes modifications seraient de toute
+   facon effacees a la prochaine mise a jour.
+
+
+ "Est-ce que ca marche sur ordinateur ?"
+
+   Oui, sans rien installer : calendar.google.com, tes agendas sont
+   dans la colonne de gauche.
+
+========================================================================

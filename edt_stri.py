@@ -209,7 +209,7 @@ def envoyer_notification_discord(modifications):
     if not modifications:
         return
 
-    description = "L'emploi du temps a été mis à jour ! Voici les changements :\n\n"
+    description = f"**{NOM_AGENDA}** — {len(modifications)} changement(s) :\n\n"
 
     for modif in modifications:
         try:
@@ -233,12 +233,17 @@ def envoyer_notification_discord(modifications):
                 description += f"   ↳ *{nom_champ}* : ~~{valeurs['ancien']}~~ ➔ **{valeurs['nouveau']}**\n"
         description += "\n"
 
-    _envoyer_embed("🚨 Changements détectés dans l'emploi du temps !", description, 16753920)
+    # Le nom de l'agenda est dans le TITRE : quatre passes tournent à la
+    # suite, et sans lui les messages étaient indiscernables — impossible
+    # de savoir quelle promotion avait bougé.
+    _envoyer_embed(f"🚨 {NOM_AGENDA} — emploi du temps modifié",
+                   description, 16753920)
 
 
 def envoyer_alerte_discord(message):
     """CORRECTIF #2 bis : prévenir en cas d'abandon, plutôt que rester silencieux."""
-    _envoyer_embed("⚠️ Synchronisation EDT interrompue", message, 15158332)
+    _envoyer_embed(f"⚠️ {NOM_AGENDA} — synchronisation interrompue",
+                   message, 15158332)
 
 
 # =====================================================================
