@@ -110,7 +110,7 @@ def relire_pdf(chemin):
     de référence, elle ne doit pas hériter de ses éventuels défauts.
     """
     if not edt_stri.extraire_positions_heures_pdf(chemin, dpi=edt_stri.DPI):
-        return None, None, None
+        return None, None, None, None
 
     zones = edt_stri.extraire_zones_jours_pdf(chemin)
     x_min = edt_stri._vers_pdf(edt_stri.PADDING)
@@ -122,6 +122,7 @@ def relire_pdf(chemin):
             x_pdf * edt_stri.DPI / 72 - edt_stri.GLOBAL_START_X + edt_stri.PADDING)
 
     cellules, fonds = [], Counter()
+    orphelins = {"mots": [], "salles": []}
     with pdfplumber.open(chemin) as pdf:
         for zone in zones:
             page = pdf.pages[zone["page"] - 1]
@@ -142,7 +143,8 @@ def relire_pdf(chemin):
                 elif lecture_pdf.est_olive(c):
                     fonds["OLIVE"] += 1
 
-            for cel in grille.cellules(mots):
+            trouvees = grille.cellules(mots)
+            for cel in trouvees:
                 bloc = lecture_pdf.lire_cellule(
                     grille, cel["x0"], cel["x1"], cel["position"], mots, vers_heure)
                 cellules.append({
@@ -154,7 +156,52 @@ def relire_pdf(chemin):
                     "couleur": ((bloc.get("color") or "BLANC").upper() if bloc else None),
                 })
 
-    return zones, cellules, fonds
+            jour = zone["date"].strftime("%Y-%m-%d")
+            orphelins["mots"] += _mots_orphelins(grille, trouvees, mots, jour)
+            orphelins["salles"] += _salles_orphelines(grille, trouvees, jour)
+
+    return zones, cellules, fonds, orphelins
+
+
+def _couvre(grille, cellule, x, y):
+    """Le point (x, y) tombe-t-il dans cette cellule ?"""
+    y0, y1 = grille.bornes_verticales(cellule["position"])
+    return (cellule["x0"] - 2 <= x <= cellule["x1"] + 4
+            and y0 - 0.5 <= y < y1 + 1.5)
+
+
+def _mots_orphelins(grille, cellules, mots, jour):
+    """Mots de la journée que AUCUNE cellule ne revendique.
+
+    Contrôle indépendant des bordures : il part de la couche texte. Un cours
+    dont la case n'aurait pas été détectée laisse ses mots sans propriétaire,
+    et c'est le seul signal qui le trahit — tous les autres contrôles partent
+    de `cellules()`, donc ne voient que ce qu'elle a déjà trouvé.
+    """
+    perdus = []
+    for mot in mots:
+        # Le libellé du jour vit à gauche de la grille, hors des cellules.
+        if mot["x0"] < grille.x_min - 2:
+            continue
+        milieu = (mot["x0"] + mot["x1"]) / 2
+        if not any(_couvre(grille, c, milieu, mot["top"]) for c in cellules):
+            perdus.append(f"{jour} x{mot['x0']:.0f} « {mot['text'][:18]} »")
+    return perdus
+
+
+def _salles_orphelines(grille, cellules, jour):
+    """Cases vertes de salle qu'aucune cellule ne recouvre.
+
+    Une salle sans cours est impossible : c'est qu'une case a été manquée.
+    Contrôle indépendant lui aussi — il part de la couleur, pas des bordures.
+    """
+    perdues = []
+    for r in grille.salles:
+        milieu_x = (r["x0"] + r["x1"]) / 2
+        milieu_y = (r["top"] + r["bottom"]) / 2
+        if not any(_couvre(grille, c, milieu_x, milieu_y) for c in cellules):
+            perdues.append(f"{jour} x{r['x0']:.0f}-{r['x1']:.0f}")
+    return perdues
 
 
 def destinataires(cellule):
@@ -176,6 +223,27 @@ def destinataires(cellule):
 # =====================================================================
 # CONTRÔLES
 # =====================================================================
+
+def controler_completude(rap, orphelins):
+    """Aucun cours n'a-t-il échappé ENTIÈREMENT à la détection ?
+
+    Tous les autres contrôles partent de `cellules()` : ils ne peuvent pas voir
+    une case jamais trouvée. Ces deux-ci partent de la couche texte et des
+    couleurs, donc d'ailleurs.
+    """
+    rap.bloc("Complétude (contrôles indépendants des bordures)")
+
+    mots = orphelins["mots"]
+    rap.verifier(not mots, "aucun mot hors de toute cellule",
+                 "chaque mot appartient à un cours",
+                 f"{len(mots)} mot(s) orphelin(s) — case manquée ? : "
+                 + " | ".join(mots[:4]))
+
+    salles = orphelins["salles"]
+    rap.verifier(not salles, "aucune case de salle orpheline",
+                 "chaque salle est rattachée à un cours",
+                 f"{len(salles)} salle(s) sans cours : " + " | ".join(salles[:4]))
+
 
 def controler_pdf(rap, promo, zones, cellules, fonds):
     rap.bloc("Lecture du PDF")
@@ -511,7 +579,7 @@ def principale():
             rap.anomalie("PDF introuvable", str(chemin))
             continue
 
-        zones, cellules, fonds = relire_pdf(chemin)
+        zones, cellules, fonds, orphelins = relire_pdf(chemin)
         if zones is None:
             rap.anomalie("repères horaires introuvables",
                          "la mise en page a probablement changé")
@@ -521,6 +589,7 @@ def principale():
                f"grille x={edt_stri.GLOBAL_START_X}→{edt_stri.GLOBAL_END_X}")
 
         controler_pdf(rap, promo, zones, cellules, fonds)
+        controler_completude(rap, orphelins)
         controler_horaires(rap, cellules)
 
         donnees, manquant = {}, False
