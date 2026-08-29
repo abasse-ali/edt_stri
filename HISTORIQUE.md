@@ -1,36 +1,25 @@
 # Historique des correctifs
 
-Journal chronologique des problèmes rencontrés et de leur résolution, conservé
-pour comprendre *pourquoi* le code est écrit ainsi. Pour la présentation du
-projet, voir [README.md](README.md).
+Journal chronologique des problèmes rencontrés et de leur résolution, conservé pour comprendre *pourquoi* le code est écrit ainsi. Pour la présentation du projet, voir [README.md](README.md).
 
 ## Correctifs appliqués
 
-1. **Mode secours cohérent** — les X de repli étaient dans le repère « grille
-   recadrée » alors qu'ils servaient de X absolus (10/1863 au lieu de 337/2192) :
-   décalage de 327 px, soit +2 h sur tous les cours, sans aucun message. Le repli
-   restaure désormais les deux repères et se refuse si la page ne correspond pas.
-   Un recadrage impossible lève une erreur au lieu d'être silencieux.
-2. **Aucune destruction de données** — si une journée échoue ou si rien n'est
-   extrait, l'ancien `edt_data.json` est conservé, aucun ICS vide n'est publié,
-   une alerte Discord part et le script sort en code 1 (la CI ne commite pas).
-3. **Boucles IA bornées** — `MAX_TENTATIVES_IA = 15` ; réponse vide et 503 en
-   série ne peuvent plus boucler indéfiniment.
-4. **Plus de `NameError`** — `model_name` est défini avant tout appel faillible.
-5. **URL du PDF unique** — définie une seule fois (M1) et réutilisée par la CI
-   via `--telecharger` ; le YAML ne duplique plus le script de téléchargement.
-6. **Année déduite du PDF** — `ANNEE = 2026` en dur remplacé par `deviner_annee()`
-   (+ passage décembre → janvier géré).
-7. **Clé de comparaison** — inclut le titre : les créneaux SPLIT ne s'écrasent
+1. **Mode secours cohérent** — les X de repli étaient dans le repère « grille recadrée » alors qu'ils servaient de X absolus (10/1863 au lieu de 337/2192) : décalage de 327 px, soit +2 h sur tous les cours, sans aucun message. Le repli restaure désormais les deux repères et se refuse si la page ne correspond pas. Un recadrage impossible lève une erreur au lieu d'être silencieux.
+1. **Aucune destruction de données** — si une journée échoue ou si rien n'est extrait, l'ancien `edt_data.json` est conservé, aucun ICS vide n'est publié, une alerte Discord part et le script sort en code 1 (la CI ne commite pas).
+1. **Boucles IA bornées** — `MAX_TENTATIVES_IA = 15` ; réponse vide et 503 en série ne peuvent plus boucler indéfiniment.
+1. **Plus de `NameError`** — `model_name` est défini avant tout appel faillible.
+2. **URL du PDF unique** — définie une seule fois (M1) et réutilisée par la CI via `--telecharger` ; le YAML ne duplique plus le script de téléchargement.
+1. **Année déduite du PDF** — `ANNEE = 2026` en dur remplacé par `deviner_annee()` (+ passage décembre → janvier géré).
+2. **Clé de comparaison** — inclut le titre : les créneaux SPLIT ne s'écrasent
    plus, leurs modifications sont bien notifiées.
-8. **UID ICS déterministes** — les agendas abonnés mettent à jour les événements
+3. **UID ICS déterministes** — les agendas abonnés mettent à jour les événements
    au lieu de les supprimer/recréer à chaque exécution.
-9. **Timeouts réseau** (20 s) + `raise_for_status()` sur Discord et le PDF.
-10. **Poppler détecté automatiquement** — l'ancien chemin `D:\Mes Projets\...`
+4. **Timeouts réseau** (20 s) + `raise_for_status()` sur Discord et le PDF.
+5.  **Poppler détecté automatiquement** — l'ancien chemin `D:\Mes Projets\...`
     (espace au lieu de `_`) n'existait pas.
-11. **Debug optionnel** (`EDT_DEBUG`) — plus de copies d'images inutiles en CI.
-12. **`telecharger_pdf()` réellement appelée** en local.
-13. **Divers** — `except:` nus supprimés, code mort retiré, entrée de
+6.  **Debug optionnel** (`EDT_DEBUG`) — plus de copies d'images inutiles en CI.
+7.  **`telecharger_pdf()` réellement appelée** en local.
+8.  **Divers** — `except:` nus supprimés, code mort retiré, entrée de
     `fusionner_rectangles` non mutée, sortie console forcée en UTF-8 (les emoji
     faisaient planter le script sur une console Windows cp1252), OAuth
     interactif refusé hors terminal (bloquait 6 h en CI), horaires illisibles ou

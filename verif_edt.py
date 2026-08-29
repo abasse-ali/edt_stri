@@ -17,6 +17,8 @@ agendas avec des cours annulés.
     python verif_edt.py --sans-fraicheur  sans recomparer les PDF en ligne
     python verif_edt.py --silencieux    sans alerte Discord
 
+Les rendus Moodle sont contrôlés en plus, s'ils ont été publiés.
+
 Une anomalie déclenche un message Discord, sauf en --silencieux.
 
 Code de sortie : 0 si tout passe, 1 s'il reste une anomalie.
@@ -33,6 +35,7 @@ import pdfplumber
 
 import edt_stri
 import lecture_pdf
+import rendus
 from telechargement import PROMOS
 
 for _flux in (sys.stdout, sys.stderr):
@@ -660,6 +663,105 @@ def prevenir_discord(rap):
         print(f"❌ Signalement Discord impossible : {e}")
 
 
+def controler_rendus(rap):
+    """Contrôle les rendus Moodle publiés, s'il y en a.
+
+    Section facultative : sans `rendus_data.json`, la fonctionnalité n'est pas
+    utilisée et il n'y a rien à dire. Les contrôles portent sur ce qu'un
+    calendrier Moodle mal formé pourrait produire — une échéance de durée
+    nulle, une date aberrante, deux rendus impossibles à distinguer.
+    """
+    chemin = Path(rendus.FICHIER_JSON)
+    if not chemin.exists():
+        return
+
+    rap.section(f"Rendus Moodle — {chemin}")
+    try:
+        evenements = json.loads(chemin.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        rap.anomalie("rendus illisibles", str(e))
+        return
+
+    if not isinstance(evenements, list):
+        rap.anomalie("format inattendu", "une liste était attendue")
+        return
+
+    rap.ok("rendus chargés", f"{len(evenements)} événement(s)")
+    if not evenements:
+        return
+
+    sans_titre = [e for e in evenements if not (e.get("titre") or "").strip()]
+    rap.verifier(not sans_titre, "tous les rendus ont un intitulé",
+                 detail_ko=f"{len(sans_titre)} sans intitulé")
+
+    dates_invalides, creneaux_vides, journees_invalides = [], [], []
+    for e in evenements:
+        try:
+            debut_jour = datetime.strptime(e.get("date", ""), "%Y-%m-%d")
+        except ValueError:
+            dates_invalides.append(e.get("titre", "?"))
+            continue
+
+        if e.get("start"):
+            # Google refuse un événement de durée nulle, et une date limite
+            # Moodle arrive justement avec DURATION:PT0S.
+            if not (_minutes(e["start"]) < _minutes(e.get("end", ""))):
+                creneaux_vides.append(f"{e['date']} {e['titre']}")
+        else:
+            # Journée entière : la fin est EXCLUSIVE, donc postérieure.
+            fin = e.get("date_fin", "")
+            if not fin or fin <= e["date"]:
+                journees_invalides.append(f"{e['date']} {e['titre']}")
+
+    rap.verifier(not dates_invalides, "dates lisibles",
+                 detail_ko=", ".join(dates_invalides[:5]))
+    rap.verifier(not creneaux_vides, "aucun créneau de durée nulle",
+                 detail_ko=", ".join(creneaux_vides[:5]))
+    rap.verifier(not journees_invalides, "journées entières bien bornées",
+                 detail_ko=", ".join(journees_invalides[:5]))
+
+    # Deux rendus de même date, même heure et même intitulé recevraient le même
+    # identifiant Google : le second écraserait le premier, sans un mot.
+    empreintes = Counter(
+        f"{e.get('date')}|{e.get('start')}|{e.get('end')}|{e.get('titre')}"
+        for e in evenements)
+    doublons = [cle for cle, n in empreintes.items() if n > 1]
+    rap.verifier(not doublons, "aucun rendu indistinguable d'un autre",
+                 detail_ko=f"{len(doublons)} doublon(s) : " + ", ".join(doublons[:3]))
+
+    sans_uid = [e for e in evenements if not e.get("uid")]
+    if sans_uid:
+        # Sans UID, un rendu déplacé est vu comme une suppression suivie d'un
+        # ajout : bruyant sur Discord, mais sans conséquence sur l'agenda.
+        rap.reserve("rendus sans identifiant Moodle",
+                    f"{len(sans_uid)} sur {len(evenements)} — déplacements mal annoncés")
+
+    aujourdhui = datetime.now()
+    lointains = [e["titre"] for e in evenements
+                 if e.get("date", "") and _hors_horizon(e["date"], aujourdhui)]
+    rap.verifier(not lointains, "échéances dans un horizon plausible",
+                 detail_ok="moins de deux ans d'écart",
+                 detail_ko=", ".join(lointains[:5]))
+
+
+def _minutes(heure):
+    """« 08h30 » -> 510. Rend -1 si la forme est inattendue."""
+    try:
+        h, m = heure.split("h")
+        return int(h) * 60 + int(m)
+    except (ValueError, AttributeError):
+        return -1
+
+
+def _hors_horizon(date_str, aujourdhui, annees=2):
+    """Une échéance à plus de deux ans trahit une année mal déduite."""
+    try:
+        ecart = datetime.strptime(date_str, "%Y-%m-%d") - aujourdhui
+    except ValueError:
+        return False
+    return abs(ecart.days) > 365 * annees
+
+
 def principale():
     """Enchaîne tous les contrôles et rend 0 si aucun n'a échoué."""
     promo_voulue = None
@@ -718,6 +820,9 @@ def principale():
 
         if not SANS_FRAICHEUR:
             controler_fraicheur(rap, promo)
+
+    # Hors de la boucle : les rendus Moodle ne dépendent d'aucune promotion.
+    controler_rendus(rap)
 
     code = rap.afficher()
     if code and not SILENCIEUX:

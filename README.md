@@ -1,8 +1,11 @@
 # EDT STRI — synchronisation automatique des emplois du temps
 
-Bot qui lit les emplois du temps publiés en PDF par le département STRI
-(Université Toulouse III) et les recopie dans **Google Agenda**, toutes les
-heures, sans intervention.
+Bot qui recopie dans **Google Agenda**, toutes les heures et sans
+intervention, les deux calendriers du département STRI (Université Toulouse III) :
+
+- les **cours**, publiés en PDF sur [stri.fr](https://stri.fr/) ;
+- les **rendus**, saisis dans le calendrier Moodle du site eFormation — devoirs
+  à déposer, dates limites, examens déclarés dans un cours.
 
 Chaque étudiant s'abonne une fois à l'agenda qui le concerne : les cours
 apparaissent, se déplacent et disparaissent tout seuls quand le PDF change,
@@ -35,7 +38,26 @@ sur ordinateur comme sur téléphone (Google Agenda, Apple Calendrier, Outlook).
             │  google_agenda.py      API Calendar v3 : ajouts, modifications, retraits
             ▼
    4 agendas Google  ─────────────►  notification Discord des changements
+
+
+   Calendrier Moodle (export iCalendar)
+            │
+            │  moodle.py             dépliage des lignes, UTC -> Paris, filtrage
+            ▼
+   échéances
+            │
+            │  rendus.py             comparaison avec la passe précédente
+            ▼
+   rendus_data.json
+            │
+            │  google_agenda.py      le même rapprochement que pour les cours
+            ▼
+   agenda « Rendu M1 »  ───────────►  notification Discord des changements
 ```
+
+Les deux chaînes sont **séparées** : le PDF et Moodle changent à des moments
+différents, et une panne de l'un ne doit pas empêcher l'autre de se mettre à
+jour.
 
 Il n'y a **aucune IA** dans la chaîne : tout est lu dans la géométrie du PDF.
 Une version antérieure interrogeait un modèle de langage ; elle produisait des
@@ -79,6 +101,48 @@ les agendas Ingé. C'est le genre de règle qu'on ne devine pas — d'où
 
 ---
 
+## Les rendus Moodle
+
+Le PDF ne dit rien des devoirs à rendre : ceux-là vivent dans le calendrier
+Moodle du site eFormation. Moodle sait l'exporter en iCalendar, à une adresse
+personnelle et permanente qu'il faut récupérer **une seule fois** :
+
+1. ouvrir <https://www.stri.fr/eformation/calendar/view.php> ;
+2. **Exporter le calendrier** ;
+3. Événements à exporter : **Tous les événements** —
+   Durée : **Intervalle personnalisé** (la fenêtre la plus large, ~1 an) ;
+4. bouton **URL du calendrier**, et non « Exporter » qui télécharge un fichier
+   figé ;
+5. coller l'adresse obtenue dans `MOODLE_ICS_URL` (`.env` en local, secret du
+   dépôt en CI).
+
+⚠️ Cette adresse contient `authtoken=…`, qui donne accès au calendrier
+personnel **sans mot de passe**. Elle se traite comme un mot de passe : jamais
+dans le code, jamais dans un commit. Le bot ne l'affiche jamais en entier, même
+dans un message d'erreur.
+
+Pour voir ce que contient l'export avant de publier quoi que ce soit :
+
+```bash
+python rendus.py --lister
+```
+
+La sortie liste les cours Moodle et le nombre d'événements de chacun. Si le
+calendrier en mélange plusieurs et qu'un seul intéresse, `MOODLE_FILTRE` est une
+expression régulière testée sur l'intitulé, le cours et la description :
+
+```bash
+MOODLE_FILTRE='Rendu M1' python rendus.py
+```
+
+Deux détails que Moodle impose et que le bot corrige au passage : les heures
+sont exportées en UTC (une échéance à 23h59 s'écrit `215900Z` — la lire telle
+quelle la daterait de deux heures trop tôt), et une date limite a une durée
+nulle, que l'API Google refuse. Le bot lui donne trente minutes d'épaisseur, en
+la faisant **se terminer** à l'heure limite.
+
+---
+
 ## Les fichiers
 
 ### Le code
@@ -88,10 +152,12 @@ les agendas Ingé. C'est le genre de règle qu'on ne devine pas — d'où
 | [edt_stri.py](edt_stri.py) | Chaîne complète pour **une** combinaison promo × demi-promo |
 | [lecture_pdf.py](lecture_pdf.py) | Lecture du PDF : cellules, couleurs, horaires, textes |
 | [telechargement.py](telechargement.py) | Table `PROMOS` + téléchargement derrière le pare-feu |
+| [moodle.py](moodle.py) | Lecture du calendrier Moodle exporté en iCalendar |
+| [rendus.py](rendus.py) | Chaîne complète des rendus : Moodle → agenda « Rendu M1 » |
 | [google_agenda.py](google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
-| [verif_edt.py](verif_edt.py) | Vérifie le résultat **réel** du jour (102 contrôles) |
-| [test_edt.py](test_edt.py) | Vérifie la **logique** du code (47 tests, sans réseau) |
+| [verif_edt.py](verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
+| [test_edt.py](test_edt.py) | Vérifie la **logique** du code (65 tests, sans réseau) |
 | [alerte_ci.py](alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -101,6 +167,7 @@ les agendas Ingé. C'est le genre de règle qu'on ne devine pas — d'où
 | `professeurs.txt` | Initiales → nom complet des enseignants |
 | `edt_m1.pdf`, `edt_l3.pdf` | Derniers PDF publiés, commités pour détecter les changements |
 | `edt_data_*.json` | État précédent de chaque agenda, base de la comparaison |
+| `rendus_data.json` | État précédent des rendus Moodle, même rôle |
 | `edt_*.ics` | Export standard, pour qui préfère un abonnement à un fichier |
 | `journal.csv` | Une ligne par exécution : nombre de cours, état |
 | `credentials.json`, `token.json` | Identifiants Google (**jamais commités**) |
@@ -111,7 +178,8 @@ les agendas Ingé. C'est le genre de règle qu'on ne devine pas — d'où
 |---|---|
 | [TUTO.txt](TUTO.txt) | Mode d'emploi pour les étudiants qui s'abonnent |
 | [HISTORIQUE.md](HISTORIQUE.md) | Journal des bugs rencontrés et de leurs corrections |
-| `.github/workflows/edt_sync.yml` | Exécution horaire sur GitHub Actions |
+| `.github/workflows/edt_sync.yml` | Exécution horaire des emplois du temps |
+| `.github/workflows/rendus_sync.yml` | Exécution horaire des rendus Moodle |
 | `export_cours/<promo>/` | Images de debug (générées si `EDT_DEBUG=1`) |
 
 ---
@@ -159,9 +227,14 @@ EDT_PROMO=L3 EDT_MOITIE=HAUT python edt_stri.py
 # Télécharger seulement
 python telechargement.py --promo L3
 
+# Rendus Moodle
+python rendus.py                          # récupérer, comparer, publier
+python rendus.py --lister                 # voir la source sans rien publier
+python moodle.py                          # idem, sans passer par l'agenda
+
 # Contrôler ce qui a été produit
 python verif_edt.py                       # tout, agendas Google compris
-python verif_edt.py --hors-ligne          # sans réseau (83 contrôles)
+python verif_edt.py --hors-ligne          # sans réseau ni agenda
 python verif_edt.py --promo M1
 python test_edt.py                        # tests de logique, instantané
 ```
@@ -200,6 +273,18 @@ automatiquement) ou dans les secrets et variables du dépôt en CI.
 | `EDT_AGENDA_PUBLIC` | `0` | `1` : rend l'agenda accessible par lien |
 | `EDT_AUTORISER` | `0` | `1` : autorise l'ouverture d'un navigateur pour l'OAuth |
 
+Propres aux rendus Moodle :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `MOODLE_ICS_URL` | — | Adresse d'export du calendrier Moodle. **Secret.** Sans elle, `rendus.py` ne fait rien |
+| `MOODLE_FILTRE` | — | Expression régulière : ne garder que les événements correspondants |
+| `MOODLE_AGENDA` | `Rendu M1` | Nom de l'agenda Google des rendus |
+| `MOODLE_COULEUR` | `mangue` | Couleur de fond de cet agenda |
+| `MOODLE_COULEUR_EVENEMENTS` | `mandarine` | Couleur de ses événements |
+| `MOODLE_JSON` | `rendus_data.json` | État précédent des rendus |
+| `MOODLE_CHUTE_MAX` | `50` | % de rendus perdus au-delà duquel on refuse de publier |
+
 Les valeurs vides sont traitées comme absentes : dans un workflow GitHub, une
 variable non définie est quand même transmise comme chaîne vide, et sans cette
 règle elle écraserait le défaut.
@@ -223,6 +308,12 @@ sur Discord :
 4. **`verif_edt.py`** relit après coup tout ce qui a été produit. La CI ne
    sauvegarde les fichiers que si ce contrôle passe.
 
+Un cinquième cas ne concerne que les rendus : l'export Moodle porte sur une
+**fenêtre glissante**, choisie au moment où l'adresse a été créée. Si elle ne
+remonte pas assez loin, une réconciliation naïve effacerait les échéances
+passées à chaque exécution puis les annoncerait comme des annulations. Les
+suppressions sont donc bornées à aujourd'hui : le passé n'est jamais touché.
+
 Ces vérifications portent sur les données du jour. Les règles elles-mêmes
 (routage des couleurs, horaires, identifiants, format ICS) sont couvertes par
 `test_edt.py`, qui tourne **avant** la synchronisation en CI et ne demande ni
@@ -232,8 +323,10 @@ réseau ni PDF.
 
 ## Fonctionnement en production
 
-Le workflow [edt_sync.yml](.github/workflows/edt_sync.yml) tourne **toutes les
-heures** :
+Deux workflows tournent **toutes les heures**, dans le même groupe de
+concurrence pour ne jamais pousser deux commits en même temps.
+
+[edt_sync.yml](.github/workflows/edt_sync.yml) — les cours :
 
 1. télécharge les deux PDF ;
 2. les compare aux versions commitées — s'ils sont identiques, tout s'arrête là ;
@@ -241,12 +334,23 @@ heures** :
 4. reconstruit le jeton Google depuis le secret `GDRIVE_TOKEN` ;
 5. exécute les quatre passes ;
 6. lance `verif_edt.py --sans-fraicheur` ;
-7. efface le jeton, puis commite PDF, JSON, ICS et journal sur `main`.
+7. efface le jeton, puis commite les PDF, les JSON et le journal sur `main`.
+
+[rendus_sync.yml](.github/workflows/rendus_sync.yml) — les rendus :
+
+1. s'arrête tout de suite si le secret `MOODLE_ICS_URL` n'est pas défini ;
+2. installe, teste, prépare le jeton comme ci-dessus ;
+3. exécute `rendus.py` ;
+4. efface le jeton, puis commite `rendus_data.json` et le journal.
+
+Il ne dépend pas des PDF : le calendrier Moodle change quand il veut, et le
+workflow de l'EDT s'arrête dès que les PDF sont inchangés — y greffer les rendus
+les aurait figés la plupart du temps.
 
 Toute étape en échec déclenche `alerte_ci.py` et un message Discord.
 
 **Secrets à définir** dans le dépôt : `GDRIVE_TOKEN` (le `token.json` encodé en
-base64) et `DISCORD_WEBHOOK_URL`.
+base64), `DISCORD_WEBHOOK_URL`, et `MOODLE_ICS_URL` pour les rendus.
 
 ⚠️ GitHub désactive les workflows planifiés après **60 jours sans activité** sur
 le dépôt. Le bot commitant à chaque changement de PDF, le cas ne se présente

@@ -19,7 +19,7 @@ cours supprimé du PDF disparaît de l'agenda.
 """
 
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from googleapiclient.errors import HttpError
 
@@ -131,6 +131,26 @@ def _horodatage(date_str, heure_str):
     return jour.replace(hour=heures, minute=minutes).isoformat()
 
 
+def _borne(cours, cote):
+    """Début ou fin d'un événement, au format attendu par l'API.
+
+    Un cours occupe un créneau horaire, mais une échéance Moodle peut couvrir
+    une journée entière : Google distingue les deux par la clé employée,
+    `dateTime` ou `date`. Une journée entière se termine à une date EXCLUSIVE,
+    d'où le lendemain par défaut.
+    """
+    if cours.get('start'):
+        return {"dateTime": _horodatage(cours['date'], cours[cote]),
+                "timeZone": FUSEAU}
+    if cote == 'start':
+        return {"date": cours['date']}
+    fin = cours.get('date_fin')
+    if not fin:
+        veille = datetime.strptime(cours['date'], '%Y-%m-%d')
+        fin = (veille + timedelta(days=1)).strftime('%Y-%m-%d')
+    return {"date": fin}
+
+
 def _en_evenement(cours, couleur_cours=None):
     """Traduit un cours en ressource Event de l'API.
 
@@ -145,9 +165,10 @@ def _en_evenement(cours, couleur_cours=None):
         "id": _identifiant(cours),
         "summary": cours['titre'],
         "location": cours.get('room') or "",
-        "description": f"Enseignant : {cours.get('prof') or 'inconnu'}",
-        "start": {"dateTime": _horodatage(cours['date'], cours['start']), "timeZone": FUSEAU},
-        "end": {"dateTime": _horodatage(cours['date'], cours['end']), "timeZone": FUSEAU},
+        "description": cours.get('description')
+                       or f"Enseignant : {cours.get('prof') or 'inconnu'}",
+        "start": _borne(cours, 'start'),
+        "end": _borne(cours, 'end'),
         "source": {"title": "EDT STRI", "url": "https://stri.fr/"},
     }
     if cours['titre'].startswith(MARQUEUR_EXAMEN):
@@ -168,6 +189,12 @@ def _identique(existant, voulu):
             return False
     for borne in ("start", "end"):
         a, b = existant.get(borne, {}), voulu[borne]
+        # Journée entière d'un côté, créneau horaire de l'autre : deux formes
+        # différentes, donc un événement à réécrire.
+        if "date" in a or "date" in b:
+            if a.get("date") != b.get("date"):
+                return False
+            continue
         # L'API renvoie un décalage explicite (« +02:00 ») là où on envoie un
         # fuseau nommé : on compare les instants, pas les chaînes.
         if _instant(a.get("dateTime")) != _instant(b["dateTime"], b["timeZone"]):
@@ -272,9 +299,22 @@ def _evenements_existants(service, agenda_id):
             return existants
 
 
+def _debut(evenement):
+    """Date de début d'un événement de l'API, journée entière comprise."""
+    borne = evenement.get("start", {})
+    return (borne.get("dateTime") or borne.get("date") or "")[:10]
+
+
 def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
-                 couleur_cours=None):
-    """Aligne l'agenda sur la liste de cours. Renvoie (ajouts, modifs, retraits)."""
+                 couleur_cours=None, depuis=None):
+    """Aligne l'agenda sur la liste de cours. Renvoie (ajouts, modifs, retraits).
+
+    `depuis` limite les SUPPRESSIONS aux événements à partir de cette date. Le
+    PDF de l'emploi du temps couvre toute l'année et n'en a pas besoin ; le
+    calendrier Moodle, lui, s'exporte sur une fenêtre glissante, et sans cette
+    borne chaque exécution effacerait les échéances passées puis les
+    signalerait comme des annulations.
+    """
     agenda_id = trouver_ou_creer_agenda(service, nom, identifiant_agenda)
 
     voulus = {}
@@ -306,9 +346,12 @@ def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
             service.events().update(calendarId=agenda_id, eventId=cle, body=evt).execute()
             modifs += 1
 
-    for cle in existants:
-        if cle not in voulus:
-            service.events().delete(calendarId=agenda_id, eventId=cle).execute()
-            retraits += 1
+    for cle, evt in existants.items():
+        if cle in voulus:
+            continue
+        if depuis and _debut(evt) < depuis:
+            continue  # hors de la fenêtre couverte par la source
+        service.events().delete(calendarId=agenda_id, eventId=cle).execute()
+        retraits += 1
 
     return ajouts, modifs, retraits

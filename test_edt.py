@@ -26,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import edt_stri
 import google_agenda
 import lecture_pdf
+import moodle
+import rendus
 import telechargement
 import verif_edt
 
@@ -608,6 +610,194 @@ def tutoriel_cite_les_agendas_reels():
     for config in telechargement.PROMOS.values():
         for nom in config["agendas"].values():
             assert sans_accent(nom) in sans_accent(texte), f"« {nom} » absent du tutoriel"
+
+
+# =====================================================================
+# Calendrier Moodle (rendus)
+# =====================================================================
+
+def calendrier_moodle(*evenements):
+    """Fabrique un export iCalendar comme en produit Moodle (lignes en CRLF)."""
+    lignes = ["BEGIN:VCALENDAR", "VERSION:2.0",
+              "PRODID:-//Moodle Pty Ltd//NONSGML Moodle//EN", "METHOD:PUBLISH"]
+    for evenement in evenements:
+        lignes += ["BEGIN:VEVENT"] + list(evenement) + ["END:VEVENT"]
+    return "\r\n".join(lignes + ["END:VCALENDAR", ""])
+
+
+@test
+def moodle_deplie_les_lignes_coupees():
+    # La norme replie au-delà de 75 octets. Sans recollage, un intitulé long
+    # arrive tronqué et le reste devient une propriété inconnue.
+    lignes = moodle.deplier("SUMMARY:Rendu du projet\r\n  de compilation\r\nUID:1")
+    egal(lignes[0], "SUMMARY:Rendu du projet de compilation", "ligne recollée")
+    egal(lignes[1], "UID:1", "ligne suivante intacte")
+
+
+@test
+def moodle_separe_nom_parametres_et_valeur():
+    egal(moodle._decouper("DTSTART;VALUE=DATE:20260915"),
+         ("DTSTART", {"VALUE": "DATE"}, "20260915"), "paramètre lu")
+    # Un deux-points dans un paramètre entre guillemets ne doit pas être pris
+    # pour le séparateur : la valeur serait coupée en plein milieu.
+    nom, params, valeur = moodle._decouper('X;ALTREP="http://a/b":texte')
+    egal((nom, valeur), ("X", "texte"), "deux-points protégé par les guillemets")
+
+
+@test
+def moodle_defait_les_echappements():
+    egal(moodle._decoder("compte-rendu\\, format PDF"), "compte-rendu, format PDF")
+    egal(moodle._decoder("ligne\\nsuivante"), "ligne\nsuivante")
+
+
+@test
+def moodle_ramene_utc_a_l_heure_de_paris():
+    # Moodle exporte en UTC. Une échéance à 23h59 heure d'été est écrite
+    # 21h59Z : la lire telle quelle la daterait de deux heures trop tôt, et
+    # une échéance de minuit basculerait la veille.
+    moment, journee = moodle._lire_horodatage("20260915T215900Z", {})
+    egal(moment.strftime("%Y-%m-%d %H:%M"), "2026-09-15 23:59", "UTC -> Paris")
+    egal(journee, False, "ce n'est pas une journée entière")
+
+
+@test
+def moodle_reconnait_une_journee_entiere():
+    moment, journee = moodle._lire_horodatage("20261002", {"VALUE": "DATE"})
+    egal((moment.strftime("%Y-%m-%d"), journee), ("2026-10-02", True))
+
+
+@test
+def moodle_lit_les_durees_iso():
+    egal(moodle._lire_duree("PT0S").total_seconds(), 0.0, "durée nulle")
+    egal(moodle._lire_duree("PT1H30M").total_seconds(), 5400.0, "1 h 30")
+    egal(moodle._lire_duree("P1D").total_seconds(), 86400.0, "un jour")
+    egal(moodle._lire_duree("n'importe quoi"), None, "forme inconnue")
+
+
+@test
+def moodle_epaissit_une_echeance_de_duree_nulle():
+    # DURATION:PT0S est la forme normale d'une date limite. Google refuse un
+    # événement de durée nulle : il lui faut une épaisseur.
+    ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu TP", "DTSTART:20260915T100000Z",
+                             "DURATION:PT0S", "CATEGORIES:Rendu M1"])
+    evenement = moodle.analyser(ics)[0]
+    assert evenement["end"] > evenement["start"], "fin postérieure au début"
+
+
+@test
+def moodle_ne_deborde_pas_sur_le_lendemain_a_minuit():
+    # 23h59 + 30 min tomberait le jour suivant, or la forme « une date, deux
+    # heures » ne sait pas l'exprimer : l'événement se termine alors à
+    # l'échéance au lieu d'y commencer.
+    ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu", "DTSTART:20260915T215900Z",
+                             "DURATION:PT0S"])
+    evenement = moodle.analyser(ics)[0]
+    egal(evenement["date"], "2026-09-15", "toujours le même jour")
+    egal(evenement["end"], "23h59", "se termine à l'échéance")
+    assert evenement["start"] < evenement["end"], "créneau non vide"
+
+
+@test
+def moodle_transmet_le_cours_et_la_description():
+    ics = calendrier_moodle([
+        "UID:1", "SUMMARY:Rendu TP",
+        "DESCRIPTION:<p>D\u00e9poser ici&nbsp;: <a href=\"http://x\">lien</a></p>",
+        "DTSTART:20260915T100000Z", "DURATION:PT0S", "CATEGORIES:Rendu M1"])
+    evenement = moodle.analyser(ics)[0]
+    egal(evenement["prof"], "Rendu M1", "le cours Moodle")
+    assert "<p>" not in evenement["description"], "HTML retiré"
+    assert "\xa0" not in evenement["description"], "espace insécable normalisée"
+    assert "Rendu M1" in evenement["description"], "cours rappelé dans la description"
+
+
+@test
+def moodle_filtre_sur_le_cours():
+    ics = calendrier_moodle(
+        ["UID:1", "SUMMARY:Rendu TP", "DTSTART:20260915T100000Z", "CATEGORIES:Rendu M1"],
+        ["UID:2", "SUMMARY:Devoir", "DTSTART:20260916T100000Z", "CATEGORIES:Anglais"])
+    egal(len(moodle.analyser(ics, "")), 2, "sans filtre, tout est gardé")
+    egal(len(moodle.analyser(ics, "rendu m1")), 1, "filtre insensible à la casse")
+
+
+@test
+def moodle_ignore_un_evenement_sans_titre():
+    ics = calendrier_moodle(["UID:1", "DTSTART:20260915T100000Z"])
+    egal(moodle.analyser(ics), [], "un événement sans intitulé n'est pas publiable")
+
+
+@test
+def moodle_masque_le_jeton_dans_les_messages():
+    # Les journaux d'un dépôt public sont lisibles par tout le monde, et
+    # l'authtoken donne accès au calendrier personnel sans mot de passe.
+    masquee = moodle._masquer(
+        "https://stri.fr/eformation/calendar/export_execute.php"
+        "?userid=42&authtoken=deadbeef&preset_what=all")
+    assert "deadbeef" not in masquee, "jeton masqué"
+    assert "42" not in masquee, "identifiant masqué"
+    assert "preset_what=all" in masquee, "le reste de l'URL reste lisible"
+
+
+@test
+def moodle_distingue_panne_et_calendrier_vide():
+    # None veut dire « je n'ai pas pu lire », [] veut dire « il n'y a rien ».
+    # Les confondre viderait l'agenda à la première panne réseau.
+    egal(moodle.analyser(calendrier_moodle()), [], "calendrier vide -> liste vide")
+
+
+@test
+def google_traduit_une_journee_entiere_en_dates():
+    # Une journée entière s'exprime avec `date`, pas `dateTime` ; sa fin est
+    # EXCLUSIVE, donc au lendemain.
+    evenement = google_agenda._en_evenement(
+        {"date": "2026-10-02", "start": None, "end": None, "titre": "Portes ouvertes"})
+    egal(evenement["start"], {"date": "2026-10-02"}, "début")
+    egal(evenement["end"], {"date": "2026-10-03"}, "fin exclusive")
+
+
+@test
+def google_compare_les_journees_entieres_sans_planter():
+    # `_identique` ne lisait que `dateTime` : sur une journée entière il levait
+    # une KeyError, et la synchronisation s'arrêtait au premier événement.
+    evenement = google_agenda._en_evenement(
+        {"date": "2026-10-02", "start": None, "end": None, "titre": "Portes ouvertes"})
+    assert google_agenda._identique(evenement, evenement), "identique à lui-même"
+    autre = google_agenda._en_evenement(
+        {"date": "2026-10-03", "start": None, "end": None, "titre": "Portes ouvertes"})
+    assert not google_agenda._identique(evenement, autre), "dates différentes"
+
+
+@test
+def google_ne_supprime_pas_avant_la_date_plancher():
+    # L'export Moodle porte sur une fenêtre glissante : sans plancher, chaque
+    # exécution effacerait les échéances passées et les annoncerait comme des
+    # suppressions.
+    egal(google_agenda._debut({"start": {"date": "2026-10-02"}}), "2026-10-02")
+    egal(google_agenda._debut({"start": {"dateTime": "2026-10-02T08:00:00+02:00"}}),
+         "2026-10-02")
+    egal(google_agenda._debut({}), "", "événement sans début")
+
+
+@test
+def rendus_suit_un_rendu_deplace_par_son_uid():
+    # L'UID Moodle survit à un changement de date : c'est ce qui permet
+    # d'annoncer « échéance repoussée » plutôt qu'une suppression suivie d'un
+    # ajout, deux lignes pour un seul événement.
+    avant = [{"uid": "7@stri", "date": "2026-09-15", "start": "23h29",
+              "end": "23h59", "titre": "Rendu TP"}]
+    apres = [{"uid": "7@stri", "date": "2026-09-22", "start": "23h29",
+              "end": "23h59", "titre": "Rendu TP"}]
+    modifications = rendus.comparer(avant, apres)
+    egal(len(modifications), 1, "un seul changement")
+    egal(modifications[0]["type"], "modification", "et non ajout + suppression")
+    egal(modifications[0]["changements"]["date"]["nouveau"], "2026-09-22")
+
+
+@test
+def rendus_refuse_de_publier_un_effondrement():
+    anciens = [{"uid": str(i)} for i in range(10)]
+    assert rendus.effondrement([{"uid": "1"}], anciens), "chute de 90 % signalée"
+    assert rendus.effondrement(anciens, anciens) is None, "stabilité acceptée"
+    assert rendus.effondrement([], []) is None, "première exécution acceptée"
 
 
 # =====================================================================

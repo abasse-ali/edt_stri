@@ -1166,16 +1166,22 @@ def charger_anciennes_donnees(chemin=FICHIER_JSON):
 # PROGRAMME PRINCIPAL
 # =====================================================================
 
-def journaliser(nb_cours, nb_avant, etat):
-    """Ajoute une ligne au journal. Ne fait jamais echouer le traitement."""
+def journaliser(nb_cours, nb_avant, etat, promo=None, moitie=None, agenda=None):
+    """Ajoute une ligne au journal. Ne fait jamais echouer le traitement.
+
+    Les trois derniers paramètres n'existent que pour les sources qui ne sont
+    pas un emploi du temps — les rendus Moodle, par exemple, qui n'ont ni
+    promotion ni demi-promo mais méritent la même trace.
+    """
     try:
         chemin = Path(FICHIER_JOURNAL)
         nouveau = not chemin.exists()
         with open(chemin, "a", encoding="utf-8", newline="") as f:
             if nouveau:
                 f.write("horodatage,promotion,moitie,agenda,cours,precedent,etat\n")
-            f.write(f"{datetime.now():%Y-%m-%d %H:%M},{PROMO},{MOITIE_RETENUE},"
-                    f"\"{NOM_AGENDA}\",{nb_cours},{nb_avant},{etat}\n")
+            f.write(f"{datetime.now():%Y-%m-%d %H:%M},"
+                    f"{promo or PROMO},{moitie or MOITIE_RETENUE},"
+                    f"\"{agenda or NOM_AGENDA}\",{nb_cours},{nb_avant},{etat}\n")
     except OSError as e:
         print(f"   ⚠️ Journal non écrit ({e}).")
 

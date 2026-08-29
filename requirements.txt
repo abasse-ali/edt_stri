@@ -27,3 +27,8 @@ google-auth>=2.27.0
 
 # --- Chargement du .env en local (utilisé par test_local.py) ---
 python-dotenv>=1.0.0
+
+# --- Fuseaux horaires (zoneinfo) ---
+# Windows ne fournit pas la base IANA : sans ce paquet, ZoneInfo("Europe/Paris")
+# leve ZoneInfoNotFoundError. Inutile sous Linux, ou la base est celle du systeme.
+tzdata>=2024.1; sys_platform == "win32"

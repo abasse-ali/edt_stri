@@ -1,0 +1,117 @@
+name: Actualisation des rendus Moodle
+
+# Chaîne séparée de celle de l'emploi du temps, à dessein : la source n'est pas
+# la même (le calendrier Moodle, pas le PDF du STRI), elle change à d'autres
+# moments, et une panne de l'une ne doit pas empêcher l'autre de se mettre à
+# jour. Le workflow de l'EDT s'arrête dès que les PDF sont inchangés — y greffer
+# les rendus les aurait figés la plupart du temps.
+
+on:
+  schedule:
+    - cron: '25 * * * *' # Toutes les heures, décalé de celui de l'EDT
+  workflow_dispatch: # Bouton manuel
+
+permissions:
+  contents: write
+
+concurrency:
+  # MÊME groupe que le workflow de l'EDT : les deux commitent sur main, et les
+  # faire tourner ensemble produirait des pushs concurrents.
+  group: edt-sync
+  cancel-in-progress: false
+
+jobs:
+  rendus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Le secret n'est pas lisible dans un `if:` de job : on le teste ici, et
+      # sans lui tout le reste est sauté. Une fonctionnalité non configurée ne
+      # doit pas faire échouer un job toutes les heures.
+      - name: Vérifier la configuration
+        id: config
+        env:
+          MOODLE_ICS_URL: ${{ secrets.MOODLE_ICS_URL }}
+        run: |
+          if [ -z "$MOODLE_ICS_URL" ]; then
+            echo "ℹ️ Secret MOODLE_ICS_URL absent : rien à synchroniser."
+            echo "configure=false" >> $GITHUB_OUTPUT
+          else
+            echo "configure=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Python
+        if: steps.config.outputs.configure == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # rendus.py importe edt_stri (authentification Google, envoi Discord,
+      # journal) : les dépendances complètes sont donc nécessaires, même si
+      # aucun PDF n'est lu ici.
+      - name: Install Python dependencies
+        if: steps.config.outputs.configure == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Tests unitaires
+        if: steps.config.outputs.configure == 'true'
+        run: python test_edt.py
+
+      - name: Prepare Google token
+        if: steps.config.outputs.configure == 'true'
+        env:
+          GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
+        run: |
+          printf '%s' "$GDRIVE_TOKEN" > token.json
+
+          python - <<'PY'
+          import json, sys
+          try:
+              jeton = json.load(open("token.json"))
+          except Exception as e:
+              sys.exit(f"::error::GDRIVE_TOKEN illisible ({e}).")
+          if "https://www.googleapis.com/auth/calendar" not in jeton.get("scopes", []):
+              sys.exit("::error::GDRIVE_TOKEN ne couvre pas l'agenda.")
+          if not jeton.get("refresh_token"):
+              sys.exit("::error::GDRIVE_TOKEN sans refresh_token : inutilisable en CI.")
+          PY
+
+      # MOODLE_ICS_URL contient un authtoken personnel : il ne doit apparaître
+      # ni dans une commande, ni dans un affichage. Passé en variable
+      # d'environnement, GitHub le masque automatiquement dans les journaux.
+      - name: Synchroniser les rendus
+        id: traitement
+        if: steps.config.outputs.configure == 'true'
+        env:
+          MOODLE_ICS_URL: ${{ secrets.MOODLE_ICS_URL }}
+          MOODLE_FILTRE: ${{ vars.MOODLE_FILTRE }}
+          MOODLE_AGENDA: ${{ vars.MOODLE_AGENDA }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python rendus.py
+
+      - name: Prévenir sur Discord en cas d'échec
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          LIEN_EXECUTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python alerte_ci.py
+
+      - name: Effacer le jeton
+        if: always()
+        run: rm -f token.json
+
+      # rendus_data.json est la référence de la comparaison : sans lui commité,
+      # chaque exécution réannoncerait tous les rendus comme des nouveautés.
+      - name: Sauvegarder les fichiers sur le dépôt
+        if: steps.traitement.outcome == 'success'
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'action@github.com'
+          git add rendus_data.json journal.csv
+          git commit -m "Mise à jour automatique des rendus Moodle" || echo "Rien à commiter"
+          git pull --rebase --autostash origin ${{ github.ref_name }}
+          git push
