@@ -1,117 +1,5 @@
 [
   {
-    "date": "2026-08-24",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Réunion d'information (André AOUN)",
-    "room": "U3-Amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-24",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Adm. Linux (Philippe LATU)",
-    "room": "U3-Amphi",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-08-24",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm. Windows (Cédric CHAMBAULT)",
-    "room": "U3-Amphi",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-08-25",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Interopérabilité (André AOUN)",
-    "room": "U3-Amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-25",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interopérabilité (Patrice TORGUET)",
-    "room": "U3-Amphi",
-    "prof": "Patrice TORGUET"
-  },
-  {
-    "date": "2026-08-25",
-    "start": "13h00",
-    "end": "16h00",
-    "titre": "Adm. Linux (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-08-25",
-    "start": "16h15",
-    "end": "18h15",
-    "titre": "Adm. Windows (Cédric CHAMBAULT)",
-    "room": "U3-306/307",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-08-26",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Adm. Linux (Philippe LATU)",
-    "room": "U3-04",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-08-26",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-04",
-    "prof": "Karen PINEL-SAUVAGNAT"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Interopérabilité (André AOUN)",
-    "room": "U3-Amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interco (Thierry DESPRATS)",
-    "room": "U3-04",
-    "prof": "Thierry DESPRATS"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "16h15",
-    "end": "19h15",
-    "titre": "Adm. Linux (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-04",
-    "prof": "Karen PINEL-SAUVAGNAT"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interco (Thierry DESPRATS)",
-    "room": "U3-04",
-    "prof": "Thierry DESPRATS"
-  },
-  {
     "date": "2026-08-31",
     "start": "07h45",
     "end": "09h45",
@@ -449,6 +337,14 @@
   },
   {
     "date": "2026-09-16",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Tél. Spat. (Frédéric MOUTIER)",
+    "room": "U4-307/308",
+    "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-09-16",
     "start": "16h00",
     "end": "18h00",
     "titre": "Adm. Windows (Cédric CHAMBAULT)",
@@ -486,14 +382,6 @@
     "titre": "[EXAMEN] Adm. Linux (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-09-18",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "Tél. Spat. (Frédéric MOUTIER)",
-    "room": "U4-307/308",
-    "prof": "Frédéric MOUTIER"
   },
   {
     "date": "2026-09-21",
@@ -537,8 +425,8 @@
   },
   {
     "date": "2026-09-22",
-    "start": "15h45",
-    "end": "18h45",
+    "start": "13h30",
+    "end": "17h30",
     "titre": "Tél. Spat. (MA & Frédéric MOUTIER)",
     "room": "U4-307/308",
     "prof": "MA & Frédéric MOUTIER"
