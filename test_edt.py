@@ -1,0 +1,644 @@
+"""
+Tests unitaires de la chaîne EDT — sans réseau, sans PDF, sans agenda.
+
+Complément de `verif_edt.py`, qui contrôle les DONNÉES du jour. Ici on éprouve
+la LOGIQUE, cas limites compris, sur des entrées fabriquées. Les deux se
+répondent : la vérification dit si le résultat d'aujourd'hui est bon, les tests
+disent si le code le restera après une modification.
+
+Chaque test correspond à un défaut réellement rencontré. Les commentaires
+rappellent lequel, pour qu'un futur lecteur sache ce qu'il casserait en
+simplifiant.
+
+    python test_edt.py            tout
+    python test_edt.py couleur    seulement les tests dont le nom contient ça
+
+Aucune dépendance de test : la bibliothèque standard suffit.
+"""
+
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import edt_stri
+import google_agenda
+import lecture_pdf
+import telechargement
+import verif_edt
+
+for _flux in (sys.stdout, sys.stderr):
+    try:
+        _flux.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+TESTS = []
+
+
+def test(fonction):
+    TESTS.append(fonction)
+    return fonction
+
+
+def egal(obtenu, attendu, quoi=""):
+    if obtenu != attendu:
+        raise AssertionError(f"{quoi}\n      attendu : {attendu!r}\n      obtenu  : {obtenu!r}")
+
+
+def cours(date="2026-09-08", start="08h00", end="10h00", titre="BD",
+          room="U3-04", prof="Karen PINEL-SAUVAGNAT"):
+    return {"date": date, "start": start, "end": end, "titre": titre,
+            "room": room, "prof": prof}
+
+
+# =====================================================================
+# Configuration et environnement
+# =====================================================================
+
+@test
+def variable_env_traite_le_vide_comme_absent():
+    """GitHub définit toujours les variables citées dans `env:`, même vides.
+    `os.environ.get(nom, defaut)` rendait alors "" au lieu du défaut, et l'URL
+    du PDF partait vide : « No scheme supplied »."""
+    import os
+    os.environ["ESSAI_EDT"] = ""
+    egal(telechargement.variable_env("ESSAI_EDT", "repli"), "repli", "variable vide")
+    os.environ["ESSAI_EDT"] = "   "
+    egal(telechargement.variable_env("ESSAI_EDT", "repli"), "repli", "que des espaces")
+    os.environ["ESSAI_EDT"] = " valeur "
+    egal(telechargement.variable_env("ESSAI_EDT", "repli"), "valeur", "valeur entourée d'espaces")
+    del os.environ["ESSAI_EDT"]
+    egal(telechargement.variable_env("ESSAI_EDT", "repli"), "repli", "variable absente")
+
+
+@test
+def promos_sont_coherentes():
+    """Deux promotions partageant une clé écriraient dans le même agenda ;
+    deux partageant un suffixe, dans le même fichier."""
+    cles, suffixes, agendas, pdfs = [], [], [], set()
+    for promo, config in telechargement.PROMOS.items():
+        pdfs.add(config["pdf"])
+        for moitie in ("BAS", "HAUT"):
+            for champ, panier in (("cles", cles), ("suffixes", suffixes),
+                                  ("agendas", agendas)):
+                assert moitie in config[champ], f"{promo}/{moitie} : {champ} manquant"
+                panier.append(config[champ][moitie])
+        assert config["url"].startswith("https://"), f"{promo} : URL non HTTPS"
+    egal(len(set(cles)), len(cles), "clés de marquage en double")
+    egal(len(set(suffixes)), len(suffixes), "suffixes de fichiers en double")
+    egal(len(set(agendas)), len(agendas), "noms d'agendas en double")
+    egal(len(pdfs), len(telechargement.PROMOS), "deux promotions sur le même PDF")
+
+
+@test
+def module_de_telechargement_reste_leger():
+    """La CI l'appelle AVANT d'installer requirements.txt : il ne doit importer
+    ni numpy, ni OpenCV, ni pdfplumber."""
+    import ast
+    source = Path("telechargement.py").read_text(encoding="utf-8")
+    importes = set()
+    for noeud in ast.walk(ast.parse(source)):
+        if isinstance(noeud, ast.Import):
+            importes.update(a.name.split(".")[0] for a in noeud.names)
+        elif isinstance(noeud, ast.ImportFrom) and noeud.module:
+            importes.add(noeud.module.split(".")[0])
+    interdits = importes & {"numpy", "cv2", "pdfplumber", "ics", "pdf2image",
+                            "googleapiclient", "edt_stri"}
+    egal(interdits, set(), "dépendances lourdes importées")
+
+
+# =====================================================================
+# Dates et horaires
+# =====================================================================
+
+@test
+def deviner_annee_choisit_la_plus_proche():
+    """Le PDF n'écrit que « 6/avr » : l'année se déduit de la proximité."""
+    aout = datetime(2026, 8, 24)
+    egal(edt_stri.deviner_annee(7, 9, aout), 2026, "septembre vu en août")
+    egal(edt_stri.deviner_annee(6, 4, aout), 2026, "avril vu en août")
+    decembre = datetime(2026, 12, 15)
+    egal(edt_stri.deviner_annee(5, 1, decembre), 2027, "janvier vu en décembre")
+
+
+@test
+def deviner_annee_survit_au_29_fevrier():
+    """2026 n'est pas bissextile : datetime(2026, 2, 29) lève ValueError."""
+    assert edt_stri.deviner_annee(29, 2, datetime(2026, 8, 24)) is not None
+
+
+@test
+def obtenir_heure_proche_rend_le_repere_le_plus_proche():
+    sauvegarde = edt_stri.REFERENCES_TEMPS
+    try:
+        edt_stri.REFERENCES_TEMPS = [(100, "08h00"), (200, "08h15"), (300, "08h30")]
+        egal(edt_stri.obtenir_heure_proche(105), "08h00", "juste après un repère")
+        egal(edt_stri.obtenir_heure_proche(190), "08h15", "juste avant le suivant")
+        egal(edt_stri.obtenir_heure_proche(9999), "08h30", "au-delà du dernier")
+    finally:
+        edt_stri.REFERENCES_TEMPS = sauvegarde
+
+
+@test
+def obtenir_heure_proche_rejette_les_reperes_inconnus():
+    """Un « ? » signale un quart d'heure non identifié : mieux vaut rien
+    qu'un horaire inventé."""
+    sauvegarde = edt_stri.REFERENCES_TEMPS
+    try:
+        edt_stri.REFERENCES_TEMPS = [(100, "?")]
+        assert edt_stri.obtenir_heure_proche(100) is None
+        edt_stri.REFERENCES_TEMPS = []
+        assert edt_stri.obtenir_heure_proche(100) is None, "liste vide"
+    finally:
+        edt_stri.REFERENCES_TEMPS = sauvegarde
+
+
+@test
+def repartir_quarts_garde_les_traits_exacts():
+    """Quand le PDF fournit les trois séparateurs, on les prend tels quels."""
+    egal(edt_stri._repartir_quarts(0, 400, [100, 200, 300]), [100, 200, 300])
+
+
+@test
+def repartir_quarts_complete_les_traits_manquants():
+    """Un trait absent ne doit pas décaler toute la suite de la journée."""
+    obtenu = edt_stri._repartir_quarts(0, 400, [100, 300])
+    egal(len(obtenu), 3, "il faut toujours trois quarts d'heure")
+    assert obtenu == sorted(obtenu), "les quarts doivent rester ordonnés"
+    assert 100 in obtenu and 300 in obtenu, "les traits réels doivent être conservés"
+
+
+# =====================================================================
+# Règles de placement
+# =====================================================================
+
+@test
+def destinataires_suivent_la_position():
+    d = verif_edt.destinataires
+    egal(d({"position": "FULL", "couleur": "BLANC"}), {"BAS", "HAUT"}, "pleine hauteur")
+    egal(d({"position": "TOP", "couleur": "BLANC"}), {"HAUT"}, "moitié haute")
+    egal(d({"position": "BOTTOM", "couleur": "BLANC"}), {"BAS"}, "moitié basse")
+
+
+@test
+def destinataires_la_couleur_prime_sur_la_position():
+    """Orange marque les Ingé, olive l'autre demi-promo. Les 22 cases mesurées
+    sont toutes en moitié haute ou basse selon leur couleur, mais si l'une
+    passait en pleine hauteur elle resterait réservée à sa promo."""
+    d = verif_edt.destinataires
+    egal(d({"position": "FULL", "couleur": "ORANGE"}), {"HAUT"}, "orange en pleine hauteur")
+    egal(d({"position": "FULL", "couleur": "OLIVE"}), {"BAS"}, "olive en pleine hauteur")
+    egal(d({"position": "BOTTOM", "couleur": "ORANGE"}), {"HAUT"}, "orange contredit la position")
+
+
+# =====================================================================
+# Couleurs du PDF
+# =====================================================================
+
+@test
+def couleurs_de_fond_sont_distinguees():
+    egal(lecture_pdf.est_vert((0.0, 0.98, 0.0)), True, "vert des salles")
+    egal(lecture_pdf.est_vert((0.0, 1.0, 0.0)), True, "vert pur, autre variante")
+    egal(lecture_pdf.est_jaune((1.0, 1.0, 0.0)), True, "jaune des examens")
+    egal(lecture_pdf.est_orange((1.0, 0.753, 0.0)), True, "orange des Ingé")
+    egal(lecture_pdf.est_olive((0.573, 0.816, 0.314)), True, "olive de l'IRT L3")
+    egal(lecture_pdf.est_noir((0.0, 0.0, 0.0)), True, "noir des bordures")
+
+
+@test
+def olive_ne_se_confond_pas_avec_le_vert_des_salles():
+    """Une confusion ferait passer les titres de cours pour des salles."""
+    egal(lecture_pdf.est_vert((0.573, 0.816, 0.314)), False, "olive pris pour du vert")
+    egal(lecture_pdf.est_olive((0.0, 0.98, 0.0)), False, "vert pris pour de l'olive")
+    egal(lecture_pdf.est_olive((1.0, 0.753, 0.0)), False, "orange pris pour de l'olive")
+
+
+@test
+def couleurs_ignorent_les_motifs_et_les_formats_inattendus():
+    """Les pointillés de la grille ont une couleur nommée « P67 », pas un
+    triplet : les prendre pour du noir ferait des cellules fantômes."""
+    for valeur in ("P67", None, 0, (0.0, 0.0), (0, 0, 0, 0), []):
+        egal(lecture_pdf.est_noir(valeur), False, f"{valeur!r} pris pour du noir")
+
+
+# =====================================================================
+# Lecture du texte
+# =====================================================================
+
+@test
+def table_des_professeurs_est_chargee():
+    profs = lecture_pdf.charger_profs()
+    assert len(profs) >= 40, f"seulement {len(profs)} enseignants"
+    egal(profs.get("AA"), "André AOUN", "initiales simples")
+    egal(profs.get("EG"), "Eric GONNEAU", "EG seul")
+    egal(profs.get("EG Sécurité"), "Etienne GÉRAIN", "EG Sécurité, homonyme piégeux")
+
+
+@test
+def nom_complet_gere_les_binomes_et_les_inconnus():
+    egal(lecture_pdf._nom_complet("CC"), "Cédric CHAMBAULT", "initiales connues")
+    egal(lecture_pdf._nom_complet("FM & AA"), "Frédéric MOUTIER & André AOUN", "binôme")
+    egal(lecture_pdf._nom_complet("ZZZ"), "ZZZ", "initiales inconnues laissées telles quelles")
+    egal(lecture_pdf._nom_complet("AA +"), "André AOUN", "le + du PDF est ignoré")
+    egal(lecture_pdf._nom_complet(""), "", "chaîne vide")
+
+
+@test
+def regex_prof_accepte_la_parenthese_doublee():
+    """Le PDF écrit « Tél. Spat. (MA & FM)) » : sans le +, le professeur
+    n'était pas reconnu et les initiales restaient collées au titre."""
+    trouve = lecture_pdf.REGEX_PROF.search("Tél. Spat. (MA & FM))")
+    assert trouve is not None, "parenthèse doublée non reconnue"
+    egal(trouve.group(1), "MA & FM")
+    egal(lecture_pdf.REGEX_PROF.search("Adm. Windows (CC)").group(1), "CC", "cas simple")
+
+
+@test
+def analyser_texte_separe_titre_professeur_et_groupe():
+    def mot(texte, x=0):
+        return {"text": texte, "x0": x, "x1": x + 10, "top": 0, "fontname": "Helvetica"}
+    titre, groupe, prof = lecture_pdf._analyser_texte(
+        [mot("Adm.", 0), mot("Windows", 10), mot("(CC)", 20)])
+    egal(titre, "Adm. Windows", "titre")
+    egal(prof, "Cédric CHAMBAULT", "professeur développé")
+    titre, groupe, prof = lecture_pdf._analyser_texte(
+        [mot("TCP/IP", 0), mot("/GB", 10)])
+    egal(groupe, "GB", "groupe extrait")
+    assert "/GB" not in titre, "le groupe doit quitter le titre"
+
+
+@test
+def est_ligne_prof_ne_depend_pas_de_l_italique():
+    """« AA » n'est pas en italique dans le PDF : s'appuyer sur la fonte seule
+    faisait passer le professeur pour la suite du titre."""
+    def mot(texte, italique=False):
+        return {"text": texte, "x0": 0, "x1": 10, "top": 0,
+                "fontname": "Helvetica-Oblique" if italique else "Helvetica"}
+    assert lecture_pdf._est_ligne_prof([mot("AA")]), "initiales connues, sans italique"
+    assert lecture_pdf._est_ligne_prof([mot("KPS")]), "trois lettres"
+    assert lecture_pdf._est_ligne_prof([mot("Machin", italique=True)]), "italique seul"
+    assert not lecture_pdf._est_ligne_prof([mot("Réseaux d'entreprise")]), "vrai titre"
+    assert not lecture_pdf._est_ligne_prof([]), "ligne vide"
+
+
+@test
+def lignes_regroupe_par_hauteur():
+    def mot(texte, top, x):
+        return {"text": texte, "top": top, "x0": x, "x1": x + 5}
+    lignes = lecture_pdf._lignes([mot("b", 10.0, 20), mot("a", 10.4, 5), mot("c", 20.0, 0)])
+    egal(len(lignes), 2, "deux lignes distinctes")
+    egal([m["text"] for m in lignes[0]], ["a", "b"], "mots triés par abscisse")
+
+
+# =====================================================================
+# Déduplication et comparaison
+# =====================================================================
+
+@test
+def deduplicer_garde_le_creneau_le_plus_court():
+    """Une case englobante et la vraie case donnent le même cours sur deux
+    étendues : la plus courte est celle du cours."""
+    liste = [cours(start="12h00", end="15h45"), cours(start="13h15", end="16h15")]
+    obtenu = edt_stri.deduplicer(liste)
+    egal(len(obtenu), 1, "doublon non écarté")
+    egal(obtenu[0]["start"], "13h15", "mauvais créneau conservé")
+
+
+@test
+def deduplicer_conserve_les_cours_distincts():
+    liste = [cours(start="08h00", end="10h00"),
+             cours(start="10h00", end="12h00"),
+             cours(titre="Interco", start="08h00", end="10h00", room="U3-Amphi")]
+    egal(len(edt_stri.deduplicer(liste)), 3, "des cours distincts ont été fusionnés")
+
+
+@test
+def comparer_detecte_ajout_suppression_et_modification():
+    avant = [cours(), cours(titre="Interco", start="10h00", end="12h00")]
+    apres = [cours(room="U3-215"), cours(titre="Réseaux", start="14h00", end="16h00")]
+    types = sorted(m["type"] for m in edt_stri.comparer_emplois_du_temps(avant, apres))
+    egal(types, ["ajout", "modification", "suppression"])
+
+
+@test
+def comparer_ne_signale_rien_quand_rien_ne_bouge():
+    liste = [cours(), cours(titre="Interco", start="10h00", end="12h00")]
+    egal(edt_stri.comparer_emplois_du_temps(liste, list(liste)), [], "fausse alerte")
+
+
+@test
+def comparer_distingue_deux_cours_empiles():
+    """Même date et même heure : seuls le titre et la salle les séparent.
+    Une clé trop grossière signalait une modification fantôme."""
+    avant = [cours(titre="[GB] Réseaux", room="U3-1"), cours(titre="[GC] Systèmes", room="U3-2")]
+    apres = [cours(titre="[GB] Réseaux", room="U3-1"), cours(titre="[GC] Systèmes", room="U4-9")]
+    mods = edt_stri.comparer_emplois_du_temps(avant, apres)
+    egal(len(mods), 1, "une seule modification attendue")
+    egal(mods[0]["changements"]["room"]["nouveau"], "U4-9")
+
+
+# =====================================================================
+# Garde-fou anti-effondrement
+# =====================================================================
+
+@test
+def effondrement_laisse_passer_une_baisse_normale():
+    assert edt_stri.effondrement([0] * 67, [0] * 86) is None, "86 → 67 est légitime"
+    assert edt_stri.effondrement([0] * 86, [0] * 86) is None, "stable"
+    assert edt_stri.effondrement([0] * 99, [0] * 86) is None, "hausse"
+
+
+@test
+def effondrement_refuse_une_chute_brutale():
+    assert edt_stri.effondrement([0] * 12, [0] * 86) is not None, "86 → 12 doit bloquer"
+
+
+@test
+def effondrement_se_tait_faute_de_reference():
+    """Une première exécution, ou un historique minuscule, ne permet pas de
+    juger : bloquer là serait un faux positif garanti."""
+    assert edt_stri.effondrement([0] * 1, [0] * 5) is None, "historique trop court"
+    assert edt_stri.effondrement([], [0] * 86) is None, "aucun cours lu : autre garde-fou"
+
+
+# =====================================================================
+# Fichier ICS
+# =====================================================================
+
+@test
+def ics_utilise_des_fins_de_ligne_conformes():
+    """Le mode texte de Windows retraduisait \\n en \\r\\n : les lignes
+    partaient en \\r\\r\\n, invalides RFC 5545, et iOS refusait l'abonnement."""
+    with tempfile.TemporaryDirectory() as dossier:
+        chemin = Path(dossier) / "essai.ics"
+        edt_stri.construire_ics([cours()], chemin)
+        brut = chemin.read_bytes()
+        assert b"\r\r\n" not in brut, "fins de ligne doublées"
+        assert brut.count(b"\r\n") > 5, "aucun CRLF"
+
+
+@test
+def ics_ecarte_les_horaires_incoherents():
+    with tempfile.TemporaryDirectory() as dossier:
+        chemin = Path(dossier) / "essai.ics"
+        nombre = edt_stri.construire_ics(
+            [cours(), cours(start="12h00", end="10h00", titre="Incohérent")], chemin)
+        egal(nombre, 1, "le cours incohérent a été publié")
+
+
+@test
+def ics_produit_des_identifiants_stables():
+    """Un UID instable fait supprimer puis recréer l'événement à chaque
+    exécution : les rappels et les couleurs choisies sont perdus."""
+    with tempfile.TemporaryDirectory() as dossier:
+        def uids(nom):
+            chemin = Path(dossier) / nom
+            edt_stri.construire_ics([cours(), cours(start="10h00", end="12h00")], chemin)
+            return sorted(l for l in chemin.read_text(encoding="utf-8").splitlines()
+                          if l.startswith("UID"))
+        egal(uids("a.ics"), uids("b.ics"), "UID différents d'une génération à l'autre")
+
+
+@test
+def ics_annonce_sa_cadence_de_rafraichissement():
+    with tempfile.TemporaryDirectory() as dossier:
+        chemin = Path(dossier) / "essai.ics"
+        edt_stri.construire_ics([cours()], chemin)
+        texte = chemin.read_text(encoding="utf-8")
+        for champ in ("X-WR-CALNAME", "X-PUBLISHED-TTL", "REFRESH-INTERVAL"):
+            assert champ in texte, f"{champ} absent"
+
+
+# =====================================================================
+# Google Agenda
+# =====================================================================
+
+@test
+def identifiant_evenement_respecte_l_alphabet_de_google():
+    """L'API n'accepte que base32hex (a-v et 0-9) et 5 caractères au minimum.
+    Un identifiant refusé fait échouer toute la synchronisation."""
+    identifiant = google_agenda._identifiant(cours())
+    assert 5 <= len(identifiant) <= 1024, f"longueur {len(identifiant)}"
+    interdits = set(identifiant) - set("abcdefghijklmnopqrstuv0123456789")
+    egal(interdits, set(), "caractères hors base32hex")
+
+
+@test
+def identifiant_evenement_est_deterministe_et_discriminant():
+    egal(google_agenda._identifiant(cours()), google_agenda._identifiant(cours()),
+         "deux appels donnent des identifiants différents")
+    distincts = {google_agenda._identifiant(c) for c in (
+        cours(), cours(start="10h00"), cours(end="12h00"),
+        cours(titre="Autre"), cours(date="2026-09-09"))}
+    egal(len(distincts), 5, "deux cours différents partagent un identifiant")
+
+
+@test
+def identifiant_ignore_la_salle():
+    """Un changement de salle doit MODIFIER l'événement, pas le remplacer :
+    sinon les personnes abonnées voient une annulation puis une création."""
+    egal(google_agenda._identifiant(cours(room="U3-04")),
+         google_agenda._identifiant(cours(room="U4-999")),
+         "la salle entre dans l'identifiant")
+
+
+@test
+def evenement_colore_les_examens_en_tomate():
+    ordinaire = google_agenda._en_evenement(cours(), couleur_cours="10")
+    egal(ordinaire["colorId"], "10", "couleur des cours ordinaires")
+    examen = google_agenda._en_evenement(
+        cours(titre=f"{google_agenda.MARQUEUR_EXAMEN} BD"), couleur_cours="10")
+    egal(examen["colorId"], google_agenda.COULEUR_EXAMEN, "un examen doit rester tomate")
+
+
+@test
+def evenement_porte_le_fuseau_de_paris():
+    evenement = google_agenda._en_evenement(cours())
+    egal(evenement["start"]["timeZone"], "Europe/Paris")
+    assert evenement["start"]["dateTime"].startswith("2026-09-08T08:00")
+
+
+@test
+def identique_compare_les_instants_pas_les_chaines():
+    """L'API rend « +02:00 » là où on envoie un fuseau nommé : comparer les
+    chaînes ferait réécrire les 169 événements à chaque exécution."""
+    voulu = google_agenda._en_evenement(cours())
+    existant = {
+        "summary": voulu["summary"], "location": voulu["location"],
+        "description": voulu["description"],
+        "start": {"dateTime": "2026-09-08T08:00:00+02:00"},
+        "end": {"dateTime": "2026-09-08T10:00:00+02:00"},
+    }
+    assert google_agenda._identique(existant, voulu), "même instant vu comme différent"
+    existant["start"] = {"dateTime": "2026-09-08T09:00:00+02:00"}
+    assert not google_agenda._identique(existant, voulu), "décalage d'une heure non vu"
+
+
+@test
+def identique_repere_un_changement_de_couleur():
+    voulu = google_agenda._en_evenement(cours(), couleur_cours="10")
+    existant = dict(voulu)
+    existant["colorId"] = "3"
+    assert not google_agenda._identique(existant, voulu), "couleur ignorée"
+
+
+@test
+def couleur_evenement_reste_dans_la_palette():
+    egal(google_agenda.couleur_evenement("raisin"), "3")
+    egal(google_agenda.couleur_evenement("basilic"), "10")
+    assert google_agenda.couleur_evenement("turquoise") is None, "couleur inventée acceptée"
+    assert google_agenda.couleur_evenement("") is None, "chaîne vide acceptée"
+
+
+@test
+def marqueurs_d_agenda_sont_distincts():
+    """Deux agendas portant le même marqueur seraient confondus, et l'un
+    écraserait les cours de l'autre."""
+    vus = set()
+    for promo, config in telechargement.PROMOS.items():
+        for moitie in ("BAS", "HAUT"):
+            for cle in (config["cles"][moitie], f"{config['cles'][moitie]}-EXAMENS"):
+                marque = google_agenda.marqueur(cle)
+                assert marque not in vus, f"marqueur en double : {marque}"
+                vus.add(marque)
+
+
+# =====================================================================
+# Journal et alertes
+# =====================================================================
+
+@test
+def journal_ecrit_un_entete_puis_des_lignes():
+    import os
+    with tempfile.TemporaryDirectory() as dossier:
+        chemin = Path(dossier) / "journal.csv"
+        sauvegarde = edt_stri.FICHIER_JOURNAL
+        try:
+            edt_stri.FICHIER_JOURNAL = str(chemin)
+            edt_stri.journaliser(86, 85, "OK")
+            edt_stri.journaliser(12, 86, "REFUS")
+            lignes = chemin.read_text(encoding="utf-8").strip().splitlines()
+        finally:
+            edt_stri.FICHIER_JOURNAL = sauvegarde
+    egal(len(lignes), 3, "en-tête + deux lignes attendus")
+    assert lignes[0].startswith("horodatage,"), "en-tête absent"
+    assert lignes[2].endswith(",REFUS"), "état non consigné"
+
+
+@test
+def journal_n_interrompt_jamais_le_traitement():
+    """Un journal illisible ne doit pas empêcher la publication des cours."""
+    sauvegarde = edt_stri.FICHIER_JOURNAL
+    try:
+        edt_stri.FICHIER_JOURNAL = "/chemin/inexistant/journal.csv"
+        edt_stri.journaliser(1, 1, "OK")  # ne doit rien lever
+    finally:
+        edt_stri.FICHIER_JOURNAL = sauvegarde
+
+
+@test
+def alerte_ci_ne_masque_jamais_la_panne_signalee():
+    """Elle tourne quand tout a déjà échoué : si elle rendait un code non nul,
+    elle remplacerait la vraie cause dans le rapport."""
+    import os
+    import alerte_ci
+    sauvegarde = os.environ.get("DISCORD_WEBHOOK_URL")
+    try:
+        os.environ["DISCORD_WEBHOOK_URL"] = ""
+        egal(alerte_ci.prevenir(), 0, "sans webhook")
+        os.environ["DISCORD_WEBHOOK_URL"] = "https://discord.com/api/webhooks/0/faux"
+        egal(alerte_ci.prevenir("essai"), 0, "webhook injoignable")
+    finally:
+        if sauvegarde is None:
+            os.environ.pop("DISCORD_WEBHOOK_URL", None)
+        else:
+            os.environ["DISCORD_WEBHOOK_URL"] = sauvegarde
+
+
+@test
+def alerte_ci_n_importe_que_la_bibliotheque_standard():
+    """Elle doit fonctionner quand l'installation des dépendances est
+    précisément ce qui a échoué."""
+    import ast
+    source = Path("alerte_ci.py").read_text(encoding="utf-8")
+    importes = set()
+    for noeud in ast.walk(ast.parse(source)):
+        if isinstance(noeud, ast.Import):
+            importes.update(a.name.split(".")[0] for a in noeud.names)
+        elif isinstance(noeud, ast.ImportFrom) and noeud.module:
+            importes.add(noeud.module.split(".")[0])
+    egal(importes - {"json", "os", "sys", "urllib"}, set(), "dépendance externe")
+
+
+# =====================================================================
+# Documents destinés aux abonnés
+# =====================================================================
+
+@test
+def tutoriel_reste_lisible_partout():
+    """Il est collé dans Discord et ouvert dans le Bloc-notes. Les accents
+    passent partout — ils tiennent dans Latin-1, donc dans une console
+    Windows. Les emoji et les caractères semi-graphiques, non : ils y
+    deviennent des points d'interrogation."""
+    brut = Path("TUTO.txt").read_bytes()
+    texte = brut.decode("utf-8")
+    illisibles = set()
+    for c in texte:
+        try:
+            c.encode("cp1252")
+        except UnicodeEncodeError:
+            illisibles.add(c)
+    egal(illisibles, set(), "caractères illisibles en console Windows")
+    trop_larges = [n for n, l in enumerate(texte.splitlines(), 1) if len(l) > 76]
+    egal(trop_larges, [], "lignes trop larges pour une console")
+
+
+@test
+def tutoriel_cite_les_agendas_reels():
+    """Un tutoriel nommant un agenda qui n'existe plus envoie les gens
+    chercher quelque chose d'introuvable."""
+    texte = Path("TUTO.txt").read_text(encoding="utf-8")
+    def sans_accent(s):
+        for a, b in (("é", "e"), ("É", "E"), ("è", "e"), ("ê", "e")):
+            s = s.replace(a, b)
+        return s
+    for config in telechargement.PROMOS.values():
+        for nom in config["agendas"].values():
+            assert sans_accent(nom) in sans_accent(texte), f"« {nom} » absent du tutoriel"
+
+
+# =====================================================================
+# Exécution
+# =====================================================================
+
+def principale():
+    filtre = next((a for a in sys.argv[1:] if not a.startswith("-")), None)
+    choisis = [t for t in TESTS if not filtre or filtre in t.__name__]
+
+    print(f"Tests de la chaîne EDT — {len(choisis)} cas\n")
+    echecs = []
+    for fonction in choisis:
+        intitule = fonction.__name__.replace("_", " ")
+        try:
+            fonction()
+            print(f"  ✅ {intitule}")
+        except AssertionError as e:
+            echecs.append(fonction.__name__)
+            print(f"  ❌ {intitule}\n      {e}")
+        except Exception as e:
+            echecs.append(fonction.__name__)
+            print(f"  💥 {intitule}\n      {type(e).__name__}: {e}")
+
+    print("\n" + "─" * 70)
+    if echecs:
+        print(f"❌ {len(echecs)} échec(s) sur {len(choisis)} : {', '.join(echecs)}")
+        return 1
+    print(f"✅ {len(choisis)} tests passés.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(principale())

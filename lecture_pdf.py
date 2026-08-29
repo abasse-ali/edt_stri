@@ -323,7 +323,14 @@ def _lignes(mots, tolerance=1.5):
 
 
 def _est_italique(mots):
-    return bool(mots) and all("italic" in (m.get('fontname') or "").lower() for m in mots)
+    """Le M1 nomme sa fonte « OpenSans-Italic » ; d'autres PDF disent
+    « Oblique ». Accepter les deux évite de dépendre du logiciel qui a produit
+    le document — la L3, elle, n'emploie aucune italique, d'où le repli sur la
+    table des enseignants dans `_est_ligne_prof`."""
+    return bool(mots) and all(
+        any(marque in (m.get('fontname') or "").lower()
+            for marque in ("italic", "oblique"))
+        for m in mots)
 
 
 REGEX_INITIALES = re.compile(r'[A-ZÀ-Ý]{2,4}(\s*[&+]\s*[A-ZÀ-Ý]{2,4})*\+?')

@@ -85,6 +85,14 @@ jobs:
         if: steps.verification.outputs.run_script == 'true'
         run: pip install -r requirements.txt
 
+      # Les tests n'ont besoin ni de réseau, ni de PDF, ni d'agenda, mais ils
+      # importent edt_stri : ils viennent donc après l'installation des
+      # dépendances, et avant tout traitement. Une régression arrête le job
+      # ici, sans toucher aux agendas.
+      - name: Tests unitaires
+        if: steps.verification.outputs.run_script == 'true'
+        run: python test_edt.py
+
       # GDRIVE_TOKEN : nom historique, le jeton ne sert plus qu'à l'API
       # Calendar. Le fichier de client OAuth n'est plus écrit — il ne servait
       # qu'au flux d'autorisation interactif, impossible en CI de toute façon.
