@@ -36,16 +36,16 @@ Selon ta promo, ils s'appellent :
 
 Tu as recu deux mails intitules :
 
-   "... a partage un agenda avec vous"
+   "Saadannealiabasse@gmail.com a partage un agenda avec vous"
 
 Ouvre chacun et clique sur "AJOUTER CET AGENDA".
 
   /!\  Tant que tu n'as pas clique, tu ne vois RIEN.
        Pas un agenda vide : rien du tout, aucun message d'erreur.
-       C'est la cause numero un des "ca marche pas chez moi".
+       C'est la cause numero un des "ça marche pas chez moi".
 
 Tu n'as pas recu les mails ? Regarde dans les spams, puis demande
-qu'on te les renvoie.
+qu'on te les renvoie en spécifiant ton adresse mail et promo/groupe.
 
 
 ========================================================================
@@ -158,8 +158,8 @@ Dans l'ordre, ces trois gestes reglent la quasi-totalite des cas :
 
  "Je vois des cours qui ne sont pas les miens."
 
-   Chaque demi-promo a son propre agenda. Si tu vois ceux d'a cote,
-   c'est que tu as accepte le mauvais partage : signale-le.
+   Chaque demi-promo a son propre agenda. Si tu vois ceux d'à cote,
+   c'est que tu as accepté le mauvais partage : signale-le.
 
 
  "Faut-il refaire quelque chose quand l'emploi du temps change ?"

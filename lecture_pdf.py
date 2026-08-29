@@ -286,7 +286,22 @@ class GrilleJour:
         return "BLANC"
 
     def est_salle(self, mot, y0, y1):
+        """Ce mot est-il posé sur une case verte de salle, dans cette moitié ?
+
+        Une case de salle mesure 10,7 pt pour une demi-bande de 10,35 : celle
+        du HAUT déborde donc sous la mi-hauteur. Avec la tolérance de 2 pt, elle
+        happait le titre du cours du BAS — le 08/09, « Interco - BE (TD) » à
+        220,04 contre une case finissant à 218,12, soit 0,08 pt de trop. Tous
+        les mots devenaient des salles, le titre disparaissait et le cours
+        n'était pas publié du tout.
+
+        On n'examine donc que les cases dont le CENTRE est dans la moitié
+        interrogée : une case ne peut plus revendiquer les mots de l'autre.
+        """
         for r in self.salles:
+            centre = (r['top'] + r['bottom']) / 2
+            if not (y0 - 1 <= centre <= y1 + 1):
+                continue
             if (r['x0'] - 2 <= mot['x0'] and mot['x1'] <= r['x1'] + 2
                     and r['top'] - 2 <= mot['top'] <= r['bottom'] + 2
                     and y0 - 1 <= mot['top'] <= y1 + 1):

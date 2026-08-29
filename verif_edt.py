@@ -1,0 +1,553 @@
+"""
+Vérification complète de la chaîne EDT : PDF -> données -> ICS -> agendas.
+
+Ce script ne réutilise PAS la logique de tri de `edt_stri.py` : il relit le PDF
+et redéduit lui-même où chaque cours devrait atterrir, puis compare au résultat
+produit. Une vérification qui appellerait le code vérifié ne ferait que
+confirmer ses propres erreurs.
+
+Chaque contrôle correspond à une panne réellement rencontrée, pas à une règle
+imaginée : examens invisibles faute de fond assez large, cellules fantômes sur
+la grille vide, fins de ligne ICS invalides, PDF local périmé réécrivant les
+agendas avec des cours annulés.
+
+    python verif_edt.py              tout, agendas Google compris
+    python verif_edt.py --hors-ligne sans réseau : PDF, données et ICS
+    python verif_edt.py --promo L3   une seule promotion
+
+Code de sortie : 0 si tout passe, 1 s'il reste une anomalie.
+"""
+
+import json
+import re
+import sys
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import pdfplumber
+
+import edt_stri
+import lecture_pdf
+from telechargement import PROMOS
+
+for _flux in (sys.stdout, sys.stderr):
+    try:
+        _flux.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+HORS_LIGNE = "--hors-ligne" in sys.argv
+MOITIES = ("BAS", "HAUT")
+
+
+# =====================================================================
+# RAPPORT
+# =====================================================================
+
+class Rapport:
+    """Accumule les contrôles et rend un bilan lisible."""
+
+    def __init__(self):
+        self.lignes = []
+        self.anomalies = 0
+        self.reserves = 0
+
+    def section(self, titre):
+        self.lignes.append(("section", titre, ""))
+
+    def bloc(self, titre):
+        self.lignes.append(("bloc", titre, ""))
+
+    def ok(self, intitule, detail=""):
+        self.lignes.append(("ok", intitule, detail))
+
+    def reserve(self, intitule, detail=""):
+        """Signalé sans être une erreur : le PDF lui-même est en cause."""
+        self.reserves += 1
+        self.lignes.append(("reserve", intitule, detail))
+
+    def anomalie(self, intitule, detail=""):
+        self.anomalies += 1
+        self.lignes.append(("ko", intitule, detail))
+
+    def verifier(self, condition, intitule, detail_ok="", detail_ko=""):
+        if condition:
+            self.ok(intitule, detail_ok)
+        else:
+            self.anomalie(intitule, detail_ko or detail_ok)
+        return condition
+
+    def afficher(self):
+        symboles = {"ok": "✅", "reserve": "⚠️ ", "ko": "❌"}
+        for genre, intitule, detail in self.lignes:
+            if genre == "section":
+                print(f"\n╔═ {intitule} " + "═" * max(0, 62 - len(intitule)))
+            elif genre == "bloc":
+                print(f"║\n║  {intitule}")
+            else:
+                print(f"║    {symboles[genre]} {intitule:<44s} {detail}")
+
+        total = sum(1 for g, _, _ in self.lignes if g in ("ok", "reserve", "ko"))
+        print("\n" + "─" * 70)
+        if self.anomalies:
+            print(f"❌ {self.anomalies} anomalie(s) sur {total} contrôles, "
+                  f"{self.reserves} réserve(s).")
+        else:
+            print(f"✅ {total} contrôles passés, {self.reserves} réserve(s) — "
+                  "aucune anomalie.")
+        return 1 if self.anomalies else 0
+
+
+# =====================================================================
+# LECTURE INDÉPENDANTE DU PDF
+# =====================================================================
+
+def relire_pdf(chemin):
+    """Rend la liste des cellules du PDF, avec tout ce qui sert aux contrôles.
+
+    Volontairement écrit à part de `traiter_journee` : c'est la contre-mesure
+    de référence, elle ne doit pas hériter de ses éventuels défauts.
+    """
+    if not edt_stri.extraire_positions_heures_pdf(chemin, dpi=edt_stri.DPI):
+        return None, None, None
+
+    zones = edt_stri.extraire_zones_jours_pdf(chemin)
+    x_min = edt_stri._vers_pdf(edt_stri.PADDING)
+    x_max = edt_stri._vers_pdf(
+        edt_stri.GLOBAL_END_X - edt_stri.GLOBAL_START_X + edt_stri.PADDING)
+
+    def vers_heure(x_pdf):
+        return edt_stri.obtenir_heure_proche(
+            x_pdf * edt_stri.DPI / 72 - edt_stri.GLOBAL_START_X + edt_stri.PADDING)
+
+    cellules, fonds = [], Counter()
+    with pdfplumber.open(chemin) as pdf:
+        for zone in zones:
+            page = pdf.pages[zone["page"] - 1]
+            grille = lecture_pdf.GrilleJour(page, zone, x_min, x_max)
+            mots = lecture_pdf.mots_de_la_bande(page, zone, x_min)
+
+            for r in page.rects:
+                milieu = (r["top"] + r["bottom"]) / 2
+                if not (zone["top"] - 1 < milieu < zone["bottom"] + 1):
+                    continue
+                if r["width"] < 5 or r["height"] < 5:
+                    continue
+                c = r["non_stroking_color"]
+                if lecture_pdf.est_jaune(c):
+                    fonds["JAUNE"] += 1
+                elif lecture_pdf.est_orange(c):
+                    fonds["ORANGE"] += 1
+                elif lecture_pdf.est_olive(c):
+                    fonds["OLIVE"] += 1
+
+            for cel in grille.cellules(mots):
+                bloc = lecture_pdf.lire_cellule(
+                    grille, cel["x0"], cel["x1"], cel["position"], mots, vers_heure)
+                cellules.append({
+                    "date": zone["date"].strftime("%Y-%m-%d"),
+                    "position": cel["position"],
+                    "debut": vers_heure(cel["x0"]),
+                    "fin": vers_heure(cel["x1"]),
+                    "bloc": bloc,
+                    "couleur": ((bloc.get("color") or "BLANC").upper() if bloc else None),
+                })
+
+    return zones, cellules, fonds
+
+
+def destinataires(cellule):
+    """Les demi-promos qui doivent recevoir cette cellule.
+
+    Réécriture délibérée de la règle de `traiter_journee` : si les deux
+    divergent un jour, c'est exactement ce qu'on veut voir apparaître.
+    """
+    couleur = cellule["couleur"]
+    if couleur == "ORANGE":
+        return {"HAUT"}          # cours réservé aux Ingé
+    if couleur == "OLIVE":
+        return {"BAS"}           # cours réservé à l'autre demi-promo
+    if cellule["position"] == "FULL":
+        return {"BAS", "HAUT"}   # pleine hauteur : tout le monde
+    return {"HAUT"} if cellule["position"] == "TOP" else {"BAS"}
+
+
+# =====================================================================
+# CONTRÔLES
+# =====================================================================
+
+def controler_pdf(rap, promo, zones, cellules, fonds):
+    rap.bloc("Lecture du PDF")
+
+    rap.verifier(bool(zones), "journées détectées",
+                 f"{len(zones)} journées, "
+                 f"{zones[0]['date']:%d/%m} → {zones[-1]['date']:%d/%m}"
+                 if zones else "aucune")
+
+    if zones:
+        dates = [z["date"] for z in zones]
+        rap.verifier(len(dates) == len(set(dates)), "aucune journée en double",
+                     f"{len(set(dates))} dates distinctes")
+        ouvres = [d for d in dates if d.weekday() < 5]
+        rap.verifier(len(ouvres) == len(dates), "que des jours ouvrés",
+                     "lundi à vendredi",
+                     f"{len(dates) - len(ouvres)} week-end(s) détecté(s)")
+        # Une lacune d'un jour ouvré signale une bande de journée manquée.
+        manquants = []
+        for veille, lendemain in zip(dates, dates[1:]):
+            jour = veille + timedelta(days=1)
+            while jour < lendemain:
+                if jour.weekday() < 5:
+                    manquants.append(jour.strftime("%d/%m"))
+                jour += timedelta(days=1)
+        rap.verifier(not manquants, "aucun jour ouvré manquant",
+                     "suite continue",
+                     f"{len(manquants)} absent(s) : {', '.join(manquants[:6])}")
+
+    rap.verifier(bool(cellules), "cellules repérées", f"{len(cellules)} cases")
+
+    illisibles = [c for c in cellules if c["bloc"] is None]
+    rap.verifier(not illisibles, "toute cellule repérée est lue",
+                 f"{len(cellules)}/{len(cellules)}",
+                 f"{len(illisibles)} encadrée(s) sans contenu : "
+                 + ", ".join(f"{c['date']} {c['debut']}" for c in illisibles[:4]))
+
+    # Le fond jaune ne couvre pas toujours toute la cellule : trois examens
+    # d'Adm. Linux passaient pour des cours ordinaires faute de 60 % de largeur.
+    for teinte in ("JAUNE", "ORANGE", "OLIVE"):
+        dans_pdf = fonds.get(teinte, 0)
+        if not dans_pdf:
+            continue
+        reconnus = sum(1 for c in cellules if c["couleur"] == teinte)
+        # Une cellule peut porter deux rectangles (titre + professeur).
+        rap.verifier(reconnus > 0 and reconnus <= dans_pdf,
+                     f"fonds {teinte.lower()} rattachés à une cellule",
+                     f"{reconnus} cellule(s) pour {dans_pdf} rectangle(s)",
+                     f"{dans_pdf} rectangle(s) dans le PDF, {reconnus} reconnu(s)")
+
+
+def controler_horaires(rap, cellules):
+    rap.bloc("Horaires")
+
+    illisibles = [c for c in cellules if not c["debut"] or not c["fin"]]
+    rap.verifier(not illisibles, "tous les horaires sont lisibles",
+                 f"{len(cellules)} créneaux",
+                 f"{len(illisibles)} illisible(s)")
+
+    def minutes(h):
+        return int(h[:2]) * 60 + int(h[3:5])
+
+    lisibles = [c for c in cellules if c["debut"] and c["fin"]]
+    inverses = [c for c in lisibles if minutes(c["debut"]) >= minutes(c["fin"])]
+    rap.verifier(not inverses, "début toujours avant la fin", "",
+                 f"{len(inverses)} incohérent(s)")
+
+    hors_quart = [c for c in lisibles
+                  if minutes(c["debut"]) % 15 or minutes(c["fin"]) % 15]
+    rap.verifier(not hors_quart, "horaires alignés sur le quart d'heure",
+                 "la grille est au quart d'heure",
+                 f"{len(hors_quart)} hors grille : "
+                 + ", ".join(f"{c['date']} {c['debut']}-{c['fin']}" for c in hors_quart[:4]))
+
+    trop_longs = [c for c in lisibles
+                  if minutes(c["fin"]) - minutes(c["debut"]) > 8 * 60]
+    rap.verifier(not trop_longs, "aucune durée aberrante", "toutes sous 8 h",
+                 f"{len(trop_longs)} au-delà de 8 h — "
+                 "signe d'une case fantôme sur la grille vide")
+
+
+def controler_routage(rap, cellules, donnees):
+    """Chaque cours est-il dans la bonne demi-promo, et seulement celle-là ?"""
+    rap.bloc("Placement dans les demi-promos")
+
+    publies = {m: {(c["date"], c["start"], c["end"]) for c in donnees[m]}
+               for m in MOITIES}
+
+    manques = defaultdict(list)
+    intrus = defaultdict(list)
+    for cel in cellules:
+        if cel["bloc"] is None or not cel["debut"] or not cel["fin"]:
+            continue
+        titre = (cel["bloc"].get("course") or "").strip()
+        if len(titre) < 2:
+            continue
+        creneau = (cel["date"], cel["debut"], cel["fin"])
+        attendu = destinataires(cel)
+        for moitie in MOITIES:
+            if moitie in attendu and creneau not in publies[moitie]:
+                manques[moitie].append(f"{cel['date']} {cel['debut']} {titre[:22]}")
+
+    # Un créneau publié qui ne correspond à aucune cellule attendue.
+    attendus = {m: set() for m in MOITIES}
+    for cel in cellules:
+        if cel["bloc"] is None or not cel["debut"] or not cel["fin"]:
+            continue
+        for moitie in destinataires(cel):
+            attendus[moitie].add((cel["date"], cel["debut"], cel["fin"]))
+    for moitie in MOITIES:
+        intrus[moitie] = sorted(publies[moitie] - attendus[moitie])
+
+    for moitie in MOITIES:
+        rap.verifier(not manques[moitie], f"{moitie} : rien de manquant",
+                     f"{len(publies[moitie])} cours publiés",
+                     f"{len(manques[moitie])} absent(s) : "
+                     + " | ".join(manques[moitie][:3]))
+        rap.verifier(not intrus[moitie], f"{moitie} : rien en trop", "",
+                     f"{len(intrus[moitie])} intrus : "
+                     + " | ".join(str(x) for x in intrus[moitie][:3]))
+
+    # Les cours d'une demi-promo ne doivent pas fuiter chez l'autre.
+    orange = {(c["date"], c["debut"], c["fin"]) for c in cellules
+              if c["couleur"] == "ORANGE" and c["debut"]}
+    olive = {(c["date"], c["debut"], c["fin"]) for c in cellules
+             if c["couleur"] == "OLIVE" and c["debut"]}
+    if orange:
+        fuites = orange & publies["BAS"] - attendus["BAS"]
+        rap.verifier(not fuites, "cours Ingé (orange) absents de la moitié basse",
+                     f"{len(orange)} créneau(x) orange",
+                     f"{len(fuites)} fuite(s)")
+    if olive:
+        fuites = olive & publies["HAUT"] - attendus["HAUT"]
+        rap.verifier(not fuites, "cours olive absents de la moitié haute",
+                     f"{len(olive)} créneau(x) olive",
+                     f"{len(fuites)} fuite(s)")
+
+
+def controler_donnees(rap, moitie, cours, chemin_ics):
+    rap.bloc(f"Sorties — moitié {moitie}")
+
+    def minutes(h):
+        return int(h[:2]) * 60 + int(h[3:5])
+
+    # Un chevauchement dans une même demi-promo = deux cours au même moment.
+    par_jour = defaultdict(list)
+    for c in cours:
+        par_jour[c["date"]].append(c)
+    chevauchements = []
+    for jour, liste in par_jour.items():
+        liste.sort(key=lambda c: minutes(c["start"]))
+        for premier, second in zip(liste, liste[1:]):
+            if minutes(second["start"]) < minutes(premier["end"]):
+                chevauchements.append(f"{jour} {premier['start']}/{second['start']}")
+    rap.verifier(not chevauchements, "aucun chevauchement horaire",
+                 f"{len(cours)} cours sur {len(par_jour)} journées",
+                 f"{len(chevauchements)} : " + ", ".join(chevauchements[:4]))
+
+    doublons = [k for k, n in Counter(
+        (c["date"], c["start"], c["titre"]) for c in cours).items() if n > 1]
+    rap.verifier(not doublons, "aucun cours en double", "",
+                 f"{len(doublons)} : {doublons[:3]}")
+
+    vides = [c for c in cours
+             if (c["titre"] or "").strip().lower() in ("", "cours", "inconnu")]
+    rap.verifier(not vides, "aucun titre vide ou générique", "",
+                 f"{len(vides)} douteux")
+
+    sans_prof = sum(1 for c in cours if c.get("prof") in (None, "", "Inconnu"))
+    sans_salle = sum(1 for c in cours if c.get("room") in (None, "", "Non attribuée"))
+    if sans_prof or sans_salle:
+        rap.reserve("champs absents du PDF lui-même",
+                    f"{sans_prof} sans professeur, {sans_salle} sans salle")
+
+    # --- fichier ICS ---
+    chemin = Path(chemin_ics)
+    if not rap.verifier(chemin.exists(), "fichier ICS présent", chemin.name,
+                        f"{chemin.name} introuvable"):
+        return
+
+    brut = chemin.read_bytes()
+    # Le mode texte de Windows retraduisait \n en \r\n : les lignes partaient
+    # en \r\r\n, invalides au regard de la RFC 5545, et iOS refusait le fichier.
+    rap.verifier(b"\r\r\n" not in brut, "fins de ligne conformes à la RFC 5545",
+                 f"{brut.count(chr(13).encode() + chr(10).encode())} lignes CRLF",
+                 "fins de ligne \\r\\r\\n : fichier rejeté par les clients stricts")
+
+    texte = brut.decode("utf-8")
+    rap.verifier(texte.count("BEGIN:VEVENT") == len(cours),
+                 "ICS et données concordent",
+                 f"{len(cours)} événements",
+                 f"{texte.count('BEGIN:VEVENT')} dans l'ICS, {len(cours)} attendus")
+
+    uid_ics = set(re.findall(r"^UID:(.+)$", texte, re.M))
+    rap.verifier(len(uid_ics) == texte.count("BEGIN:VEVENT"),
+                 "identifiants ICS tous distincts",
+                 f"{len(uid_ics)} UID",
+                 f"{texte.count('BEGIN:VEVENT') - len(uid_ics)} doublon(s)")
+
+
+def controler_agendas(rap, promo, moitie, cours):
+    """Contrôles sur Google Agenda. Sautés en --hors-ligne."""
+    from googleapiclient.discovery import build
+    import google_agenda
+
+    creds = edt_stri.obtenir_identifiants()
+    if creds is None:
+        rap.reserve("agendas Google non vérifiés", "aucune autorisation valide")
+        return
+
+    service = build("calendar", "v3", credentials=creds)
+    cle = PROMOS[promo]["cles"][moitie]
+    etiquette = google_agenda.marqueur(cle)
+
+    possedes = [a for a in service.calendarList().list().execute().get("items", [])
+                if a.get("accessRole") == "owner"]
+    agenda = next((a for a in possedes
+                   if etiquette in (a.get("description") or "")), None)
+    if not rap.verifier(agenda is not None, f"agenda {etiquette} trouvé",
+                        agenda["summary"] if agenda else "",
+                        "aucun agenda ne porte ce marqueur"):
+        return
+
+    evenements, jeton = {}, None
+    while True:
+        page = service.events().list(calendarId=agenda["id"], singleEvents=True,
+                                     maxResults=2500, pageToken=jeton).execute()
+        for e in page.get("items", []):
+            evenements[e["id"]] = e
+        jeton = page.get("nextPageToken")
+        if not jeton:
+            break
+
+    ordinaires = [c for c in cours
+                  if not c["titre"].startswith(google_agenda.MARQUEUR_EXAMEN)]
+    rap.verifier(len(evenements) == len(ordinaires),
+                 f"« {agenda['summary']} » complet",
+                 f"{len(evenements)} événements",
+                 f"{len(evenements)} dans l'agenda, {len(ordinaires)} attendus")
+
+    # Chaque cours doit être présent, à la bonne heure et dans la bonne salle.
+    ecarts = []
+    for c in ordinaires:
+        evt = evenements.get(google_agenda._identifiant(c))
+        if evt is None:
+            ecarts.append(f"absent : {c['date']} {c['start']} {c['titre'][:20]}")
+            continue
+        debut = evt.get("start", {}).get("dateTime", "")
+        attendu = f"{c['date']}T{c['start'][:2]}:{c['start'][3:5]}:00"
+        if not debut.startswith(attendu):
+            ecarts.append(f"horaire : {c['date']} {c['start']} ≠ {debut[:16]}")
+        elif (evt.get("location") or "") != (c.get("room") or ""):
+            ecarts.append(f"salle : {c['date']} {c['start']}")
+    rap.verifier(not ecarts, "horaires et salles conformes",
+                 f"{len(ordinaires)} vérifiés",
+                 f"{len(ecarts)} écart(s) : " + " | ".join(ecarts[:3]))
+
+    fuseaux = {e.get("start", {}).get("timeZone") for e in evenements.values()}
+    rap.verifier(fuseaux <= {"Europe/Paris"}, "fuseau horaire correct",
+                 "Europe/Paris", f"fuseaux trouvés : {fuseaux}")
+
+    # Le partage doit couvrir cours ET examens : en oublier un est facile.
+    lecteurs = {r["scope"]["value"] for r in
+                service.acl().list(calendarId=agenda["id"]).execute().get("items", [])
+                if r["role"] == "reader" and r["scope"]["type"] == "user"}
+    examens = next((a for a in possedes
+                    if google_agenda.marqueur(f"{cle}-EXAMENS")
+                    in (a.get("description") or "")), None)
+    if examens and lecteurs:
+        lecteurs_ex = {r["scope"]["value"] for r in
+                       service.acl().list(calendarId=examens["id"]).execute().get("items", [])
+                       if r["role"] == "reader" and r["scope"]["type"] == "user"}
+        oublies = lecteurs - lecteurs_ex
+        rap.verifier(not oublies, "partage cours/examens cohérent",
+                     f"{len(lecteurs)} personne(s)",
+                     f"{len(oublies)} sans l'agenda d'examens : "
+                     + ", ".join(sorted(oublies)[:3]))
+    elif lecteurs:
+        rap.reserve("agenda d'examens introuvable", f"{len(lecteurs)} abonné(s)")
+
+
+def controler_fraicheur(rap, promo):
+    """Le PDF local est-il celui publié en ligne ?
+
+    Rejouer un PDF périmé réécrit les agendas avec des cours annulés — c'est
+    arrivé en lançant le traitement avec --no-download alors que l'école avait
+    publié une nouvelle version.
+    """
+    import telechargement
+
+    rap.bloc("Fraîcheur")
+    local = Path(PROMOS[promo]["pdf"])
+    if not rap.verifier(local.exists(), "PDF local présent", local.name,
+                        f"{local.name} introuvable"):
+        return
+
+    temporaire = Path(f".verif_{local.name}")
+    try:
+        if not telechargement.telecharger_pdf(str(temporaire), url=PROMOS[promo]["url"]):
+            rap.reserve("comparaison au PDF en ligne impossible", "téléchargement échoué")
+            return
+        identique = temporaire.read_bytes() == local.read_bytes()
+        rap.verifier(identique, "PDF local à jour",
+                     f"{local.stat().st_size // 1024} Ko, identique à celui en ligne",
+                     "le PDF en ligne a changé — relancer le traitement, sinon "
+                     "les agendas gardent des cours périmés")
+    finally:
+        temporaire.unlink(missing_ok=True)
+
+
+# =====================================================================
+# ENCHAÎNEMENT
+# =====================================================================
+
+def principale():
+    promo_voulue = None
+    if "--promo" in sys.argv:
+        i = sys.argv.index("--promo")
+        promo_voulue = sys.argv[i + 1].upper() if i + 1 < len(sys.argv) else ""
+        if promo_voulue not in PROMOS:
+            sys.exit(f"⛔ --promo {promo_voulue!r} inconnu. Valeurs : {', '.join(PROMOS)}.")
+
+    rap = Rapport()
+    print(f"Vérification de la chaîne EDT — {datetime.now():%d/%m/%Y %H:%M}")
+    if HORS_LIGNE:
+        print("Mode hors ligne : agendas Google et fraîcheur des PDF non vérifiés.")
+
+    for promo in ([promo_voulue] if promo_voulue else list(PROMOS)):
+        rap.section(f"{promo} — {PROMOS[promo]['pdf']}")
+
+        chemin = Path(PROMOS[promo]["pdf"])
+        if not chemin.exists():
+            rap.anomalie("PDF introuvable", str(chemin))
+            continue
+
+        zones, cellules, fonds = relire_pdf(chemin)
+        if zones is None:
+            rap.anomalie("repères horaires introuvables",
+                         "la mise en page a probablement changé")
+            continue
+        rap.ok("repères horaires extraits",
+               f"{len(edt_stri.REFERENCES_TEMPS)} repères, "
+               f"grille x={edt_stri.GLOBAL_START_X}→{edt_stri.GLOBAL_END_X}")
+
+        controler_pdf(rap, promo, zones, cellules, fonds)
+        controler_horaires(rap, cellules)
+
+        donnees, manquant = {}, False
+        for moitie in MOITIES:
+            suffixe = PROMOS[promo]["suffixes"][moitie]
+            fichier = Path(f"edt_data{suffixe}.json")
+            if not fichier.exists():
+                rap.anomalie(f"données {moitie} absentes", str(fichier))
+                manquant = True
+                break
+            donnees[moitie] = json.loads(fichier.read_text(encoding="utf-8"))
+        if manquant:
+            continue
+
+        controler_routage(rap, cellules, donnees)
+
+        for moitie in MOITIES:
+            suffixe = PROMOS[promo]["suffixes"][moitie]
+            controler_donnees(rap, moitie, donnees[moitie], f"edt{suffixe}.ics")
+            if not HORS_LIGNE:
+                controler_agendas(rap, promo, moitie, donnees[moitie])
+
+        if not HORS_LIGNE:
+            controler_fraicheur(rap, promo)
+
+    return rap.afficher()
+
+
+if __name__ == "__main__":
+    sys.exit(principale())
