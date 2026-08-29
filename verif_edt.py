@@ -48,12 +48,15 @@ SANS_FRAICHEUR = HORS_LIGNE or "--sans-fraicheur" in sys.argv
 SILENCIEUX = "--silencieux" in sys.argv
 MOITIES = ("BAS", "HAUT")
 
-# Bornes au-dela desquelles la GRILLE elle-meme serait aberrante. Elles ne
-# jugent pas les cours : la plage utile est lue dans le PDF, le M1 s'arretant a
-# 19h15 quand la L3 va jusqu'a 19h45. Ces deux valeurs n'attrapent qu'un
-# decalage grossier des reperes horaires.
-GRILLE_MINIMUM = 7 * 60
-GRILLE_MAXIMUM = 21 * 60
+# Amplitude maximale de la grille STRI : de 07h45 a 20h00. Toutes les
+# promotions commencent a 07h45 ; seule la fin varie selon les semaines.
+#
+# Ces bornes sont serrees exprès. Un decalage des reperes horaires laisse les
+# cours coherents ENTRE EUX — tous decales du meme nombre de colonnes — et
+# aucun controle de coherence interne ne peut le voir. Seule une reference
+# exterieure le trahit, et c'est celle-ci.
+GRILLE_DEBUT = 7 * 60 + 45
+GRILLE_FIN_MAX = 20 * 60
 
 
 # =====================================================================
@@ -357,11 +360,17 @@ def controler_plausibilite(rap, cellules, donnees):
     reperes = [h for _x, h in edt_stri.REFERENCES_TEMPS if h and h != "?"]
     debut_grille, fin_grille = minutes(min(reperes)), minutes(max(reperes))
 
-    rap.verifier(GRILLE_MINIMUM <= debut_grille and fin_grille <= GRILLE_MAXIMUM,
-                 "grille horaire vraisemblable",
-                 f"{min(reperes)} → {max(reperes)}",
-                 f"la grille irait de {min(reperes)} à {max(reperes)} — "
-                 "repères horaires probablement décalés")
+    rap.verifier(debut_grille >= GRILLE_DEBUT and fin_grille <= GRILLE_FIN_MAX,
+                 "grille dans l'amplitude STRI",
+                 f"{min(reperes)} → {max(reperes)}  (max. 07h45 → 20h00)",
+                 f"la grille irait de {min(reperes)} à {max(reperes)}, hors de "
+                 "l'amplitude 07h45 → 20h00 — repères horaires décalés")
+
+    # Toutes les promotions commencent a 07h45 : un autre debut signale une
+    # colonne perdue a la lecture de l'en-tete, pas un vrai changement d'horaire.
+    if debut_grille != GRILLE_DEBUT:
+        rap.reserve("la grille ne commence pas à 07h45",
+                    f"{min(reperes)} — mise en page modifiée ou colonne manquée")
 
     lisibles = [c for c in cellules if c["debut"] and c["fin"]]
     dehors = [c for c in lisibles
