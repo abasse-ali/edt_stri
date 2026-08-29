@@ -14,7 +14,6 @@ fait la CI.
   EDT_DEBUG=1 python edt_stri.py             -> images dans export_cours/<promo>/
 """
 
-import os
 import sys
 import json
 import re
@@ -111,6 +110,17 @@ COULEUR_COURS = variable_env("EDT_COULEUR_COURS", _couleur_cours)
 # couleur différente chez les personnes abonnées, Google en attribuant une
 # distincte à chaque agenda ajouté.
 COULEUR_AGENDA_EXAMENS = variable_env("EDT_COULEUR_EXAMENS", "tomate")
+
+# Chute maximale toleree du nombre de cours, en pourcentage, avant de refuser
+# de publier. Un changement de mise en page peut faire tomber l'extraction de
+# 86 cours à 12 sans lever la moindre erreur : sans ce garde-fou, l'agenda des
+# personnes abonnées se viderait en silence. EDT_FORCER=1 passe outre.
+CHUTE_MAX = int(variable_env("EDT_CHUTE_MAX", "40"))
+FORCER = variable_env("EDT_FORCER") == "1"
+
+# Journal des exécutions : une ligne par passe, pour voir les tendances et
+# repérer le jour où le nombre de cours a commencé à déraper.
+FICHIER_JOURNAL = variable_env("EDT_JOURNAL", "journal.csv")
 
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
@@ -1120,6 +1130,36 @@ def charger_anciennes_donnees(chemin=FICHIER_JSON):
 # PROGRAMME PRINCIPAL
 # =====================================================================
 
+def journaliser(nb_cours, nb_avant, etat):
+    """Ajoute une ligne au journal. Ne fait jamais echouer le traitement."""
+    try:
+        chemin = Path(FICHIER_JOURNAL)
+        nouveau = not chemin.exists()
+        with open(chemin, "a", encoding="utf-8", newline="") as f:
+            if nouveau:
+                f.write("horodatage,promotion,moitie,agenda,cours,precedent,etat\n")
+            f.write(f"{datetime.now():%Y-%m-%d %H:%M},{PROMO},{MOITIE_RETENUE},"
+                    f"\"{NOM_AGENDA}\",{nb_cours},{nb_avant},{etat}\n")
+    except OSError as e:
+        print(f"   ⚠️ Journal non écrit ({e}).")
+
+
+def effondrement(nouvelles, anciennes):
+    """Le nombre de cours s'est-il effondre au point d'etre suspect ?
+
+    Rend None si tout va bien, sinon le message a afficher. Un emploi du temps
+    se vide legitimement en fin de semestre : le seuil vise la panne
+    d'extraction, pas la decrue normale.
+    """
+    if len(anciennes) < 10 or not nouvelles:
+        return None
+    chute = 100 * (len(anciennes) - len(nouvelles)) / len(anciennes)
+    if chute < CHUTE_MAX:
+        return None
+    return (f"{len(anciennes)} cours précédemment, {len(nouvelles)} maintenant "
+            f"— une chute de {chute:.0f} %, au-delà du seuil de {CHUTE_MAX} %.")
+
+
 def principale():
     if not Path(FICHIER_PDF).exists():
         print(f"❌ {FICHIER_PDF} introuvable.")
@@ -1171,6 +1211,20 @@ def principale():
     if jours_en_echec:
         print(f"⚠️ Première exécution avec des journées incomplètes : {', '.join(jours_en_echec)}")
 
+    alerte = effondrement(nouvelles_donnees, anciennes_donnees)
+    if alerte and not FORCER:
+        print(f"⛔ Effondrement du nombre de cours. {alerte}")
+        print("   Rien n'est publié. EDT_FORCER=1 pour passer outre.")
+        envoyer_alerte_discord(
+            f"**Publication refusée.** {alerte}\n"
+            "La mise en page du PDF a probablement changé. L'agenda garde sa "
+            "dernière version saine ; relancer avec `EDT_FORCER=1` si la chute "
+            "est normale.")
+        journaliser(len(nouvelles_donnees), len(anciennes_donnees), "REFUS")
+        return 1
+    if alerte:
+        print(f"⚠️ Chute importante acceptée (EDT_FORCER=1). {alerte}")
+
     if anciennes_donnees:
         envoyer_notification_discord(comparer_emplois_du_temps(anciennes_donnees, nouvelles_donnees))
 
@@ -1179,6 +1233,8 @@ def principale():
 
     nb_evenements = construire_ics(nouvelles_donnees)
     print(f"✅ Terminé ! {FICHIER_ICS} généré avec {nb_evenements} cours.")
+
+    journaliser(len(nouvelles_donnees), len(anciennes_donnees), "OK")
 
     creds = obtenir_identifiants()
     agenda_id = synchroniser_agenda(nouvelles_donnees, creds)

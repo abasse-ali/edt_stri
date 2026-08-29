@@ -125,21 +125,35 @@ jobs:
           EDT_PROMO=L3 EDT_MOITIE=BAS  python edt_stri.py
           EDT_PROMO=L3 EDT_MOITIE=HAUT python edt_stri.py
 
+      # La CI publiait sans jamais se relire. Un échec ici saute l'étape de
+      # sauvegarde : les PDF ne sont pas commités, la prochaine exécution
+      # horaire réessaie, et les agendas gardent leur dernière version saine.
+      #
+      # --sans-fraicheur : les PDF viennent d'être téléchargés, les recomparer
+      # coûterait un second passage anti-bot pour rien.
+      - name: Vérifier le résultat
+        id: verification_finale
+        if: steps.traitement.outcome == 'success'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python verif_edt.py --sans-fraicheur
+
       # Les secrets ne doivent pas survivre à l'étape suivante, qui commite.
       - name: Effacer le jeton
         if: always()
         run: rm -f token.json
 
       # 5. Sauvegarde les PDF ET les données JSON.
-      #    Le script rend un code de sortie non nul si l'extraction est
-      #    incomplète : dans ce cas l'étape est sautée, les PDF ne sont PAS
-      #    commités, et la prochaine exécution horaire réessaiera.
+      #    Sautée si le traitement OU la vérification a échoué : les PDF ne
+      #    sont alors PAS commités, et la prochaine exécution horaire
+      #    réessaiera sur des données saines. journal.csv garde une ligne par
+      #    passe, pour voir les tendances.
       - name: Sauvegarder les fichiers sur le dépôt
-        if: steps.traitement.outcome == 'success'
+        if: steps.verification_finale.outcome == 'success'
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add edt_m1.pdf edt_l3.pdf edt_data*.json
+          git add edt_m1.pdf edt_l3.pdf edt_data*.json journal.csv
           git commit -m "Mise à jour automatique de l'EDT" || echo "Rien à commiter"
           git pull --rebase --autostash origin ${{ github.ref_name }}
           git push

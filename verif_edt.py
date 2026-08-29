@@ -11,9 +11,13 @@ imaginée : examens invisibles faute de fond assez large, cellules fantômes sur
 la grille vide, fins de ligne ICS invalides, PDF local périmé réécrivant les
 agendas avec des cours annulés.
 
-    python verif_edt.py              tout, agendas Google compris
-    python verif_edt.py --hors-ligne sans réseau : PDF, données et ICS
-    python verif_edt.py --promo L3   une seule promotion
+    python verif_edt.py                 tout, agendas Google compris
+    python verif_edt.py --hors-ligne    sans réseau : PDF, données et ICS
+    python verif_edt.py --promo L3      une seule promotion
+    python verif_edt.py --sans-fraicheur  sans recomparer les PDF en ligne
+    python verif_edt.py --silencieux    sans alerte Discord
+
+Une anomalie déclenche un message Discord, sauf en --silencieux.
 
 Code de sortie : 0 si tout passe, 1 s'il reste une anomalie.
 """
@@ -38,7 +42,18 @@ for _flux in (sys.stdout, sys.stderr):
         pass
 
 HORS_LIGNE = "--hors-ligne" in sys.argv
+# En CI le PDF vient d'etre telecharge : le recomparer couterait un second
+# passage anti-bot pour rien.
+SANS_FRAICHEUR = HORS_LIGNE or "--sans-fraicheur" in sys.argv
+SILENCIEUX = "--silencieux" in sys.argv
 MOITIES = ("BAS", "HAUT")
+
+# Bornes au-dela desquelles la GRILLE elle-meme serait aberrante. Elles ne
+# jugent pas les cours : la plage utile est lue dans le PDF, le M1 s'arretant a
+# 19h15 quand la L3 va jusqu'a 19h45. Ces deux valeurs n'attrapent qu'un
+# decalage grossier des reperes horaires.
+GRILLE_MINIMUM = 7 * 60
+GRILLE_MAXIMUM = 21 * 60
 
 
 # =====================================================================
@@ -325,6 +340,52 @@ def controler_horaires(rap, cellules):
                  "signe d'une case fantôme sur la grille vide")
 
 
+def controler_plausibilite(rap, cellules, donnees):
+    """Les horaires tiennent-ils debout dans l'absolu, pas seulement entre eux ?
+
+    Les autres controles comparent les horaires les uns aux autres : un
+    decalage global des reperes les laisserait tous coherents et tous faux.
+    Ceux-ci les confrontent a la realite de la grille.
+    """
+    rap.bloc("Plausibilité")
+
+    def minutes(h):
+        return int(h[:2]) * 60 + int(h[3:5])
+
+    # La plage utile vient de la grille du PDF, pas d'une constante : le M1
+    # s'arrete a 19h15, la L3 va jusqu'a 19h45.
+    reperes = [h for _x, h in edt_stri.REFERENCES_TEMPS if h and h != "?"]
+    debut_grille, fin_grille = minutes(min(reperes)), minutes(max(reperes))
+
+    rap.verifier(GRILLE_MINIMUM <= debut_grille and fin_grille <= GRILLE_MAXIMUM,
+                 "grille horaire vraisemblable",
+                 f"{min(reperes)} → {max(reperes)}",
+                 f"la grille irait de {min(reperes)} à {max(reperes)} — "
+                 "repères horaires probablement décalés")
+
+    lisibles = [c for c in cellules if c["debut"] and c["fin"]]
+    dehors = [c for c in lisibles
+              if minutes(c["debut"]) < debut_grille or minutes(c["fin"]) > fin_grille]
+    rap.verifier(not dehors, "tous les cours dans la grille",
+                 f"{min(reperes)} → {max(reperes)}",
+                 f"{len(dehors)} hors grille : "
+                 + ", ".join(f"{c['date']} {c['debut']}-{c['fin']}" for c in dehors[:4]))
+
+    tous = [c for liste in donnees.values() for c in liste]
+    week_end = [c for c in tous
+                if datetime.strptime(c["date"], "%Y-%m-%d").weekday() >= 5]
+    rap.verifier(not week_end, "aucun cours le week-end", f"{len(tous)} cours",
+                 f"{len(week_end)} le samedi ou le dimanche")
+
+    # Une journee entierement vide au milieu de la semaine est possible, mais
+    # une promotion sans aucun cours ne l'est pas.
+    for moitie, liste in donnees.items():
+        rap.verifier(len(liste) >= 5, f"{moitie} : volume plausible",
+                     f"{len(liste)} cours",
+                     f"{len(liste)} cours seulement — extraction probablement "
+                     "incomplète")
+
+
 def controler_routage(rap, cellules, donnees):
     """Chaque cours est-il dans la bonne demi-promo, et seulement celle-là ?"""
     rap.bloc("Placement dans les demi-promos")
@@ -558,6 +619,35 @@ def controler_fraicheur(rap, promo):
 # ENCHAÎNEMENT
 # =====================================================================
 
+def prevenir_discord(rap):
+    """Previent sur Discord quand la verification trouve quelque chose.
+
+    Sans cela il fallait lancer le script a la main pour savoir qu'un cours
+    manquait : la CI echouait en silence, dans un onglet que personne n'ouvre.
+    """
+    webhook = edt_stri.DISCORD_WEBHOOK_URL
+    if not webhook:
+        return
+
+    lignes = [f"• {intitule} — {detail}" if detail else f"• {intitule}"
+              for genre, intitule, detail in rap.lignes if genre == "ko"]
+    description = (f"**{rap.anomalies} anomalie(s)** relevée(s) par la "
+                   f"vérification :\n\n" + "\n".join(lignes[:14]))
+    if len(lignes) > 14:
+        description += f"\n… et {len(lignes) - 14} autre(s)."
+
+    try:
+        import requests
+        requests.post(webhook, timeout=edt_stri.TIMEOUT_HTTP, json={
+            "username": "Bot EDT STRI",
+            "embeds": [{"title": "\U0001f50e Vérification de l'emploi du temps",
+                        "description": description[:3900], "color": 15158332}],
+        }).raise_for_status()
+        print("✅ Anomalies signalées sur Discord.")
+    except Exception as e:
+        print(f"❌ Signalement Discord impossible : {e}")
+
+
 def principale():
     promo_voulue = None
     if "--promo" in sys.argv:
@@ -604,6 +694,7 @@ def principale():
         if manquant:
             continue
 
+        controler_plausibilite(rap, cellules, donnees)
         controler_routage(rap, cellules, donnees)
 
         for moitie in MOITIES:
@@ -612,10 +703,13 @@ def principale():
             if not HORS_LIGNE:
                 controler_agendas(rap, promo, moitie, donnees[moitie])
 
-        if not HORS_LIGNE:
+        if not SANS_FRAICHEUR:
             controler_fraicheur(rap, promo)
 
-    return rap.afficher()
+    code = rap.afficher()
+    if code and not SILENCIEUX:
+        prevenir_discord(rap)
+    return code
 
 
 if __name__ == "__main__":
