@@ -48,6 +48,11 @@ FICHIER_JSON = variable_env("MOODLE_JSON", "rendus_data.json")
 # Même garde-fou que pour l'emploi du temps : une chute brutale du nombre
 # d'échéances est plus probablement une panne qu'une vraie annulation générale.
 CHUTE_MAX = int(variable_env("MOODLE_CHUTE_MAX", "50"))
+
+# ... mais un pourcentage ne veut rien dire sur trois événements : un seul
+# devoir retiré ferait 33 %, et en début d'année le calendrier n'en contient
+# souvent qu'un. En dessous de ce seuil, on publie sans discuter.
+EFFECTIF_MINIMAL = int(variable_env("MOODLE_EFFECTIF_MINIMAL", "5"))
 FORCER = variable_env("EDT_FORCER") == "1"
 
 
@@ -141,7 +146,7 @@ def charger_anciens():
 
 def effondrement(nouveaux, anciens):
     """Message d'alerte si le nombre de rendus s'effondre, sinon None."""
-    if not anciens or FORCER:
+    if len(anciens) < EFFECTIF_MINIMAL or FORCER:
         return None
     chute = 100 * (len(anciens) - len(nouveaux)) / len(anciens)
     if chute < CHUTE_MAX:
@@ -160,7 +165,9 @@ def synchroniser_agenda(evenements, creds):
         service = build('calendar', 'v3', credentials=creds)
 
         agenda_id = google_agenda.trouver_ou_creer_agenda(
-            service, nom=NOM_AGENDA, cle=CLE_AGENDA)
+            service, nom=NOM_AGENDA, cle=CLE_AGENDA,
+            description="Rendus et dates limites Moodle, mis à jour "
+                        "automatiquement.")
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
 
         # `depuis` = aujourd'hui : les échéances passées ne sont jamais

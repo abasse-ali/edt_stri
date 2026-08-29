@@ -675,26 +675,38 @@ def moodle_lit_les_durees_iso():
 
 
 @test
-def moodle_epaissit_une_echeance_de_duree_nulle():
-    # DURATION:PT0S est la forme normale d'une date limite. Google refuse un
-    # événement de durée nulle : il lui faut une épaisseur.
-    ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu TP", "DTSTART:20260915T100000Z",
-                             "DURATION:PT0S", "CATEGORIES:Rendu M1"])
+def moodle_fait_finir_une_echeance_a_l_heure_limite():
+    # DURATION:PT0S (ou DTEND égal à DTSTART) est la forme normale d'une date
+    # limite : Google refuse un événement vide. L'épaisseur est donnée en
+    # AMONT — un devoir « à rendre pour 22h » se lit 21h30 → 22h00, alors que
+    # 22h00 → 22h30 laisserait croire qu'on peut déposer après l'heure.
+    ics = calendrier_moodle(["UID:1", "SUMMARY:DM_OSI doit être rendu",
+                             "DTSTART:20260906T200000Z", "DTEND:20260906T200000Z"])
     evenement = moodle.analyser(ics)[0]
-    assert evenement["end"] > evenement["start"], "fin postérieure au début"
+    egal(evenement["date"], "2026-09-06", "20h00 UTC est encore le 6 à Paris")
+    egal(evenement["end"], "22h00", "se termine à l'échéance")
+    egal(evenement["start"], "21h30", "et commence une demi-heure avant")
 
 
 @test
 def moodle_ne_deborde_pas_sur_le_lendemain_a_minuit():
-    # 23h59 + 30 min tomberait le jour suivant, or la forme « une date, deux
-    # heures » ne sait pas l'exprimer : l'événement se termine alors à
-    # l'échéance au lieu d'y commencer.
+    # Une échéance à 23h59 ne doit pas mordre sur le jour suivant, que l'on
+    # épaississe vers l'avant ou vers l'arrière.
     ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu", "DTSTART:20260915T215900Z",
                              "DURATION:PT0S"])
     evenement = moodle.analyser(ics)[0]
     egal(evenement["date"], "2026-09-15", "toujours le même jour")
-    egal(evenement["end"], "23h59", "se termine à l'échéance")
-    assert evenement["start"] < evenement["end"], "créneau non vide"
+    egal((evenement["start"], evenement["end"]), ("23h29", "23h59"))
+
+
+@test
+def moodle_gere_une_echeance_juste_apres_minuit():
+    # Reculer d'une demi-heure ferait changer de jour : on s'arrête à minuit.
+    ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu", "DTSTART:20260915T221000Z",
+                             "DURATION:PT0S"])
+    evenement = moodle.analyser(ics)[0]
+    egal(evenement["date"], "2026-09-16", "00h10 le 16 à Paris")
+    egal((evenement["start"], evenement["end"]), ("00h00", "00h10"))
 
 
 @test
@@ -798,6 +810,15 @@ def rendus_refuse_de_publier_un_effondrement():
     assert rendus.effondrement([{"uid": "1"}], anciens), "chute de 90 % signalée"
     assert rendus.effondrement(anciens, anciens) is None, "stabilité acceptée"
     assert rendus.effondrement([], []) is None, "première exécution acceptée"
+
+
+@test
+def rendus_ne_bloque_pas_sur_de_petits_effectifs():
+    # En début d'année le calendrier Moodle ne contient qu'un ou deux devoirs.
+    # Un pourcentage n'y veut rien dire : le seul devoir retiré ferait 100 %,
+    # et le garde-fou bloquerait toutes les publications suivantes.
+    assert rendus.effondrement([], [{"uid": "1"}]) is None, "1 -> 0 accepté"
+    assert rendus.effondrement([], [{"uid": str(i)} for i in range(3)]) is None
 
 
 # =====================================================================

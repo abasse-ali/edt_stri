@@ -223,7 +223,8 @@ def marqueur(cle):
     return f"[edt-stri:{cle}]"
 
 
-def trouver_ou_creer_agenda(service, nom=NOM_AGENDA, identifiant=None, cle="BAS"):
+def trouver_ou_creer_agenda(service, nom=NOM_AGENDA, identifiant=None, cle="BAS",
+                            description="Emploi du temps STRI, mis à jour automatiquement."):
     """Renvoie l'ID de l'agenda dédié, en le créant à la première exécution.
 
     La recherche se fait sur un MARQUEUR posé dans la description, pas sur le
@@ -263,7 +264,7 @@ def trouver_ou_creer_agenda(service, nom=NOM_AGENDA, identifiant=None, cle="BAS"
     print(f"   Création de l'agenda « {nom} »...")
     cree = service.calendars().insert(
         body={"summary": nom, "timeZone": FUSEAU,
-              "description": f"Emploi du temps STRI, mis à jour automatiquement. {etiquette}"}
+              "description": f"{description} {etiquette}"}
     ).execute()
     return cree["id"]
 

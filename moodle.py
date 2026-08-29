@@ -264,17 +264,24 @@ def _en_evenement(champs):
         }
 
     if fin <= debut:
-        fin = debut + DUREE_MINIMALE
-    if fin.date() != debut.date():
-        # Un événement à cheval sur deux jours ne rentre pas dans la forme
+        # Date limite : Moodle l'exporte sans durée (DTEND égal à DTSTART, ou
+        # DURATION:PT0S). Google refuse un événement vide, il lui faut une
+        # épaisseur — donnée EN AMONT, de sorte qu'il se TERMINE à l'échéance.
+        # « 21h30 → 22h00 » décrit un devoir à rendre pour 22h ; « 22h00 →
+        # 22h30 » laisserait croire qu'on peut encore déposer après.
+        fin = debut
+        debut = fin - DUREE_MINIMALE
+        if debut.date() != fin.date():
+            # Échéance juste après minuit : reculer changerait de jour.
+            debut = fin.replace(hour=0, minute=0)
+        if debut >= fin:
+            # Échéance à minuit pile : plus rien en amont, on repart en aval.
+            fin = debut + DUREE_MINIMALE
+    elif fin.date() != debut.date():
+        # Un vrai créneau à cheval sur deux jours ne rentre pas dans la forme
         # « une date + deux heures » : on le ramène à la fin de sa journée
         # plutôt que de produire une heure de fin antérieure à son début.
         fin = debut.replace(hour=23, minute=59)
-        if fin <= debut:
-            # Cas courant : une échéance fixée à 23h59. L'épaissir vers l'avant
-            # déborde sur le lendemain, alors on l'épaissit vers l'arrière —
-            # l'événement se TERMINE à l'heure limite, ce qui la décrit bien.
-            debut = fin - DUREE_MINIMALE
 
     return {
         "date": debut.strftime('%Y-%m-%d'),
