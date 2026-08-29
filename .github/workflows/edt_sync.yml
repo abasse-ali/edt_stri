@@ -138,6 +138,18 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python verif_edt.py --sans-fraicheur
 
+      # Filet de dernier recours : tout ce qui casse AVANT que edt_stri.py ne
+      # démarre — téléchargement refusé par le WAF, dépendances, secret absent,
+      # push rejeté — échouait jusqu'ici dans un onglet que personne n'ouvre.
+      # alerte_ci.py n'importe que la bibliothèque standard : il fonctionne même
+      # quand l'installation des dépendances est ce qui a échoué.
+      - name: Prévenir sur Discord en cas d'échec
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          LIEN_EXECUTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python alerte_ci.py
+
       # Les secrets ne doivent pas survivre à l'étape suivante, qui commite.
       - name: Effacer le jeton
         if: always()

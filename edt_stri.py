@@ -373,6 +373,8 @@ def synchroniser_agenda(cours_list, creds):
         return agenda_id
     except Exception as e:
         print(f"❌ Erreur de synchronisation de l'agenda : {e}")
+        envoyer_alerte_discord(
+            f"**Échec de synchronisation de l'agenda.**\n`{str(e)[:600]}`")
         return None
 
 
@@ -1163,6 +1165,8 @@ def effondrement(nouvelles, anciennes):
 def principale():
     if not Path(FICHIER_PDF).exists():
         print(f"❌ {FICHIER_PDF} introuvable.")
+        envoyer_alerte_discord(
+            f"**{FICHIER_PDF} introuvable.** Le téléchargement a-t-il échoué ?")
         return 1
 
     print("📏 Calcul dynamique des références horaires...")
@@ -1237,9 +1241,30 @@ def principale():
     journaliser(len(nouvelles_donnees), len(anciennes_donnees), "OK")
 
     creds = obtenir_identifiants()
+    if creds is None:
+        print("❌ Autorisation Google indisponible : agenda non synchronisé.")
+        envoyer_alerte_discord(
+            "**Agenda non synchronisé** : autorisation Google absente ou périmée.\n"
+            "Régénérer `token.json` en local, puis mettre à jour le secret "
+            "`GDRIVE_TOKEN` du dépôt.")
+        journaliser(len(nouvelles_donnees), len(anciennes_donnees), "AUTH_KO")
+        return 1
+
     agenda_id = synchroniser_agenda(nouvelles_donnees, creds)
-    if agenda_id:
-        afficher_lien_abonnement(agenda_id, creds)
+    if agenda_id is None:
+        # Rendre 0 ici serait le pire des cas : la CI commiterait le PDF, celui-ci
+        # correspondrait à la prochaine exécution, et l'agenda resterait figé sans
+        # que personne ne réessaie ni ne s'en aperçoive.
+        print("❌ Agenda non synchronisé. Le PDF ne sera pas commité : "
+              "la prochaine exécution réessaiera.")
+        envoyer_alerte_discord(
+            "**Agenda non synchronisé.** Les cours ont bien été lus, mais "
+            "l'écriture dans Google Agenda a échoué.\n"
+            "Le PDF n'est pas enregistré, la prochaine exécution horaire réessaiera.")
+        journaliser(len(nouvelles_donnees), len(anciennes_donnees), "AGENDA_KO")
+        return 1
+
+    afficher_lien_abonnement(agenda_id, creds)
     return 0
 
 
