@@ -26,20 +26,26 @@ TOLERANCE_COULEUR = 0.15
 
 
 def _proche(couleur, cible):
+    """Deux couleurs se ressemblent-elles ? Écarte tout ce qui n'est pas un
+    triplet RVB — les pointillés de la grille portent un nom de motif,
+    « P67 », que prendre pour du noir créerait des cellules fantômes."""
     if not isinstance(couleur, (tuple, list)) or len(couleur) != 3:
         return False
     return all(abs(c - r) < TOLERANCE_COULEUR for c, r in zip(couleur, cible))
 
 
 def est_vert(c):
+    """Vert vif : fond des cases de salle."""
     return _proche(c, (0.0, 0.98, 0.0))
 
 
 def est_jaune(c):
+    """Jaune : fond des examens."""
     return _proche(c, (1.0, 1.0, 0.0))
 
 
 def est_orange(c):
+    """Orange : cours réservé aux Ingé, pas un cours annulé."""
     return _proche(c, (1.0, 0.75, 0.0))
 
 
@@ -50,6 +56,7 @@ def est_olive(c):
 
 
 def est_noir(c):
+    """Noir plein : bordure de cellule, par opposition aux pointillés gris."""
     return _proche(c, (0.0, 0.0, 0.0))
 
 
@@ -246,6 +253,7 @@ class GrilleJour:
         return retenues
 
     def bornes_verticales(self, position):
+        """Haut et bas de la moitié visée, en points PDF."""
         if position == "TOP":
             return self.haut, self.milieu
         if position == "BOTTOM":
@@ -432,6 +440,13 @@ def _coupe_un_titre(dedans, dans_moitie, gauche, droite, grille, y0, y1, colle=5
 
 
 def _construire(grille, gauche, droite, position, y0, y1, mots, vers_heure):
+    """Assemble un cours depuis les mots d'une cellule, ou None si rien de
+    lisible.
+
+    Les mots posés sur une case verte sont la salle, les autres le titre ;
+    dans une cellule pleine hauteur, la deuxième ligne porte le professeur.
+    Aucun titre exploitable rend None plutôt qu'un cours vide.
+    """
     if not mots:
         return None
 

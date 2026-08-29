@@ -32,6 +32,11 @@ CORPS = ("Une étape du workflow s'est interrompue. Les emplois du temps publié
 
 
 def prevenir(message=None):
+    """Poste l'échec sur Discord. Rend toujours 0.
+
+    Elle tourne quand tout a déjà échoué : rendre un code non nul
+    remplacerait la vraie cause par celle-ci dans le rapport du workflow.
+    """
     webhook = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
     if not webhook:
         print("ℹ️  Aucun webhook Discord configuré : rien à signaler.")

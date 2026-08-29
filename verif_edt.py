@@ -264,6 +264,7 @@ def controler_completude(rap, orphelins):
 
 
 def controler_pdf(rap, promo, zones, cellules, fonds):
+    """Les journées et les cellules ont-elles été correctement repérées ?"""
     rap.bloc("Lecture du PDF")
 
     rap.verifier(bool(zones), "journées détectées",
@@ -314,6 +315,7 @@ def controler_pdf(rap, promo, zones, cellules, fonds):
 
 
 def controler_horaires(rap, cellules):
+    """Les horaires sont-ils lisibles, ordonnés et alignés sur la grille ?"""
     rap.bloc("Horaires")
 
     illisibles = [c for c in cellules if not c["debut"] or not c["fin"]]
@@ -453,6 +455,7 @@ def controler_routage(rap, cellules, donnees):
 
 
 def controler_donnees(rap, moitie, cours, chemin_ics):
+    """Le JSON et l'ICS produits sont-ils cohérents entre eux et en eux-mêmes ?"""
     rap.bloc(f"Sorties — moitié {moitie}")
 
     def minutes(h):
@@ -658,6 +661,7 @@ def prevenir_discord(rap):
 
 
 def principale():
+    """Enchaîne tous les contrôles et rend 0 si aucun n'a échoué."""
     promo_voulue = None
     if "--promo" in sys.argv:
         i = sys.argv.index("--promo")

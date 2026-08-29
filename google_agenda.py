@@ -121,6 +121,11 @@ def _identifiant(cours):
 
 
 def _horodatage(date_str, heure_str):
+    """« 2026-09-08 » et « 08h00 » -> ISO 8601 sans fuseau.
+
+    Le fuseau est déclaré à part dans la ressource, pour que Google applique
+    lui-même le changement d'heure.
+    """
     heures, minutes = map(int, heure_str.split('h'))
     jour = datetime.strptime(date_str, '%Y-%m-%d')
     return jour.replace(hour=heures, minute=minutes).isoformat()
@@ -171,6 +176,12 @@ def _identique(existant, voulu):
 
 
 def _instant(valeur, fuseau=None):
+    """Ramène un horodatage à un instant comparable.
+
+    L'API rend un décalage explicite (« +02:00 ») là où on envoie un fuseau
+    nommé : comparer les chaînes ferait réécrire tous les événements à chaque
+    exécution.
+    """
     if not valeur:
         return None
     from zoneinfo import ZoneInfo
@@ -243,6 +254,11 @@ def _etiqueter(service, agenda_id, etiquette):
 
 
 def _evenements_existants(service, agenda_id):
+    """Tous les événements de l'agenda, indexés par identifiant.
+
+    L'API plafonne à 2500 par page : la pagination est indispensable, sans
+    quoi les événements non listés seraient recréés puis supprimés en boucle.
+    """
     existants, jeton = {}, None
     while True:
         page = service.events().list(

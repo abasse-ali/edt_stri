@@ -79,6 +79,11 @@ def _option(nom, valeurs):
 
 
 def main():
+    """Télécharge les PDF puis lance une passe par combinaison.
+
+    Un processus par passe : la configuration étant lue au chargement du
+    module, une seule exécution ne peut couvrir qu'une combinaison.
+    """
     promo_voulue = _option("--promo", PROMOS)
     moitie_voulue = _option("--moitie", ("BAS", "HAUT"))
 

@@ -197,6 +197,11 @@ def _sauver_debug(image, *parties):
 # =====================================================================
 
 def _envoyer_embed(titre, description, couleur):
+    """Envoie un encadré Discord. Sans webhook configuré, ne fait rien.
+
+    Discord refuse au-delà de 4096 caractères : une description trop longue
+    est tronquée plutôt que de faire échouer l'envoi.
+    """
     if not DISCORD_WEBHOOK_URL:
         return
     if len(description) > 3900:
@@ -216,6 +221,11 @@ def _envoyer_embed(titre, description, couleur):
 
 
 def envoyer_notification_discord(modifications):
+    """Annonce les changements d'emploi du temps, un par ligne.
+
+    Le nom de l'agenda est repris dans le titre : quatre passes tournent à
+    la suite, et sans lui les messages seraient indiscernables.
+    """
     if not modifications:
         return
 
@@ -379,6 +389,7 @@ def synchroniser_agenda(cours_list, creds):
 
 
 def _rapporter(quoi, bilan):
+    """Affiche le bilan d'une synchronisation : ajouts, modifications, retraits."""
     ajouts, modifs, retraits = bilan
     print(f"✅ {quoi} : {ajouts} ajout(s), {modifs} modification(s), "
           f"{retraits} suppression(s).")
@@ -467,6 +478,11 @@ def _traits_entete(chemin_pdf, page_num, y_start_px, y_end_px, dpi):
 
 
 def _bord_droit_entete(chemin_pdf, page_num, y_start_px, y_end_px, dpi):
+    """Abscisse du dernier trait de l'en-tête, lue dans le vectoriel du PDF.
+
+    La détection morphologique le manquait — 2186 retenu alors qu'un trait
+    existe à 2209 — et la dernière colonne horaire n'existait pas.
+    """
     traits = _traits_entete(chemin_pdf, page_num, y_start_px, y_end_px, dpi)
     return traits[-1] if traits else None
 
@@ -1034,6 +1050,13 @@ def _cle_cours(cours):
 
 
 def comparer_emplois_du_temps(anciennes_donnees, nouvelles_donnees):
+    """Différence entre deux emplois du temps, pour l'annonce Discord.
+
+    Rend une liste de {type: ajout|suppression|modification}. La clé inclut
+    le titre et la salle : deux cours empilés au même créneau ne se
+    distinguent que par là, et une clé plus grossière signalait des
+    modifications fantômes.
+    """
     modifications = []
     anciens = {_cle_cours(c): c for c in anciennes_donnees}
     nouveaux = {_cle_cours(c): c for c in nouvelles_donnees}
@@ -1068,6 +1091,12 @@ def comparer_emplois_du_temps(anciennes_donnees, nouvelles_donnees):
 
 
 def construire_ics(cours_list, chemin=FICHIER_ICS):
+    """Écrit le fichier ICS et rend le nombre d'événements retenus.
+
+    Les cours aux horaires incohérents sont écartés plutôt que publiés.
+    L'UID est déterministe : un agenda abonné met alors l'événement à jour
+    au lieu de le supprimer puis le recréer.
+    """
     calendrier = Calendar()
     tz = ZoneInfo('Europe/Paris')
 
@@ -1117,6 +1146,11 @@ def construire_ics(cours_list, chemin=FICHIER_ICS):
 
 
 def charger_anciennes_donnees(chemin=FICHIER_JSON):
+    """Lit le JSON de la passe précédente, qui sert de référence.
+
+    Rend une liste vide si le fichier manque ou est illisible : c'est le cas
+    d'une première exécution, pas une erreur.
+    """
     if not Path(chemin).exists():
         return []
     try:
@@ -1163,6 +1197,18 @@ def effondrement(nouvelles, anciennes):
 
 
 def principale():
+    """Chaîne complète pour UNE combinaison promotion × demi-promo.
+
+    PDF -> cellules -> cours -> JSON -> ICS -> Google Agenda.
+
+    Rend 0 si tout a abouti, 1 sinon. Ce code compte : la CI ne commite les
+    PDF que sur un 0, si bien qu'un échec fait automatiquement réessayer à
+    l'exécution suivante au lieu de figer les agendas.
+
+    Trois garde-fous peuvent interrompre la publication : extraction
+    incomplète, effondrement du nombre de cours, synchronisation impossible.
+    Chacun prévient sur Discord.
+    """
     if not Path(FICHIER_PDF).exists():
         print(f"❌ {FICHIER_PDF} introuvable.")
         envoyer_alerte_discord(
