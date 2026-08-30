@@ -23,15 +23,16 @@ compte qui tourne là est celui qui synchronise les emplois du temps de toute la
 promo — le mettre en jeu pour économiser quelques euros serait un mauvais
 calcul.
 
-## Les trois voies possibles
+## Les voies possibles
 
 | | Vraiment 24/7 | Coût | Effort |
 |---|---|---|---|
+| Panneau gratuit (Katabump, FridayDev…) | à vérifier — beaucoup exigent un renouvellement | 0 | très faible |
 | Hébergeur en ligne | oui | 0 à ~5 €/mois | moyen, une fois |
 | Raspberry Pi ou vieux PC | oui, tant qu'il est allumé | ~5 €/an d'électricité | faible |
 | Ton PC Windows | non | 0 | très faible |
 
-Dans les trois cas, la machine a besoin de deux fichiers **qui ne sont pas dans
+Dans tous les cas, la machine a besoin de deux fichiers **qui ne sont pas dans
 le dépôt** : `.env` (jeton Discord, adresses Moodle) et `token.json`
 (autorisation Google). Copie-les à la main, jamais par un commit.
 
