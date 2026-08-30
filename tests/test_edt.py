@@ -1165,11 +1165,26 @@ def bot_montre_ce_qui_a_ete_corrige():
 def bot_lit_les_identifiants_colles_a_la_main():
     if bot_discord is None:
         raise Passer("discord.py n'est pas installé")
-    egal(bot_discord.identifiants("123, 456"), {123, 456}, "virgule")
-    egal(bot_discord.identifiants("123 456"), {123, 456}, "espace")
-    egal(bot_discord.identifiants("<@123>"), {123}, "mention collée")
-    egal(bot_discord.identifiants(""), set(), "vide")
-    egal(bot_discord.identifiants("pseudo#1234"), set(), "pas un identifiant")
+    egal(bot_discord.identifiants("123, 456"), [123, 456], "virgule")
+    egal(bot_discord.identifiants("123 456"), [123, 456], "espace")
+    egal(bot_discord.identifiants("<@123>"), [123], "mention collée")
+    egal(bot_discord.identifiants(""), [], "vide")
+    egal(bot_discord.identifiants("pseudo#1234"), [], "pas un identifiant")
+    # L'ORDRE compte : le premier reçoit les fiches en message privé. Un
+    # ensemble en aurait donné un différent à chaque démarrage, et les demandes
+    # seraient parties tantôt à l'un, tantôt à l'autre.
+    egal(bot_discord.identifiants("300 100 200"), [300, 100, 200], "ordre gardé")
+    egal(bot_discord.identifiants("7 7 8"), [7, 8], "doublon écarté")
+
+
+@test
+def bot_envoie_les_fiches_en_message_prive():
+    """Ni l'adresse du demandeur ni la décision ne passent par un salon."""
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    # Le valideur est le premier des admins, sauf mention explicite.
+    egal(bot_discord.identifiants("42 43")[0], 42, "le premier des admins")
+    assert bot_discord.VALIDEUR is None or bot_discord.VALIDEUR in bot_discord.ADMINS         or bot_discord.variable_env("DISCORD_VALIDEUR"),         "le valideur est un admin, ou désigné à part"
 
 
 @test

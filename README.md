@@ -249,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (92 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (94 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -476,11 +476,16 @@ personne qui a cliqué**, une liste où elle coche les agendas voulus — plusie
 à la fois — puis une fenêtre pour son adresse. Rien n'est écrit dans le
 salon : il ne s'encombre pas, et personne ne lit l'adresse d'un autre.
 
-La demande arrive dans ton salon de validation sous forme de fiche. Tu peux y
+La demande t'arrive **en message privé**, sous forme de fiche. Tu peux y
 **corriger les agendas demandés** — retirer celui auquel la personne n'a pas
 droit, ajouter le bon — puis cliquer sur **Valider**. Le partage Google est
-appliqué au clic, et la personne reçoit un message privé. La fiche garde une
-ligne « Demandé à l'origine » quand tu as changé quelque chose.
+appliqué au clic, et la personne reçoit un message privé à son tour. La fiche
+garde une ligne « Demandé à l'origine » quand tu as changé quelque chose.
+
+Rien ne transite donc par un salon : ni l'adresse de la personne, ni ta
+décision. Un salon de repli reste possible pour le cas où Discord refuserait le
+message privé — beaucoup de comptes bloquent ceux venant d'un serveur. Le bot
+vérifie au démarrage qu'une fiche pourra bien être remise, et le dit.
 
 ```bash
 pip install -r requirements-bot.txt
@@ -494,8 +499,9 @@ il faut donc une machine allumée en permanence. GitHub Actions ne convient pas.
 | Variable | Rôle |
 |---|---|
 | `DISCORD_BOT_TOKEN` | Jeton du bot (Developer Portal → Bot → Reset Token) |
-| `DISCORD_SALON_DEMANDES` | Identifiant du salon où arrivent les demandes |
-| `DISCORD_ADMINS` | Identifiants autorisés à valider. **Vide = tout le monde peut** |
+| `DISCORD_ADMINS` | Identifiants autorisés à valider. Le **premier** reçoit les fiches |
+| `DISCORD_VALIDEUR` | Facultatif : envoyer les fiches à quelqu'un d'autre que le premier |
+| `DISCORD_SALON_DEMANDES` | Facultatif : salon de repli si le message privé est refusé |
 | `DISCORD_SERVEUR` | Facultatif : les commandes apparaissent aussitôt sur ce serveur |
 
 | Commande | Qui | Effet |

@@ -6,10 +6,14 @@ ouvre, VISIBLE DE LA SEULE PERSONNE QUI A CLIQUÉ, une liste où elle coche les
 agendas voulus, puis un formulaire pour son adresse Google. Rien n'est écrit
 dans le salon : il ne s'encombre pas, et personne ne lit l'adresse d'un autre.
 
-La demande arrive dans TON salon de validation, sous forme de fiche : tu peux
-corriger les agendas demandés — en retirer un auquel la personne n'a pas droit,
-en ajouter un autre — puis valider. Le partage Google est appliqué au clic, et
-la personne est prévenue en message privé.
+La demande t'arrive EN MESSAGE PRIVÉ, sous forme de fiche : tu peux corriger
+les agendas demandés — en retirer un auquel la personne n'a pas droit, en
+ajouter un autre — puis valider. Le partage Google est appliqué au clic, et la
+personne est prévenue en message privé à son tour.
+
+Rien ne transite donc par un salon : ni l'adresse de la personne, ni ta
+décision. Un salon de repli reste possible pour le cas où Discord refuserait le
+message privé — beaucoup de comptes bloquent ceux venant d'un serveur.
 
 Pose le panneau une fois, dans le salon voulu, avec `/edt-panneau`. Il survit
 aux redémarrages. `/edt` ouvre la même liste, pour qui ne le retrouve pas.
@@ -25,9 +29,13 @@ démarre trop tard pour répondre.
 Réglages, dans `.env` :
 
     DISCORD_BOT_TOKEN      le jeton du bot (Developer Portal → Bot → Reset Token)
-    DISCORD_SALON_DEMANDES l'identifiant du salon où arrivent les demandes
     DISCORD_ADMINS         les identifiants Discord autorisés à valider,
-                           séparés par des virgules
+                           séparés par des virgules. Le PREMIER reçoit les
+                           fiches en message privé.
+    DISCORD_VALIDEUR       (facultatif) pour envoyer les fiches à quelqu'un
+                           d'autre que le premier des ADMINS
+    DISCORD_SALON_DEMANDES (facultatif) salon de repli, utilisé seulement si le
+                           message privé est refusé
     DISCORD_SERVEUR        (facultatif) l'identifiant du serveur : les commandes
                            y apparaissent tout de suite, au lieu d'attendre
                            jusqu'à une heure la propagation mondiale
@@ -68,15 +76,19 @@ def identifiants(texte):
     morceaux qui ne sont pas des nombres sont écartés : un identifiant se colle
     depuis Discord, et il arrive qu'on colle une mention « <@123> » à la place.
     """
-    trouves = set()
+    trouves = []
     for morceau in (texte or "").replace(",", " ").replace(";", " ").split():
         morceau = morceau.strip("<>@!&#")
-        if morceau.isdigit():
-            trouves.add(int(morceau))
+        if morceau.isdigit() and int(morceau) not in trouves:
+            trouves.append(int(morceau))
     return trouves
 
 
+# Liste et non ensemble : le PREMIER reçoit les fiches, il faut donc un ordre
+# stable. Un ensemble en aurait donné un différent à chaque démarrage.
 ADMINS = identifiants(variable_env("DISCORD_ADMINS"))
+VALIDEUR = next(iter(identifiants(variable_env("DISCORD_VALIDEUR"))), None) \
+    or (ADMINS[0] if ADMINS else None)
 
 # Les fiches en attente survivent à un redémarrage : sans ce fichier, les
 # boutons d'une demande déjà postée deviendraient inertes et la personne
@@ -156,6 +168,29 @@ def _appliquer(courriel, cles):
         intitule = partager.CATALOGUE[cle][0]
         faits.append(f"**{intitule}** — {'accès donné' if ajoutes else 'accès déjà en place'}")
     return faits, None
+
+
+async def destination(client):
+    """Où poster une fiche : le message privé du valideur, ou le salon de repli.
+
+    Rend (destinataire, description) ou (None, raison). Le message privé est
+    tenté d'abord ; beaucoup de comptes refusent ceux venant d'un serveur, et
+    dans ce cas seulement on retombe sur le salon — si l'on en a configuré un.
+    """
+    if VALIDEUR:
+        try:
+            personne = client.get_user(VALIDEUR) or await client.fetch_user(VALIDEUR)
+            return await personne.create_dm(), f"message privé à {personne}"
+        except Exception as e:
+            print(f"⚠️ Message privé au valideur impossible ({type(e).__name__}).")
+
+    if SALON_DEMANDES:
+        salon = client.get_channel(SALON_DEMANDES)
+        if salon is not None:
+            return salon, f"salon #{salon.name} (repli)"
+
+    return None, ("aucune destination : ni valideur joignable en message privé, "
+                  "ni salon de repli")
 
 
 # =====================================================================
@@ -254,12 +289,13 @@ class ModalCourriel(discord.ui.Modal, title="Ton adresse Google"):
                 "bouton pour réessayer.", ephemeral=True)
             return
 
-        salon = interaction.client.get_channel(SALON_DEMANDES)
-        if salon is None:
+        ou, description = await destination(interaction.client)
+        if ou is None:
             await interaction.response.send_message(
-                "Le salon de validation n'est pas configuré : préviens la "
-                "personne qui gère les agendas.", ephemeral=True)
-            print("⛔ DISCORD_SALON_DEMANDES absent ou salon invisible pour le bot.")
+                "⚠️ Ta demande n'a pas pu être transmise : le bot n'a aucun "
+                "moyen de joindre la personne qui valide. Signale-le, ce n'est "
+                "pas de ton fait.", ephemeral=True)
+            print(f"⛔ Fiche non postée — {description}.")
             return
 
         demande = {
@@ -270,16 +306,15 @@ class ModalCourriel(discord.ui.Modal, title="Ton adresse Google"):
             "cles_demandees": list(self.cles),
         }
         try:
-            message = await salon.send(embed=fiche(demande), view=VueDemande())
+            message = await ou.send(embed=fiche(demande), view=VueDemande())
         except discord.Forbidden:
             # La demande serait perdue en silence : mieux vaut le dire à la
             # personne, qui pourra signaler la panne, que la laisser attendre.
-            print("⛔ Fiche non postée : le bot ne peut pas écrire dans le "
-                  f"salon {SALON_DEMANDES}. Voir les droits au démarrage.")
+            print(f"⛔ Fiche non postée ({description}) : accès refusé.")
             await interaction.response.send_message(
-                "⚠️ Ta demande n'a pas pu être transmise : le bot n'a pas accès "
-                "au salon de validation. Signale-le, ce n'est pas de ton fait.",
-                ephemeral=True)
+                "⚠️ Ta demande n'a pas pu être transmise : le bot n'a pas pu "
+                "joindre la personne qui valide. Signale-le, ce n'est pas de "
+                "ton fait.", ephemeral=True)
             return
 
         ETAT[str(message.id)] = demande
@@ -459,39 +494,26 @@ class Bot(discord.Client):
         print(f"✅ Connecté comme {self.user}.")
         print(f"   Valideurs : {', '.join(map(str, ADMINS)) or '(tout le monde !)'}")
         print(f"   {len(ETAT)} demande(s) en attente.")
-        await self._verifier_salon()
+        await self._verifier_destination()
 
-    async def _verifier_salon(self):
-        """Vérifie tout de suite que le salon de validation est utilisable.
+    async def _verifier_destination(self):
+        """Vérifie tout de suite qu'une fiche pourra être remise.
 
         Sans ce contrôle, la panne se découvrirait au pire moment : un étudiant
         remplit le formulaire, sa demande n'arrive nulle part, et il attend un
         accès que personne ne verra jamais passer.
         """
-        try:
-            salon = self.get_channel(SALON_DEMANDES) or await self.fetch_channel(SALON_DEMANDES)
-        except discord.Forbidden:
-            self._expliquer_droits("le bot ne voit pas le salon de validation")
+        if VALIDEUR is None:
+            print("⛔ Aucun valideur : renseigne DISCORD_ADMINS.")
             return
-        except discord.NotFound:
-            print(f"⛔ Salon {SALON_DEMANDES} introuvable. Vérifie "
-                  "DISCORD_SALON_DEMANDES (clic droit sur le salon → Copier l'ID).")
+        _, description = await destination(self)
+        if _ is None:
+            print(f"⛔ {description}.")
+            print("   Le valideur doit autoriser les messages privés venant du")
+            print("   serveur : Paramètres du serveur → Confidentialité.")
+            print("   Ou renseigne DISCORD_SALON_DEMANDES comme repli.")
             return
-        except Exception as e:
-            print(f"⚠️ Salon de validation non vérifié ({type(e).__name__}).")
-            return
-
-        droits = salon.permissions_for(salon.guild.me)
-        manquants = [nom for nom, ok in (
-            ("voir le salon", droits.view_channel),
-            ("y écrire", droits.send_messages),
-            ("y mettre un encadré", droits.embed_links),
-        ) if not ok]
-        if manquants:
-            self._expliquer_droits("il manque au bot le droit de "
-                                   + ", ".join(manquants))
-            return
-        print(f"   Salon de validation : #{salon.name} ✅")
+        print(f"   Les fiches partent en {description} ✅")
 
     def _expliquer_droits(self, quoi):
         print(f"⛔ {quoi}.")
@@ -599,9 +621,10 @@ def principale():
         print("⛔ DISCORD_BOT_TOKEN n'est pas défini.")
         print("   Developer Portal → ton application → Bot → Reset Token.")
         return 1
-    if not SALON_DEMANDES:
-        print("⛔ DISCORD_SALON_DEMANDES n'est pas défini.")
-        print("   Mode développeur activé, clic droit sur le salon → Copier l'ID.")
+    if not ADMINS and VALIDEUR is None:
+        print("⛔ DISCORD_ADMINS est vide : personne à qui envoyer les demandes,")
+        print("   et n'importe qui pourrait les valider.")
+        print("   Mode développeur activé, clic droit sur toi → Copier l'ID.")
         return 1
     if not ADMINS:
         print("⚠️ DISCORD_ADMINS est vide : N'IMPORTE QUI pourra valider une")
