@@ -18,6 +18,10 @@ message privé — beaucoup de comptes bloquent ceux venant d'un serveur.
 Pose le panneau une fois, dans le salon voulu, avec `/edt-panneau`. Il survit
 aux redémarrages. `/edt` ouvre la même liste, pour qui ne le retrouve pas.
 
+Une fiche traitée porte un bouton « Supprimer », et `/edt-menage` les efface
+toutes d'un coup. Discord ne laisse personne effacer les messages d'autrui,
+même dans un message privé : seul l'auteur le peut, donc seul le bot.
+
     python src/bot_discord.py
 
 ⚠️ Contrairement au reste du projet, ce script ne se lance pas par une tâche
@@ -69,6 +73,8 @@ for _flux in (sys.stdout, sys.stderr):
 JETON = variable_env("DISCORD_BOT_TOKEN")
 SALON_DEMANDES = int(variable_env("DISCORD_SALON_DEMANDES", "0") or 0)
 SERVEUR = int(variable_env("DISCORD_SERVEUR", "0") or 0)
+
+
 def identifiants(texte):
     """Les identifiants Discord d'une liste écrite à la main.
 
@@ -574,6 +580,25 @@ class SelecteurAdmin(discord.ui.Select):
         await interaction.response.edit_message(embed=fiche(demande), view=VueDemande())
 
 
+class VueTerminee(discord.ui.View):
+    """Ce qui reste sur une fiche traitée : de quoi la faire disparaître.
+
+    Discord n'autorise personne à supprimer le message d'un autre, y compris
+    dans un message privé — c'est donc au bot de le faire, à la demande.
+    """
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Supprimer", emoji="🗑️",
+                       style=discord.ButtonStyle.secondary,
+                       custom_id="edt:supprimer")
+    async def supprimer(self, interaction, bouton):
+        if not await _refuser_si_pas_admin(interaction):
+            return
+        await interaction.message.delete()
+
+
 class VueDemande(discord.ui.View):
     """Les commandes de la fiche. `timeout=None` + `custom_id` la rendent
     persistante : les boutons répondent encore après un redémarrage."""
@@ -612,7 +637,7 @@ class VueDemande(discord.ui.View):
 
         await interaction.message.edit(
             embed=fiche(demande, "valide", str(interaction.user), "\n".join(faits)),
-            view=None)
+            view=VueTerminee())
         ETAT.pop(str(interaction.message.id), None)
         enregistrer_etat(ETAT)
         await _prevenir(interaction, demande, accepte=True)
@@ -629,7 +654,7 @@ class VueDemande(discord.ui.View):
             return
         enregistrer_etat(ETAT)
         await interaction.response.edit_message(
-            embed=fiche(demande, "refus", str(interaction.user)), view=None)
+            embed=fiche(demande, "refus", str(interaction.user)), view=VueTerminee())
         await _prevenir(interaction, demande, accepte=False)
 
 
@@ -685,6 +710,7 @@ class Bot(discord.Client):
         # gardent des boutons vivants.
         self.add_view(VueDemande())
         self.add_view(VuePanneau())
+        self.add_view(VueTerminee())
         if SERVEUR:
             serveur = discord.Object(id=SERVEUR)
             self.arbre.copy_global_to(guild=serveur)
@@ -778,6 +804,58 @@ async def edt_panneau(interaction):
         await interaction.response.send_message(
             "Le bot n'a pas accès à ce salon. Regarde la console : le lien de "
             "réinvitation y est affiché.", ephemeral=True)
+
+
+@bot.arbre.command(name="edt-menage",
+                   description="Effacer les fiches déjà traitées (réservé aux valideurs)")
+@app_commands.describe(
+    combien="Nombre de messages à parcourir en remontant (500 par défaut)")
+async def edt_menage(interaction, combien: int = 500):
+    """Efface les messages du bot dans le message privé du valideur.
+
+    Les fiches ENCORE EN ATTENTE sont épargnées : les supprimer laisserait la
+    personne qui a fait la demande sans réponse possible, et sans trace.
+
+    La commande s'exécute où on veut — elle va chercher le message privé du
+    valideur. Les commandes étant enregistrées sur le serveur, elles
+    n'apparaîtraient pas dans un message privé.
+    """
+    if ADMINS and interaction.user.id not in ADMINS:
+        await interaction.response.send_message(
+            "Commande réservée à la personne qui gère les agendas.", ephemeral=True)
+        return
+    if VALIDEUR is None:
+        await interaction.response.send_message(
+            "Aucun valideur configuré.", ephemeral=True)
+        return
+
+    await interaction.response.defer(ephemeral=True)
+    try:
+        personne = interaction.client.get_user(VALIDEUR) \
+            or await interaction.client.fetch_user(VALIDEUR)
+        canal = await personne.create_dm()
+    except Exception as e:
+        await interaction.followup.send(
+            f"Message privé inaccessible ({type(e).__name__}).", ephemeral=True)
+        return
+
+    efface, gardees = 0, 0
+    async for message in canal.history(limit=max(1, min(combien, 2000))):
+        if message.author.id != interaction.client.user.id:
+            continue
+        if str(message.id) in ETAT:
+            gardees += 1  # fiche en attente : on n'y touche pas
+            continue
+        try:
+            await message.delete()
+            efface += 1
+        except discord.HTTPException:
+            pass  # message déjà supprimé, ou trop ancien : sans importance
+
+    bilan = f"🗑️ {efface} message(s) effacé(s)."
+    if gardees:
+        bilan += f"\n{gardees} fiche(s) en attente conservée(s)."
+    await interaction.followup.send(bilan, ephemeral=True)
 
 
 @bot.arbre.command(name="edt-liste",

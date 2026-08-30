@@ -1153,6 +1153,49 @@ def bot_n_a_pas_besoin_de_la_chaine_des_pdf():
 
 
 @test
+def bot_sait_effacer_ses_propres_fiches():
+    """Discord n'autorise personne à supprimer le message d'un autre.
+
+    Même dans un message privé : seul l'auteur le peut. Un bouton posé sur la
+    fiche traitée est donc le seul moyen de faire le ménage — et il doit
+    survivre à un redémarrage comme les autres.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    vue = bot_discord.VueTerminee()
+    assert vue.is_persistent(), "le bouton survit à un redémarrage"
+    egal([c.custom_id for c in vue.children], ["edt:supprimer"])
+
+    noms = sorted(c.name for c in bot_discord.bot.arbre.get_commands())
+    assert "edt-menage" in noms, "le ménage groupé existe aussi"
+
+
+@test
+def menage_epargne_les_fiches_en_attente():
+    """Supprimer une fiche non traitée laisserait quelqu'un sans réponse.
+
+    La demande disparaîtrait du message privé sans que personne ne l'ait
+    tranchée, et son auteur attendrait un accès que plus aucun bouton ne peut
+    donner.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    corps = _source_entre("src/bot_discord.py", "async def edt_menage",
+                          '@bot.arbre.command(name="edt-liste"')
+    assert "str(message.id) in ETAT" in corps, "les fiches en attente sont gardées"
+    assert "message.author.id != interaction.client.user.id" in corps,         "seuls les messages du bot sont touchés"
+    assert "ADMINS and interaction.user.id not in ADMINS" in corps,         "réservé aux valideurs"
+
+
+def _source_entre(chemin, debut, fin):
+    """Le texte d'un fichier entre deux repères. Sert aux vérifications que
+    l'introspection ne permet pas — un objet Command de discord.py ne rend pas
+    son code source."""
+    texte = (chemins.RACINE / chemin).read_text(encoding="utf-8")
+    return texte[texte.index(debut):texte.index(fin)]
+
+
+@test
 def bot_offre_le_tutoriel_a_cote_de_l_inscription():
     if bot_discord is None:
         raise Passer("discord.py n'est pas installé")

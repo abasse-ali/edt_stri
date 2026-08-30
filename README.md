@@ -249,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (100 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (102 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -484,6 +484,12 @@ droit, ajouter le bon — puis cliquer sur **Valider**. Le partage Google est
 appliqué au clic, et la personne reçoit un message privé à son tour. La fiche
 garde une ligne « Demandé à l'origine » quand tu as changé quelque chose.
 
+Une fois tranchée, la fiche porte un bouton **Supprimer**. Discord n'autorise
+personne à effacer le message d'un autre — même dans un message privé, seul
+l'auteur le peut : c'est donc au bot de le faire, à ta demande. `/edt-menage`
+les efface toutes d'un coup, en épargnant celles qui attendent encore une
+décision.
+
 Rien ne transite donc par un salon : ni l'adresse de la personne, ni ta
 décision. Un salon de repli reste possible pour le cas où Discord refuserait le
 message privé — beaucoup de comptes bloquent ceux venant d'un serveur. Le bot
@@ -530,6 +536,7 @@ chacun avance à son rythme sans que le salon en garde trace.
 | `/edt-panneau` | toi | Pose le panneau d'inscription dans le salon courant |
 | `/edt` | tout le monde | Ouvre la même liste, pour qui ne retrouve pas le panneau |
 | `/edt-liste` | toi | Les abonnés de chaque agenda, en message éphémère |
+| `/edt-menage` | toi | Efface les fiches déjà traitées de ton message privé |
 
 ### En ligne de commande
 
