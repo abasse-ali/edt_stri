@@ -1,0 +1,14 @@
+# Sans ceci, un `git add` depuis Windows (core.autocrlf=true) peut enregistrer
+# des fins de ligne CRLF. Un script shell en CRLF echoue sous Linux avec
+# « bad interpreter: bash^M », et un fichier .service ne demarre pas.
+* text=auto
+
+*.sh        text eol=lf
+*.service   text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+Dockerfile  text eol=lf
+
+# `git archive` sert a deposer le code sur un serveur : le bot Discord n'a
+# besoin ni des PDF, ni des JSON d'emploi du temps, ni des images de debug.
+donnees/    export-ignore

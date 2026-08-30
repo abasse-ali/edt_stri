@@ -163,28 +163,64 @@ type $env:USERPROFILE\.ssh\id_ed25519.pub    # à coller dans la console
 
 ### Installer le bot
 
-Une fois l'instance créée, note son **adresse IP publique**, puis :
+⚠️ **Le dépôt est privé.** GitHub répond 404 aux requêtes anonymes : ni
+`curl … | bash`, ni `git clone` sans identifiants ne fonctionnent. Deux voies.
+
+#### a. Envoyer une archive depuis ton PC — le plus simple
+
+`git archive` exporte le contenu **du dépôt**, pas celui de ton disque. C'est
+important : ta copie de travail Windows a des fins de ligne CRLF, et un script
+shell en CRLF échoue sous Linux avec `bad interpreter: bash^M`. L'archive, elle,
+sort en LF.
+
+```powershell
+git archive --format=tar.gz -o edt_stri.tgz HEAD
+scp edt_stri.tgz .env token.json ubuntu@<adresse-ip>:~/
+```
+
+`.env` et `token.json` voyagent à part : ils ne sont pas dans le dépôt, et
+n'ont rien à y faire.
 
 ```bash
 ssh ubuntu@<adresse-ip>
-curl -fsSL https://raw.githubusercontent.com/abasse-ali/edt_stri/main/deploiement/installer_serveur.sh | bash
+mkdir -p edt_stri && tar xzf edt_stri.tgz -C edt_stri
+mv .env token.json edt_stri/
+bash edt_stri/deploiement/installer_serveur.sh
 ```
 
-Le script installe Python, clone le dépôt dans `/opt/edt_stri`, crée
-l'environnement avec `requirements-bot.txt`, adapte le service systemd à cette
-machine et l'active. Il est idempotent : le relancer met simplement à jour.
+Pour mettre à jour plus tard, refais l'archive et relance le script : il est
+idempotent.
 
-Il te dira qu'il manque `.env` et `token.json`. Dépose-les depuis ton PC :
-
-```powershell
-scp .env token.json ubuntu@<adresse-ip>:/opt/edt_stri/
-```
-
-puis :
+#### b. Poser une clé de déploiement — pour un `git pull` sur le serveur
 
 ```bash
-sudo systemctl start edt-bot
-journalctl -u edt-bot -f
+ssh-keygen -t ed25519 -f ~/.ssh/depot -N ""
+cat ~/.ssh/depot.pub
+```
+
+Colle cette clé dans **GitHub → le dépôt → Settings → Deploy keys → Add**, en
+lecture seule. Puis, sur le serveur :
+
+```bash
+printf 'Host github.com
+  IdentityFile ~/.ssh/depot
+' >> ~/.ssh/config
+DEPOT=git@github.com:abasse-ali/edt_stri.git bash installer_serveur.sh
+```
+
+### Ce que fait le script
+
+Il installe Python et ses dépendances système, met le code dans
+`/opt/edt_stri`, crée l'environnement avec `requirements-bot.txt`, **adapte le
+service systemd à cette machine** — utilisateur et chemins réels, au lieu du
+modèle qui vise `pi` et `/opt/edt_stri` — puis l'active.
+
+S'il manque `.env` ou `token.json`, il le dit et s'arrête avant de démarrer le
+service, plutôt que de lancer un bot qui échouerait aussitôt.
+
+```bash
+sudo systemctl start edt-bot     # si le script ne l'a pas fait
+journalctl -u edt-bot -f         # les journaux, en direct
 ```
 
 ### Le piège des instances inactives

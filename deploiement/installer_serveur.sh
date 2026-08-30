@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 # Installe le bot Discord sur un serveur Linux (Oracle Cloud, Raspberry Pi, VPS).
 #
-#   curl -fsSL https://raw.githubusercontent.com/abasse-ali/edt_stri/main/deploiement/installer_serveur.sh | bash
+# Le dépôt est PRIVÉ : ni `curl` ni `git clone` anonyme ne peuvent l'atteindre,
+# GitHub répond 404. Deux façons de faire, donc.
 #
-# ou, si le dépôt est déjà cloné :
+#   1. Déposer les fichiers depuis ton PC, puis lancer le script sur place :
 #
-#   bash deploiement/installer_serveur.sh
+#        ssh ubuntu@<ip> mkdir -p edt_stri
+#        scp -r src docs bot.py requirements-bot.txt deploiement .env token.json \
+#            ubuntu@<ip>:~/edt_stri/
+#        ssh ubuntu@<ip> "bash ~/edt_stri/deploiement/installer_serveur.sh"
+#
+#   2. Poser une clé de déploiement en lecture seule sur le serveur
+#      (voir docs/DEPLOIEMENT.md), puis :
+#
+#        DEPOT=git@github.com:abasse-ali/edt_stri.git bash installer_serveur.sh
 #
 # Le script est IDEMPOTENT : le relancer met simplement à jour. Il ne touche
 # jamais à .env ni à token.json, qui se déposent à la main — ces deux fichiers
@@ -13,7 +22,8 @@
 
 set -euo pipefail
 
-DEPOT="${DEPOT:-https://github.com/abasse-ali/edt_stri.git}"
+# Vide par défaut : sans clé de déploiement, on n'essaie même pas de cloner.
+DEPOT="${DEPOT:-}"
 RACINE="${RACINE:-/opt/edt_stri}"
 UTILISATEUR="${UTILISATEUR:-$(id -un)}"
 SERVICE="edt-bot"
@@ -34,12 +44,30 @@ else
 fi
 
 # --- 2. Le code ------------------------------------------------------------
-if [ -d "$RACINE/.git" ]; then
+# Trois cas, dans cet ordre : on tourne déjà dans l'arborescence installée ; on
+# a été lancé depuis des fichiers déposés ailleurs ; ou il faut cloner.
+ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ "$ICI" = "$RACINE" ]; then
+    echo "→ Déjà installé ici"
+    [ -d "$RACINE/.git" ] && git -C "$RACINE" pull --ff-only || true
+elif [ -f "$ICI/src/bot_discord.py" ]; then
+    echo "→ Fichiers déposés dans $ICI, installation vers $RACINE"
+    sudo mkdir -p "$RACINE"
+    # -a préserve les droits ; le point final copie le CONTENU, pas le dossier.
+    sudo cp -a "$ICI/." "$RACINE/"
+elif [ -d "$RACINE/.git" ]; then
     echo "→ Dépôt déjà présent, mise à jour"
     sudo git -C "$RACINE" pull --ff-only
-else
+elif [ -n "$DEPOT" ]; then
     sudo mkdir -p "$(dirname "$RACINE")"
     sudo git clone --depth 1 "$DEPOT" "$RACINE"
+else
+    echo "⛔ Aucun code trouvé, et aucun dépôt indiqué."
+    echo "   Le dépôt étant privé, dépose les fichiers en scp, ou pose une clé"
+    echo "   de déploiement et relance avec :"
+    echo "     DEPOT=git@github.com:abasse-ali/edt_stri.git bash $0"
+    exit 1
 fi
 sudo chown -R "$UTILISATEUR":"$UTILISATEUR" "$RACINE"
 
@@ -83,4 +111,4 @@ fi
 echo
 echo "Suivre les journaux :  journalctl -u $SERVICE -f"
 echo "État                :  systemctl status $SERVICE"
-echo "Mettre à jour       :  bash $RACINE/deploiement/installer_serveur.sh"
+echo "Mettre a jour       :  bash $RACINE/deploiement/installer_serveur.sh"
