@@ -1,4 +1,21 @@
-# Bot Discord d'inscription (src/bot_discord.py).
-# Separe de requirements.txt : la CI n'en a pas besoin, et le bot ne tourne
-# pas en CI — il lui faut une machine allumee en permanence.
+# Bot Discord d'inscription (src/bot_discord.py), separe de requirements.txt.
+#
+# La CI n'en a pas besoin, et surtout le bot n'a pas besoin d'elle : il ne lit
+# aucun PDF. Depuis que l'authentification Google a quitte edt_stri.py, sa
+# chaine d'imports ne touche plus ni OpenCV, ni NumPy, ni pdfplumber — environ
+# trois cents megaoctets de moins sur la machine qui l'heberge. Un test le
+# verifie, pour que la dependance ne revienne pas par megarde.
+
 discord.py>=2.3.0
+
+# Lecture du .env et appels HTTP (module telechargement)
+requests>=2.32.0
+python-dotenv>=1.0.0
+
+# API Google Calendar : creation des partages
+google-api-python-client>=2.115.0
+google-auth-oauthlib>=1.2.0
+google-auth>=2.27.0
+
+# Fuseaux horaires : Windows ne fournit pas la base IANA
+tzdata>=2024.1; sys_platform == "win32"

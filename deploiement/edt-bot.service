@@ -1,0 +1,36 @@
+# Service systemd pour un Raspberry Pi ou un serveur Linux.
+#
+#   sudo cp deploiement/edt-bot.service /etc/systemd/system/
+#   sudo nano /etc/systemd/system/edt-bot.service   # adapter User et les chemins
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now edt-bot
+#   journalctl -u edt-bot -f                        # suivre les journaux
+
+[Unit]
+Description=Bot Discord d'inscription aux emplois du temps STRI
+# network-online, et pas network : `network` est atteint dès que l'interface
+# existe, avant même d'avoir une adresse. Le bot échouerait à se connecter et
+# systemd le relancerait en boucle pendant les premières secondes du démarrage.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/edt_stri
+ExecStart=/opt/edt_stri/venv/bin/python -u /opt/edt_stri/src/bot_discord.py
+
+# Discord coupe la connexion de temps en temps ; discord.py se reconnecte seul,
+# mais une panne réseau prolongée finit par tuer le processus. On le relance,
+# toujours, avec dix secondes d'attente pour ne pas marteler l'API.
+Restart=always
+RestartSec=10
+
+# Les emoji des messages du bot exigent un encodage UTF-8, que systemd ne
+# fournit pas par défaut.
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+Environment=TZ=Europe/Paris
+
+[Install]
+WantedBy=multi-user.target

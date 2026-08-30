@@ -19,11 +19,84 @@ cours supprimé du PDF disparaît de l'agenda.
 """
 
 import hashlib
+import sys
 from datetime import datetime, timedelta
 
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.errors import HttpError
 
+import chemins
+from telechargement import variable_env
+
 SCOPE = "https://www.googleapis.com/auth/calendar"
+
+# Identité de l'agenda des rendus Moodle. Elle vit ICI plutôt que dans
+# `rendus.py` pour une raison très concrète : `partager.py` doit pouvoir le
+# proposer sans importer toute la chaîne de traitement des PDF. Le bot Discord
+# n'a alors besoin ni d'OpenCV, ni de NumPy, ni de pdfplumber — trois cents
+# mégaoctets de moins à installer sur la machine qui l'héberge.
+NOM_RENDUS = variable_env("MOODLE_AGENDA", "Rendu M1")
+CLE_RENDUS = "MOODLE-RENDUS"
+
+
+def obtenir_identifiants(scopes=None, interactif=None):
+    """Identifiants Google pour l'API Calendar.
+
+    Renvoie None plutôt que de bloquer : en CI, `run_local_server()` attendrait
+    une autorisation navigateur qui ne viendra jamais et le job tournerait
+    jusqu'à son délai maximum.
+    """
+    scopes = scopes or [SCOPE]
+    if interactif is None:
+        # EDT_AUTORISER=1 force le mode interactif quand le script est lancé
+        # par un outil qui ne fournit pas de vrai terminal.
+        interactif = (variable_env("EDT_AUTORISER") == "1"
+                      or (not variable_env("CI") and sys.stdin.isatty()))
+
+    jeton, client = chemins.racine('token.json'), chemins.racine('credentials.json')
+
+    creds = None
+    if jeton.exists():
+        try:
+            creds = Credentials.from_authorized_user_file(str(jeton), scopes)
+        except ValueError as e:
+            print(f"⚠️ token.json illisible ({e}).")
+
+    # Un jeton qui ne couvre pas l'agenda se rafraîchit sans erreur mais fait
+    # échouer l'API Calendar en 403 : mieux vaut redemander l'autorisation tout
+    # de suite que laisser l'agenda muet sans explication.
+    if creds and not creds.has_scopes(scopes):
+        print("🔑 Autorisation à renouveler : le jeton ne couvre pas l'agenda.")
+        creds = None
+
+    if creds and creds.valid:
+        return creds
+
+    if creds and creds.expired and creds.refresh_token:
+        try:
+            creds.refresh(Request())
+            jeton.write_text(creds.to_json(), encoding="utf-8")
+            return creds
+        except Exception as e:
+            print(f"⚠️ Rafraîchissement du jeton impossible ({e}).")
+
+    if not interactif:
+        print("❌ Autorisation Google absente ou périmée, et environnement non interactif.")
+        print("   Relance en local avec EDT_AUTORISER=1 pour régénérer token.json,")
+        print("   puis mets à jour le secret GDRIVE_TOKEN du dépôt.")
+        return None
+
+    if not client.exists():
+        print("❌ Le fichier credentials.json est introuvable.")
+        return None
+
+    flow = InstalledAppFlow.from_client_secrets_file(str(client), scopes)
+    creds = flow.run_local_server(port=0)
+    jeton.write_text(creds.to_json(), encoding="utf-8")
+    print("✅ Autorisation enregistrée dans token.json.")
+    return creds
 
 NOM_AGENDA = "EDT STRI M1"
 FUSEAU = "Europe/Paris"

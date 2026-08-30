@@ -249,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (98 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (99 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -274,6 +274,8 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [docs/HISTORIQUE.md](docs/HISTORIQUE.md) | Journal des bugs rencontrés et de leurs corrections |
 | `.github/workflows/edt_sync.yml` | Exécution horaire des emplois du temps |
 | `.github/workflows/rendus_sync.yml` | Exécution horaire des rendus Moodle |
+| [docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md) | Faire tourner le bot Discord en permanence |
+| `Dockerfile`, `compose.yaml`, `deploiement/` | Déploiement du bot : Docker, systemd, tâche Windows |
 | `donnees/export_cours/<promo>/` | Images de debug (générées si `EDT_DEBUG=1`) |
 
 ---
@@ -494,7 +496,16 @@ python src/bot_discord.py
 
 ⚠️ Ce script est le seul du projet qui ne peut pas tourner par tâche planifiée.
 Discord n'envoie une commande ou un clic qu'à un programme **déjà connecté** :
-il faut donc une machine allumée en permanence. GitHub Actions ne convient pas.
+il faut une machine allumée en permanence. GitHub Actions ne convient pas — ni
+techniquement (six heures maximum par job), ni contractuellement, ses
+conditions d'utilisation interdisant tout usage étranger à la construction du
+projet.
+
+**[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)** détaille les trois voies —
+hébergeur en ligne, Raspberry Pi, PC Windows — avec les fichiers prêts à
+l'emploi : `Dockerfile`, `compose.yaml`, un service systemd et un script de
+tâche planifiée. Le bot n'installe que `requirements-bot.txt` : ni OpenCV, ni
+NumPy, ni pdfplumber, puisqu'il ne lit aucun PDF.
 
 | Variable | Rôle |
 |---|---|

@@ -36,9 +36,7 @@ import sys
 from pathlib import Path
 
 import chemins
-import edt_stri
 import google_agenda
-import rendus
 from telechargement import PROMOS, variable_env
 
 for _flux in (sys.stdout, sys.stderr):
@@ -81,7 +79,8 @@ def catalogue():
 
     # Les rendus n'ont pas d'agenda d'examens jumeau : c'est un agenda unique,
     # et il ne dépend d'aucune promotion.
-    choix["RENDU"] = (rendus.NOM_AGENDA, [(rendus.CLE_AGENDA, rendus.NOM_AGENDA)])
+    choix["RENDU"] = (google_agenda.NOM_RENDUS,
+                      [(google_agenda.CLE_RENDUS, google_agenda.NOM_RENDUS)])
     return choix
 
 
@@ -219,7 +218,7 @@ def lister(service):
 
 def _service():
     """Le client Calendar, ou None si l'autorisation manque."""
-    creds = edt_stri.obtenir_identifiants()
+    creds = google_agenda.obtenir_identifiants()
     if creds is None:
         return None
     from googleapiclient.discovery import build

@@ -70,12 +70,19 @@ def egal(obtenu, attendu, quoi=""):
         raise AssertionError(f"{quoi}\n      attendu : {attendu!r}\n      obtenu  : {obtenu!r}")
 
 
-def _modules_importes(chemin):
-    """Noms des modules importés par un fichier, sans l'exécuter."""
+def _modules_importes(chemin, au_chargement=False):
+    """Noms des modules importés par un fichier, sans l'exécuter.
+
+    `au_chargement` ne retient que les imports du premier niveau — ceux qui
+    s'exécutent à l'import du module, et qu'il faut donc avoir installés. Un
+    import placé dans une fonction, lui, ne coûte rien tant qu'on n'appelle pas
+    cette fonction : `telechargement` charge ainsi playwright seulement au
+    moment de télécharger.
+    """
     import ast
     arbre = ast.parse(Path(chemin).read_text(encoding="utf-8"))
     noms = set()
-    for noeud in ast.walk(arbre):
+    for noeud in (arbre.body if au_chargement else ast.walk(arbre)):
         if isinstance(noeud, ast.Import):
             noms.update(a.name.split(".")[0] for a in noeud.names)
         elif isinstance(noeud, ast.ImportFrom) and noeud.module:
@@ -1105,6 +1112,25 @@ def bot_propose_les_memes_agendas_que_le_script():
     # d'enlever un agenda auquel la personne n'a pas droit.
     egal(admin.min_values, 0, "on peut tout retirer")
     egal(admin.max_values, len(attendus), "on peut tout donner")
+
+
+@test
+def bot_n_a_pas_besoin_de_la_chaine_des_pdf():
+    """Le bot doit s'installer sur une machine modeste.
+
+    Il ne lit aucun PDF : rien ne justifie qu'il tire OpenCV, NumPy ou
+    pdfplumber. C'est pourtant ce qu'il faisait, par un seul import — celui de
+    `edt_stri` pour l'authentification Google. Trois cents mégaoctets pour une
+    fonction. Ce test échoue si la dépendance revient.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    lourdes = {"cv2", "numpy", "pdfplumber", "pdf2image", "ics", "playwright",
+               "edt_stri"}
+    for nom in ("bot_discord.py", "partager.py", "google_agenda.py",
+                "telechargement.py", "chemins.py"):
+        interdits = _modules_importes(chemins.SRC / nom, au_chargement=True) & lourdes
+        egal(interdits, set(), f"{nom} reste léger à l'import")
 
 
 @test

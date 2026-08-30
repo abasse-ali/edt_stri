@@ -40,11 +40,10 @@ for _flux in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):
         pass
 
-NOM_AGENDA = variable_env("MOODLE_AGENDA", "Rendu M1")
-
-# Étiquette posée dans la description de l'agenda : c'est elle, et non le nom,
-# qui permet de le retrouver après un renommage.
-CLE_AGENDA = "MOODLE-RENDUS"
+# Définis dans google_agenda, pour que partager.py puisse proposer cet agenda
+# sans importer toute la chaîne de traitement des PDF.
+NOM_AGENDA = google_agenda.NOM_RENDUS
+CLE_AGENDA = google_agenda.CLE_RENDUS
 
 # Couleurs libres, distinctes de celles des quatre agendas de cours.
 COULEUR_AGENDA = variable_env("MOODLE_COULEUR", "mangue")

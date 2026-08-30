@@ -39,9 +39,6 @@ import google_agenda
 from telechargement import PROMOS, telecharger_pdf, variable_env
 
 # --- BIBLIOTHÈQUES GOOGLE ---
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 # CORRECTIF : sur une console Windows en cp1252, le moindre print contenant un
@@ -287,61 +284,13 @@ SCOPES_GOOGLE = [google_agenda.SCOPE]
 
 
 def obtenir_identifiants(scopes=None, interactif=None):
-    """Identifiants Google pour l'API Calendar.
+    """Identifiants Google. La fonction vit dans `google_agenda`.
 
-    Renvoie None plutôt que de bloquer : en CI, `run_local_server()` attendrait
-    une autorisation navigateur qui ne viendra jamais et le job tournerait
-    jusqu'à son délai maximum.
+    Elle en est partie pour que `partager.py` et le bot Discord puissent
+    s'authentifier sans importer ce module — et donc sans OpenCV ni pdfplumber.
+    Cette délégation garde les appels existants intacts.
     """
-    scopes = scopes or SCOPES_GOOGLE
-    if interactif is None:
-        # EDT_AUTORISER=1 force le mode interactif quand le script est lancé
-        # par un outil qui ne fournit pas de vrai terminal.
-        interactif = (variable_env("EDT_AUTORISER") == "1"
-                      or (not variable_env("CI") and sys.stdin.isatty()))
-
-    jeton, client = chemins.racine('token.json'), chemins.racine('credentials.json')
-
-    creds = None
-    if jeton.exists():
-        try:
-            creds = Credentials.from_authorized_user_file(str(jeton), scopes)
-        except ValueError as e:
-            print(f"⚠️ token.json illisible ({e}).")
-
-    # Un jeton qui ne couvre pas l'agenda se rafraîchit sans erreur mais fait
-    # échouer l'API Calendar en 403 : mieux vaut redemander l'autorisation tout
-    # de suite que laisser l'agenda muet sans explication.
-    if creds and not creds.has_scopes(scopes):
-        print("🔑 Autorisation à renouveler : le jeton ne couvre pas l'agenda.")
-        creds = None
-
-    if creds and creds.valid:
-        return creds
-
-    if creds and creds.expired and creds.refresh_token:
-        try:
-            creds.refresh(Request())
-            jeton.write_text(creds.to_json(), encoding="utf-8")
-            return creds
-        except Exception as e:
-            print(f"⚠️ Rafraîchissement du jeton impossible ({e}).")
-
-    if not interactif:
-        print("❌ Autorisation Google absente ou périmée, et environnement non interactif.")
-        print("   Relance en local avec EDT_AUTORISER=1 pour régénérer token.json,")
-        print("   puis mets à jour le secret GDRIVE_TOKEN du dépôt.")
-        return None
-
-    if not client.exists():
-        print("❌ Le fichier credentials.json est introuvable.")
-        return None
-
-    flow = InstalledAppFlow.from_client_secrets_file(str(client), scopes)
-    creds = flow.run_local_server(port=0)
-    jeton.write_text(creds.to_json(), encoding="utf-8")
-    print("✅ Autorisation enregistrée dans token.json.")
-    return creds
+    return google_agenda.obtenir_identifiants(scopes or SCOPES_GOOGLE, interactif)
 
 
 def synchroniser_agenda(cours_list, creds):

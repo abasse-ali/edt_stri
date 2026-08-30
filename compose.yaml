@@ -1,0 +1,14 @@
+# Lance le bot et le relance tout seul : à un plantage, à un redémarrage de la
+# machine, à une coupure de courant.
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # Le jeton Google, en lecture seule : le bot s'en sert, il n'a pas à le
+      # réécrire. Un jeton périmé se régénère en local, pas ici — le conteneur
+      # n'a pas de navigateur pour l'autorisation interactive.
+      - ./token.json:/app/token.json:ro
+      # Les demandes en attente survivent au conteneur.
+      - ./donnees:/app/donnees
