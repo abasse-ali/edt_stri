@@ -1108,6 +1108,24 @@ def bot_propose_les_memes_agendas_que_le_script():
 
 
 @test
+def bot_reinvite_avec_les_deux_scopes():
+    """Le lien d'invitation doit porter `bot` ET `applications.commands`.
+
+    Avec le seul second, les commandes apparaissent — donc tout semble
+    marcher — mais le bot n'est pas membre du serveur et chaque envoi échoue
+    en « Missing Access ». C'est le piège qui a coûté une session de débogage.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    lien = bot_discord.lien_invitation("123")
+    assert "scope=bot%20applications.commands" in lien, "les deux scopes"
+    assert f"permissions={bot_discord.DROITS}" in lien, "et les droits"
+    # Voir le salon, y écrire, y mettre un encadré, lire l'historique.
+    for bit in (1024, 2048, 16384, 65536):
+        assert bot_discord.DROITS & bit, f"droit {bit} demandé"
+
+
+@test
 def bot_ne_publie_rien_dans_le_salon_d_inscription():
     """Le panneau est le SEUL message public ; tout le reste est éphémère.
 

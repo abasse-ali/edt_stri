@@ -86,6 +86,24 @@ FICHIER_ETAT = Path(variable_env("DISCORD_DEMANDES",
 
 VERT, ROUGE, ORANGE, GRIS = 0x2E9E5B, 0xC0392B, 0xE67E22, 0x7F8C8D
 
+# Droits dont le bot a besoin, pour reconstruire un lien d'invitation correct :
+# voir le salon (1024), y écrire (2048), y mettre un encadré (16384) et lire
+# l'historique (65536), sans quoi il ne peut pas modifier une fiche postée
+# avant son dernier redémarrage.
+DROITS = 1024 + 2048 + 16384 + 65536
+
+
+def lien_invitation(identifiant):
+    """L'adresse qui ajoute le bot AVEC les droits qu'il lui faut.
+
+    Le piège classique : inviter avec le seul scope `applications.commands`.
+    Les commandes apparaissent alors — donc tout semble marcher — mais le bot
+    n'est pas membre du serveur et chaque envoi échoue en « Missing Access ».
+    Il faut les deux scopes.
+    """
+    return (f"https://discord.com/api/oauth2/authorize?client_id={identifiant}"
+            f"&permissions={DROITS}&scope=bot%20applications.commands")
+
 
 # =====================================================================
 # ÉTAT
@@ -251,7 +269,19 @@ class ModalCourriel(discord.ui.Modal, title="Ton adresse Google"):
             "cles": list(self.cles),
             "cles_demandees": list(self.cles),
         }
-        message = await salon.send(embed=fiche(demande), view=VueDemande())
+        try:
+            message = await salon.send(embed=fiche(demande), view=VueDemande())
+        except discord.Forbidden:
+            # La demande serait perdue en silence : mieux vaut le dire à la
+            # personne, qui pourra signaler la panne, que la laisser attendre.
+            print("⛔ Fiche non postée : le bot ne peut pas écrire dans le "
+                  f"salon {SALON_DEMANDES}. Voir les droits au démarrage.")
+            await interaction.response.send_message(
+                "⚠️ Ta demande n'a pas pu être transmise : le bot n'a pas accès "
+                "au salon de validation. Signale-le, ce n'est pas de ton fait.",
+                ephemeral=True)
+            return
+
         ETAT[str(message.id)] = demande
         enregistrer_etat(ETAT)
 
@@ -427,9 +457,51 @@ class Bot(discord.Client):
 
     async def on_ready(self):
         print(f"✅ Connecté comme {self.user}.")
-        print(f"   Salon de validation : {SALON_DEMANDES or '(non configuré)'}")
         print(f"   Valideurs : {', '.join(map(str, ADMINS)) or '(tout le monde !)'}")
         print(f"   {len(ETAT)} demande(s) en attente.")
+        await self._verifier_salon()
+
+    async def _verifier_salon(self):
+        """Vérifie tout de suite que le salon de validation est utilisable.
+
+        Sans ce contrôle, la panne se découvrirait au pire moment : un étudiant
+        remplit le formulaire, sa demande n'arrive nulle part, et il attend un
+        accès que personne ne verra jamais passer.
+        """
+        try:
+            salon = self.get_channel(SALON_DEMANDES) or await self.fetch_channel(SALON_DEMANDES)
+        except discord.Forbidden:
+            self._expliquer_droits("le bot ne voit pas le salon de validation")
+            return
+        except discord.NotFound:
+            print(f"⛔ Salon {SALON_DEMANDES} introuvable. Vérifie "
+                  "DISCORD_SALON_DEMANDES (clic droit sur le salon → Copier l'ID).")
+            return
+        except Exception as e:
+            print(f"⚠️ Salon de validation non vérifié ({type(e).__name__}).")
+            return
+
+        droits = salon.permissions_for(salon.guild.me)
+        manquants = [nom for nom, ok in (
+            ("voir le salon", droits.view_channel),
+            ("y écrire", droits.send_messages),
+            ("y mettre un encadré", droits.embed_links),
+        ) if not ok]
+        if manquants:
+            self._expliquer_droits("il manque au bot le droit de "
+                                   + ", ".join(manquants))
+            return
+        print(f"   Salon de validation : #{salon.name} ✅")
+
+    def _expliquer_droits(self, quoi):
+        print(f"⛔ {quoi}.")
+        print("   Deux causes possibles, dans cet ordre de fréquence :")
+        print("   1. le bot a été invité avec le seul scope « applications.commands ».")
+        print("      Les commandes apparaissent, mais il n'est pas membre du serveur")
+        print("      et ne peut rien y poster. Réinvite-le avec ce lien :")
+        print(f"      {lien_invitation(self.application_id or self.user.id)}")
+        print("   2. le salon lui refuse l'accès. Paramètres du salon →")
+        print("      Permissions → ajoute le rôle du bot.")
 
 
 bot = Bot()
@@ -470,8 +542,16 @@ async def edt_panneau(interaction):
         value="\n".join(f"• {intitule}" for _, (intitule, _)
                         in sorted(partager.CATALOGUE.items())),
         inline=False)
-    await interaction.channel.send(embed=embed, view=VuePanneau())
-    await interaction.response.send_message("Panneau posé.", ephemeral=True)
+    # Posté comme RÉPONSE à la commande, pas par un envoi ordinaire : une
+    # réponse d'interaction ne demande pas le droit d'écrire dans le salon.
+    # Le panneau apparaît donc même là où le bot ne pourrait pas parler de
+    # lui-même, et ses boutons fonctionnent de la même façon.
+    try:
+        await interaction.response.send_message(embed=embed, view=VuePanneau())
+    except discord.Forbidden:
+        await interaction.response.send_message(
+            "Le bot n'a pas accès à ce salon. Regarde la console : le lien de "
+            "réinvitation y est affiché.", ephemeral=True)
 
 
 @bot.arbre.command(name="edt-liste",
