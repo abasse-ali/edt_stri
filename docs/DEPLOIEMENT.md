@@ -80,6 +80,23 @@ Le répertoire de travail n'a aucune importance : les chemins sont calculés à
 partir de l'emplacement des modules. Vérifié en lançant `bot.py` depuis un
 dossier sans rapport avec le dépôt.
 
+### Ce que ce bot consomme
+
+Mesuré, pour choisir une offre en connaissance de cause :
+
+| | |
+|---|---|
+| Disque, avec `requirements-bot.txt` | **161 Mo** |
+| Disque, avec `requirements.txt` | 483 Mo — trois fois plus, pour rien |
+| Mémoire | quelques dizaines de mégaoctets ; aucune offre ne cale là-dessus |
+| Port entrant | **aucun** |
+
+Ce dernier point élimine toute une catégorie d'hébergeurs : Render, Koyeb,
+Cloud Run et les « web services » gratuits en général exigent un programme qui
+écoute sur un port, et mettent en veille ce qui ne reçoit pas de requête. Un
+bot Discord n'écoute rien — il se connecte *sortant* et attend. Il faut donc un
+hébergeur de *processus*, pas de site web.
+
 ### Ce qu'il faut vérifier avant de s'y installer
 
 Je n'ai pas pu consulter leurs conditions — FridayDev refuse les requêtes
