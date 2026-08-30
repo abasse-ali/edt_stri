@@ -43,6 +43,38 @@ else
     exit 1
 fi
 
+# --- 1 bis. Un Python assez récent ----------------------------------------
+# `zoneinfo` n'existe qu'à partir de 3.9, et tout le projet en dépend pour les
+# fuseaux horaires. Ubuntu 20.04 livre 3.8 : sans ce rattrapage, l'installation
+# se passerait bien et le bot planterait au premier import.
+PYTHON="${PYTHON:-python3}"
+if ! "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)'; then
+    version="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+    echo "→ Python $version trop ancien (3.9 minimum), installation d'une version récente"
+
+    for candidat in python3.12 python3.11 python3.10 python3.9; do
+        if command -v "$candidat" >/dev/null 2>&1; then
+            PYTHON="$candidat"
+            break
+        fi
+    done
+
+    if [ "$PYTHON" = "python3" ]; then
+        if ! command -v apt-get >/dev/null 2>&1; then
+            echo "⛔ Installe Python 3.9 ou plus récent, puis relance avec :"
+            echo "     PYTHON=/chemin/vers/python3.x bash $0"
+            exit 1
+        fi
+        # Le dépôt deadsnakes fournit des Python récents pour les Ubuntu LTS.
+        sudo apt-get install -y -qq software-properties-common
+        sudo add-apt-repository -y ppa:deadsnakes/ppa
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq python3.11 python3.11-venv
+        PYTHON=python3.11
+    fi
+    echo "→ Python retenu : $("$PYTHON" --version)"
+fi
+
 # --- 2. Le code ------------------------------------------------------------
 # Trois cas, dans cet ordre : on tourne déjà dans l'arborescence installée ; on
 # a été lancé depuis des fichiers déposés ailleurs ; ou il faut cloner.
@@ -74,7 +106,7 @@ sudo chown -R "$UTILISATEUR":"$UTILISATEUR" "$RACINE"
 # --- 3. L'environnement Python --------------------------------------------
 # requirements-bot.txt et NON requirements.txt : 161 Mo au lieu de 483, et le
 # bot ne lit aucun PDF.
-[ -d "$RACINE/venv" ] || python3 -m venv "$RACINE/venv"
+[ -d "$RACINE/venv" ] || "$PYTHON" -m venv "$RACINE/venv"
 "$RACINE/venv/bin/pip" install --quiet --upgrade pip
 "$RACINE/venv/bin/pip" install --quiet -r "$RACINE/requirements-bot.txt"
 

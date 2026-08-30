@@ -140,10 +140,15 @@ Console Oracle → **Compute → Instances → Create instance**.
 
 | Réglage | Valeur | Pourquoi |
 |---|---|---|
-| Image | **Ubuntu 24.04** | `apt` et systemd, comme dans ce guide |
+| Image | **Ubuntu 24.04** | `apt`, systemd, et un Python assez récent |
 | Shape | **VM.Standard.E2.1.Micro** | 1 cœur AMD, 1 Go — largement assez pour 161 Mo |
 | | *ou* VM.Standard.A1.Flex (ARM) | plus puissant, mais souvent « out of host capacity » |
 | Clé SSH | ta clé publique | voir ci-dessous |
+
+⚠️ **Prends bien 24.04, pas 20.04.** Ubuntu 20.04 livre Python 3.8, or le
+projet exige 3.9 au minimum — `zoneinfo`, qui gère les fuseaux horaires, n'y
+existe pas. Le script d'installation sait rattraper le coup en installant un
+Python récent, mais autant partir sur un système encore supporté.
 
 ⚠️ **Vérifie l'étiquette « Always Free-eligible »** sur le shape choisi. Sans
 elle, l'instance sera facturée — ou supprimée — à la fin des trente jours
