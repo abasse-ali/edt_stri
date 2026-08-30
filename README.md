@@ -249,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (99 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (100 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -501,9 +501,9 @@ techniquement (six heures maximum par job), ni contractuellement, ses
 conditions d'utilisation interdisant tout usage étranger à la construction du
 projet.
 
-**[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)** détaille les trois voies —
-hébergeur en ligne, Raspberry Pi, PC Windows — avec les fichiers prêts à
-l'emploi : `Dockerfile`, `compose.yaml`, un service systemd et un script de
+**[docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md)** détaille les voies possibles —
+panneau gratuit type Katabump ou FridayDev, hébergeur en ligne, Raspberry Pi,
+PC Windows — avec les fichiers prêts à l'emploi : `Dockerfile`, `compose.yaml`, un service systemd et un script de
 tâche planifiée. Le bot n'installe que `requirements-bot.txt` : ni OpenCV, ni
 NumPy, ni pdfplumber, puisqu'il ne lit aucun PDF.
 

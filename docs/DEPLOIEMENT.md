@@ -37,6 +37,80 @@ le dépôt** : `.env` (jeton Discord, adresses Moodle) et `token.json`
 
 ---
 
+## 0. Panneau d'hébergement gratuit (Katabump, FridayDev…)
+
+Ces services offrent un conteneur Python gratuit, pensé pour les bots Discord.
+C'est la voie la plus rapide, et elle demande zéro machine à toi.
+
+Ils reposent presque tous sur **Pterodactyl**, un panneau qui lance *un* fichier
+et installe *un* fichier de dépendances. Deux réglages suffisent, dans les
+variables du serveur :
+
+| Variable du panneau | Valeur |
+|---|---|
+| Fichier à lancer (`PY_FILE`, « Main file »…) | `bot.py` |
+| Fichier de dépendances (`REQUIREMENTS_FILE`) | `requirements-bot.txt` |
+
+`bot.py`, à la racine du dépôt, existe uniquement pour eux : il ajoute `src/`
+au chemin de recherche et appelle le vrai programme. Si le panneau te laisse
+écrire la commande de démarrage toi-même, préfère :
+
+```
+pip install -r requirements-bot.txt && python -u src/bot_discord.py
+```
+
+⚠️ **Ne le laisse pas installer `requirements.txt`** — celui de la racine tire
+OpenCV, NumPy, pdfplumber et Playwright, plusieurs centaines de mégaoctets qui
+dépasseront le quota d'une offre gratuite, pour des bibliothèques dont le bot
+ne se sert jamais.
+
+Ensuite, dépose par le gestionnaire de fichiers ou en SFTP :
+
+```
+src/            tout le dossier
+docs/
+bot.py
+requirements-bot.txt
+.env            à créer, ou à remplir par les variables du panneau
+token.json      l'autorisation Google
+```
+
+Le répertoire de travail n'a aucune importance : les chemins sont calculés à
+partir de l'emplacement des modules. Vérifié en lançant `bot.py` depuis un
+dossier sans rapport avec le dépôt.
+
+### Ce qu'il faut vérifier avant de s'y installer
+
+Je n'ai pas pu consulter leurs conditions — FridayDev refuse les requêtes
+automatiques, Katabump ne rend pas de page lisible. Regarde donc toi-même :
+
+- **le serveur se met-il en veille**, ou faut-il le **renouveler** tous les
+  quelques jours ? Beaucoup d'offres gratuites le demandent, et un bot éteint
+  ne reçoit aucun clic ;
+- **le disque alloué** — quelques centaines de mégaoctets suffisent avec
+  `requirements-bot.txt`, pas avec l'autre ;
+- **le redémarrage automatique** après un plantage.
+
+### Le risque à connaître
+
+Tu déposes sur une machine tierce ton jeton Discord et ton `token.json` Google.
+Le premier contrôle le bot ; le second donne accès en écriture à tes agendas —
+rien d'autre, la portée est limitée au calendrier. Ces services sont tenus par
+des particuliers.
+
+Les deux se révoquent instantanément si besoin : Discord → Developer Portal →
+Bot → *Reset Token*, et Google → compte → *Applications tierces* → retirer
+l'accès. Rien n'est irréversible, mais autant le savoir avant.
+
+### Un bon point
+
+Les demandes en attente de validation sont écrites dans
+`donnees/demandes_discord.json`. Un redémarrage du conteneur — une veille, une
+maintenance de l'hébergeur — ne les perd donc pas : les fiches déjà envoyées
+gardent des boutons vivants.
+
+---
+
 ## 1. Hébergeur en ligne
 
 Le seul vrai 24/7 : indépendant de ton PC, de ta box et des coupures de

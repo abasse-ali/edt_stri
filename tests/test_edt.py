@@ -1115,6 +1115,25 @@ def bot_propose_les_memes_agendas_que_le_script():
 
 
 @test
+def bot_a_un_point_d_entree_a_la_racine():
+    """Les panneaux d'hébergement lancent un fichier posé à la racine.
+
+    Pterodactyl — sur lequel reposent Katabump, FridayDev et les autres — part
+    de `bot.py` par défaut. Sans ce fichier, le serveur démarrerait puis
+    s'arrêterait aussitôt sur « fichier introuvable », sans autre explication.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    amorce = chemins.RACINE / "bot.py"
+    assert amorce.exists(), "bot.py à la racine"
+    source = amorce.read_text(encoding="utf-8")
+    assert "bot_discord" in source, "il appelle le vrai programme"
+    # Il ne doit rien contenir d'autre : toute logique dupliquée ici finirait
+    # par diverger de src/bot_discord.py.
+    assert len(source.splitlines()) < 40, "une simple amorce, pas une copie"
+
+
+@test
 def bot_n_a_pas_besoin_de_la_chaine_des_pdf():
     """Le bot doit s'installer sur une machine modeste.
 
