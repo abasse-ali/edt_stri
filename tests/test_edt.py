@@ -1108,6 +1108,58 @@ def bot_propose_les_memes_agendas_que_le_script():
 
 
 @test
+def bot_offre_le_tutoriel_a_cote_de_l_inscription():
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    panneau = bot_discord.VuePanneau()
+    egal(sorted(c.custom_id for c in panneau.children), ["edt:inscrire", "edt:tuto"])
+    assert panneau.is_persistent(), "les deux boutons survivent à un redémarrage"
+
+
+@test
+def tutoriel_tient_dans_les_limites_de_discord():
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    for cle, (intitule, etapes) in bot_discord.PARCOURS.items():
+        assert etapes, f"{cle} : au moins un écran"
+        assert intitule.strip(), f"{cle} : un intitulé de menu"
+        for titre, corps in etapes:
+            assert titre.strip(), f"{cle} : un titre par écran"
+            assert corps.strip(), f"{cle} : un corps par écran"
+            # Discord refuse au-delà, et l'écran serait tronqué en silence.
+            assert len(titre) <= 256, f"{cle} / {titre[:30]} : titre trop long"
+            assert len(corps) <= 4096, f"{cle} / {titre[:30]} : corps trop long"
+    assert bot_discord.DEPART in bot_discord.PARCOURS, "le parcours d'ouverture existe"
+
+
+@test
+def tutoriel_grise_ses_fleches_aux_extremites():
+    # Un bouton qui semble cliquable et ne fait rien passe pour une panne.
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    vue = bot_discord.VueTuto()
+    vue._ajuster()
+    egal((vue.precedent.disabled, vue.suivant.disabled), (True, False), "au début")
+    vue.index = len(vue.etapes()) - 1
+    vue._ajuster()
+    egal((vue.precedent.disabled, vue.suivant.disabled), (False, True), "à la fin")
+
+
+@test
+def tutoriel_dit_l_etape_que_tout_le_monde_rate():
+    """Sur iPhone, un agenda partagé est décoché sur une page qu'aucun menu
+    n'affiche. C'est la cause numéro un des « ça marche pas chez moi » : le
+    tutoriel ne peut pas l'omettre."""
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    iphone = " ".join(corps for _, corps in bot_discord.PARCOURS["IPHONE"][1])
+    assert "syncselect" in iphone, "la page cachée est citée"
+    # Et le tutoriel texte dit la même chose, pour qui ne passe pas par Discord.
+    texte = (chemins.DOCS / "TUTO.txt").read_text(encoding="utf-8")
+    assert "syncselect" in texte, "docs/TUTO.txt aussi"
+
+
+@test
 def bot_reinvite_avec_les_deux_scopes():
     """Le lien d'invitation doit porter `bot` ET `applications.commands`.
 
@@ -1134,9 +1186,9 @@ def bot_ne_publie_rien_dans_le_salon_d_inscription():
     """
     if bot_discord is None:
         raise Passer("discord.py n'est pas installé")
-    panneau = bot_discord.VuePanneau()
-    assert panneau.is_persistent(), "le bouton survit à un redémarrage"
-    egal([c.custom_id for c in panneau.children], ["edt:inscrire"])
+    # Les boutons du panneau sont vérifiés à part ; ici, ce qui compte est
+    # qu'ils survivent au redémarrage alors que la vue de choix, elle, non.
+    assert bot_discord.VuePanneau().is_persistent(), "le panneau survit"
 
     # La vue de choix n'est PAS persistante, et c'est voulu : elle n'appartient
     # qu'à une personne et à un instant.

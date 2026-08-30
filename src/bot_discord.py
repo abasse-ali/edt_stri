@@ -344,6 +344,208 @@ class VuePanneau(discord.ui.View):
                     "Cette fenêtre n'est visible que par toi.",
             view=VueChoix(), ephemeral=True)
 
+    @discord.ui.button(label="Comment l'installer", emoji="📖",
+                       style=discord.ButtonStyle.secondary,
+                       custom_id="edt:tuto")
+    async def tutoriel(self, interaction, bouton):
+        vue = VueTuto()
+        # Le premier écran doit arriver avec « Précédent » déjà grisé : sans
+        # cet ajustement, le bouton semblerait cliquable et ne ferait rien.
+        vue._ajuster()
+        await interaction.response.send_message(
+            embed=vue.embed(), view=vue, ephemeral=True)
+
+
+# =====================================================================
+# TUTORIEL
+# =====================================================================
+
+# Le contenu de docs/TUTO.txt, découpé en écrans. Chaque parcours commence par
+# l'étape commune — accepter les invitations — parce que c'est là que la
+# quasi-totalité des « ça marche pas chez moi » se règle.
+#
+# Un parcours = (intitulé du menu, [(titre, corps), ...]).
+
+_ACCEPTER = (
+    "Accepter les deux invitations",
+    "Tu reçois **deux courriels** intitulés « *… a partagé un agenda avec "
+    "vous* ». Ouvre chacun, clique sur **Ajouter cet agenda**.\n\n"
+    "⚠️ **Tant que tu n'as pas cliqué, tu ne vois rien.** Pas un agenda vide : "
+    "rien du tout, et aucun message d'erreur. C'est la cause numéro un des "
+    "« ça marche pas chez moi ».\n\n"
+    "Rien reçu ? Regarde dans les **spams**, puis redemande ici.")
+
+_POURQUOI_DEUX = (
+    "Pourquoi deux agendas",
+    "Tes **cours** et tes **examens** arrivent séparément, et c'est voulu : "
+    "comme ce sont deux agendas distincts, ton téléphone leur donne deux "
+    "couleurs, et tu repères tes examens d'un coup d'œil.\n\n"
+    "Pense donc bien à **accepter les deux**.")
+
+PARCOURS = {
+    "IPHONE": ("📱 iPhone", [
+        _ACCEPTER,
+        _POURQUOI_DEUX,
+        ("Vérifier ton compte Google",
+         "**Réglages → Apps → Calendrier → Comptes**\n\n"
+         "Ton adresse Gmail doit y apparaître, avec « Calendriers » activé.\n"
+         "Si elle n'y est pas : **Ajouter un compte → Google**, puis "
+         "connecte-toi."),
+        ("L'étape que tout le monde rate",
+         "iPhone ne synchronise que les agendas Google cochés sur une page "
+         "spéciale, **qu'aucun menu n'affiche**. Un agenda qu'on vient de te "
+         "partager y est **décoché par défaut**.\n\n"
+         "Ouvre cette adresse dans ton navigateur :\n"
+         "https://calendar.google.com/calendar/syncselect\n\n"
+         "Coche tes **deux** agendas, puis **Enregistrer**. C'est immédiat.\n\n"
+         "*Comment savoir que c'est ton problème ?* Tu vois tes cours sur "
+         "calendar.google.com dans un navigateur, mais rien dans l'app "
+         "Calendrier. C'est exactement ça."),
+        ("Les afficher",
+         "Ouvre l'app **Calendrier**, touche **Calendriers** en bas de "
+         "l'écran, coche tes deux agendas.\n\nTerminé — tu n'auras plus "
+         "jamais rien à faire."),
+    ]),
+
+    "ANDROID": ("🤖 Android", [
+        _ACCEPTER,
+        _POURQUOI_DEUX,
+        ("Les afficher",
+         "Ouvre l'application **Google Agenda**.\n\n"
+         "Menu (les trois barres en haut à gauche) → fais défiler tout en "
+         "bas → coche tes deux agendas.\n\n"
+         "Terminé — tu n'auras plus jamais rien à faire."),
+        ("S'ils n'apparaissent pas",
+         "Va d'abord sur **calendar.google.com** dans un navigateur pour "
+         "vérifier qu'ils y sont.\n\n"
+         "• **Ils y sont** → ferme et rouvre l'application.\n"
+         "• **Ils n'y sont pas** → l'invitation n'a pas été acceptée, "
+         "reprends la première étape."),
+    ]),
+
+    "ORDI": ("💻 Ordinateur", [
+        _ACCEPTER,
+        ("Rien à installer",
+         "Va sur **calendar.google.com**. Tes agendas sont dans la colonne "
+         "de gauche, déjà cochés.\n\n"
+         "C'est aussi là que tu peux **changer leur couleur** : survole le nom "
+         "de l'agenda, clique sur les trois points, choisis ta teinte."),
+    ]),
+
+    "SANS_GOOGLE": ("✉️ Je n'ai pas d'adresse Google", [
+        ("Le partage exige un compte Google",
+         "Si ton adresse est en `@yahoo.fr`, `@proton.me`, `@outlook.com` ou "
+         "autre, le partage par compte ne fonctionnera pas tel quel."),
+        ("Deux solutions",
+         "**1. Créer un compte Google avec ton adresse actuelle.** C'est "
+         "gratuit, et tu n'es pas obligé de prendre une adresse Gmail : Google "
+         "accepte d'ouvrir un compte sur une adresse existante.\n\n"
+         "**2. Demander un lien d'abonnement.** Il marche avec n'importe "
+         "quelle adresse et n'importe quel téléphone. Préviens dans ce cas : "
+         "la mise à jour n'est alors plus immédiate, elle peut prendre "
+         "plusieurs heures."),
+    ]),
+
+    "PANNE": ("🔧 Ça ne marche pas", [
+        ("Trois gestes, dans cet ordre",
+         "Ils règlent la quasi-totalité des cas.\n\n"
+         "**1.** Décoche l'agenda dans l'application, attends dix secondes, "
+         "recoche-le. Ça force une resynchronisation.\n\n"
+         "**2.** Vérifie sur **calendar.google.com**, dans un navigateur, que "
+         "tes cours y sont.\n\n"
+         "**3.** Redémarre le téléphone. Oui, vraiment."),
+        ("Ce que dit l'étape 2",
+         "• **Tes cours sont sur calendar.google.com** → le problème est sur "
+         "le téléphone. Sur iPhone, c'est presque toujours la page "
+         "`syncselect` : reprends le parcours iPhone.\n\n"
+         "• **Ils n'y sont pas** → l'invitation n'a pas été acceptée. Cherche "
+         "les deux courriels, spams compris."),
+    ]),
+
+    "FAQ": ("❓ Questions fréquentes", [
+        ("Mes couleurs sont différentes de celles des autres",
+         "C'est normal, et personne n'y peut rien : Google attribue une teinte "
+         "au hasard à chaque personne. Tu peux choisir la tienne sur "
+         "calendar.google.com — survole le nom de l'agenda, trois points, ta "
+         "couleur.\n\n"
+         "Les examens, eux, resteront **toujours** d'une couleur différente "
+         "des cours, puisque ce sont deux agendas séparés."),
+        ("Je vois des cours qui ne sont pas les miens",
+         "Chaque demi-promo a son propre agenda. Si tu vois ceux d'à côté, "
+         "c'est que tu as accepté le mauvais partage : signale-le ici."),
+        ("Faut-il refaire quelque chose quand l'emploi du temps change ?",
+         "**Non, jamais.** Une fois installé, tout arrive tout seul. Dès qu'un "
+         "cours change dans le PDF de l'école, ton téléphone le sait quelques "
+         "secondes plus tard."),
+        ("Est-ce que je peux modifier un cours ?",
+         "Non, tu es en lecture seule — et de toute façon une modification "
+         "serait effacée à la mise à jour suivante."),
+    ]),
+}
+
+DEPART = "IPHONE"
+
+
+class SelecteurParcours(discord.ui.Select):
+    """Le choix de l'appareil, ou du sujet."""
+
+    def __init__(self, vue):
+        super().__init__(placeholder="Choisis ton appareil ou ton problème…",
+                         options=[discord.SelectOption(label=intitule, value=cle)
+                                  for cle, (intitule, _) in PARCOURS.items()],
+                         row=0)
+        self.vue = vue
+
+    async def callback(self, interaction):
+        self.vue.parcours = self.values[0]
+        self.vue.index = 0
+        await self.vue.afficher(interaction)
+
+
+class VueTuto(discord.ui.View):
+    """Le tutoriel, un écran à la fois.
+
+    Éphémère comme le formulaire : chacun avance à son rythme sans que le
+    salon en garde la moindre trace.
+    """
+
+    def __init__(self):
+        super().__init__(timeout=900)
+        self.parcours = DEPART
+        self.index = 0
+        self.add_item(SelecteurParcours(self))
+
+    def etapes(self):
+        return PARCOURS[self.parcours][1]
+
+    def embed(self):
+        intitule, etapes = PARCOURS[self.parcours]
+        titre, corps = etapes[self.index]
+        embed = discord.Embed(title=titre, description=corps, color=VERT)
+        embed.set_author(name=intitule)
+        embed.set_footer(text=f"Étape {self.index + 1} sur {len(etapes)}")
+        return embed
+
+    def _ajuster(self):
+        self.precedent.disabled = self.index == 0
+        self.suivant.disabled = self.index >= len(self.etapes()) - 1
+
+    async def afficher(self, interaction):
+        self._ajuster()
+        await interaction.response.edit_message(embed=self.embed(), view=self)
+
+    @discord.ui.button(label="Précédent", emoji="◀", row=1,
+                       style=discord.ButtonStyle.secondary, disabled=True)
+    async def precedent(self, interaction, bouton):
+        self.index = max(0, self.index - 1)
+        await self.afficher(interaction)
+
+    @discord.ui.button(label="Suivant", emoji="▶", row=1,
+                       style=discord.ButtonStyle.primary)
+    async def suivant(self, interaction, bouton):
+        self.index = min(len(self.etapes()) - 1, self.index + 1)
+        await self.afficher(interaction)
+
 
 class SelecteurAdmin(discord.ui.Select):
     """Menu qui permet de corriger les agendas AVANT de valider.
@@ -557,7 +759,9 @@ async def edt_panneau(interaction):
             "message privé dès qu'elle l'est. **Rien de ce que tu saisis "
             "n'apparaît dans ce salon.**\n\n"
             "Chaque promotion donne DEUX agendas, les cours et les examens : "
-            "pense à accepter les deux invitations, sinon tu ne verras rien."),
+            "pense à accepter les deux invitations, sinon tu ne verras rien.\n\n"
+            "Le second bouton explique l'installation pas à pas, selon que tu "
+            "aies un iPhone ou un Android."),
         color=VERT)
     embed.add_field(
         name="Disponibles",
