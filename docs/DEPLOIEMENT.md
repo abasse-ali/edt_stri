@@ -129,30 +129,84 @@ gardent des boutons vivants.
 
 ---
 
-## 1. Hébergeur en ligne
+## 1. Oracle Cloud Always Free
 
-Le seul vrai 24/7 : indépendant de ton PC, de ta box et des coupures de
-courant.
+Une vraie machine Linux, gratuite sans limite de durée. C'est la solution la
+plus solide, et la seule gratuite qui ne dépende de personne.
 
-**Oracle Cloud Always Free** offre une machine ARM gratuite sans limite de
-durée. L'inscription demande une carte bancaire pour vérification mais n'est
-pas débitée ensuite, et elle est parfois capricieuse. **Fly.io**, **Railway**
-et n'importe quel petit VPS font l'affaire pour quelques euros par mois. Les
-offres gratuites changent souvent : vérifie avant de t'engager.
+### Créer l'instance
 
-Une fois la machine obtenue, avec Docker :
+Console Oracle → **Compute → Instances → Create instance**.
+
+| Réglage | Valeur | Pourquoi |
+|---|---|---|
+| Image | **Ubuntu 24.04** | `apt` et systemd, comme dans ce guide |
+| Shape | **VM.Standard.E2.1.Micro** | 1 cœur AMD, 1 Go — largement assez pour 161 Mo |
+| | *ou* VM.Standard.A1.Flex (ARM) | plus puissant, mais souvent « out of host capacity » |
+| Clé SSH | ta clé publique | voir ci-dessous |
+
+⚠️ **Vérifie l'étiquette « Always Free-eligible »** sur le shape choisi. Sans
+elle, l'instance sera facturée — ou supprimée — à la fin des trente jours
+d'essai. C'est l'erreur qui coûte cher.
+
+Ne te bats pas pour l'ARM : le shape AMD `E2.1.Micro` est presque toujours
+disponible, alors que l'A1 renvoie fréquemment « out of host capacity » dans
+les régions demandées. Ce bot tient dans 161 Mo, quatre cœurs ARM seraient du
+luxe.
+
+Générer une clé SSH, depuis ton PC Windows :
+
+```powershell
+ssh-keygen -t ed25519 -C "oracle"
+type $env:USERPROFILE\.ssh\id_ed25519.pub    # à coller dans la console
+```
+
+### Installer le bot
+
+Une fois l'instance créée, note son **adresse IP publique**, puis :
 
 ```bash
-git clone <ce dépôt> && cd edt_stri
-# copier .env et token.json depuis ton PC (scp, ou un copier-coller prudent)
-docker compose up -d
-docker compose logs -f
+ssh ubuntu@<adresse-ip>
+curl -fsSL https://raw.githubusercontent.com/abasse-ali/edt_stri/main/deploiement/installer_serveur.sh | bash
+```
+
+Le script installe Python, clone le dépôt dans `/opt/edt_stri`, crée
+l'environnement avec `requirements-bot.txt`, adapte le service systemd à cette
+machine et l'active. Il est idempotent : le relancer met simplement à jour.
+
+Il te dira qu'il manque `.env` et `token.json`. Dépose-les depuis ton PC :
+
+```powershell
+scp .env token.json ubuntu@<adresse-ip>:/opt/edt_stri/
+```
+
+puis :
+
+```bash
+sudo systemctl start edt-bot
+journalctl -u edt-bot -f
+```
+
+### Le piège des instances inactives
+
+Oracle **récupère les instances Always Free jugées inactives**. Un bot Discord
+consomme très peu de processeur : le risque est réel, pas théorique.
+
+La parade connue est de passer le compte en **Pay As You Go**. Les ressources
+Always Free y restent gratuites, mais la récupération automatique ne s'applique
+plus. En contrepartie, dépasser les quotas devient facturable — reste donc dans
+les limites du gratuit.
+
+### Avec Docker plutôt que systemd
+
+```bash
+git clone https://github.com/abasse-ali/edt_stri.git && cd edt_stri
+# déposer .env et token.json ici
+docker compose up -d && docker compose logs -f
 ```
 
 `restart: unless-stopped` relance le conteneur après un plantage **et** après
 un redémarrage de la machine.
-
-Sans Docker, c'est le service systemd de la section suivante.
 
 ---
 
