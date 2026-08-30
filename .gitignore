@@ -15,6 +15,9 @@ credentials.json
 donnees/inscriptions.txt
 donnees/demandes_discord.json
 
+# Archive de deploiement, refabriquee a la demande par `git archive`.
+edt_stri.tgz
+
 # Sorties régénérées à chaque exécution.
 donnees/edt*.ics
 donnees/.verif_*
