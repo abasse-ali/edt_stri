@@ -150,10 +150,13 @@ Le PDF ne dit rien des devoirs à rendre, des validations de TP ni des quiz :
 ceux-là vivent dans les calendriers Moodle. Il y en a **deux**, décrits dans
 `SOURCES` en tête de [src/moodle.py](src/moodle.py) :
 
-| Source | Adresse | Variable | Ce qui est retenu |
+| Source | Variable | Périmètre imposé | Ce qui est retenu |
 |---|---|---|---|
-| eFormation STRI | `stri.fr/eformation` | `MOODLE_ICS_URL` | tout |
-| Moodle inetdoc | `moodle.inetdoc.net` | `MOODLE_INETDOC_ICS_URL` | les échéances seulement |
+| eFormation STRI | `MOODLE_ICS_URL` | `all` | tout ce qui relève d'un cours |
+| Moodle inetdoc | `MOODLE_INETDOC_ICS_URL` | `courses` | les échéances seulement |
+
+Le STRI reste sur `all` faute de mieux : mesuré, `courses` y rend **zéro**
+événement — le devoir n'y est pas rattaché à un cours où l'on est inscrit.
 
 Le calendrier d'inetdoc mélange 20 échéances et 49 **séances** — TP, cours,
 examens. Ces séances sont déjà dans les agendas de l'emploi du temps, elles y
@@ -165,6 +168,12 @@ Tout atterrit dans un **seul** agenda : un endroit unique où regarder ce qu'il
 reste à rendre. La contrepartie est que la lecture est **tout ou rien** — une
 source illisible interrompt la publication, faute de quoi le rapprochement
 effacerait les échéances de l'autre.
+
+Le paramètre `preset_what` est **imposé par le code**, quelle que soit la case
+cochée le jour où l'adresse a été copiée : c'est un réglage de confidentialité,
+il n'a pas à dépendre d'un clic. Et tout événement **sans cours rattaché** est
+écarté — Moodle range ainsi les rendez-vous privés. Ces deux garde-fous sont ce
+qui rend l'agenda « Rendu M1 » partageable sans risque.
 
 Chaque adresse d'export se récupère **une seule fois** :
 
@@ -240,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (89 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (92 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -461,12 +470,17 @@ fabrique une ligne à coller dans le salon, au format exact que lit
 
 ### Le formulaire Discord
 
-C'est la voie normale. Un étudiant tape `/edt` dans le salon, choisit sa
-promotion dans un menu déroulant et saisit son adresse ; sa demande arrive dans
-ton salon de validation sous forme de fiche. Tu peux y **corriger les agendas
-demandés** — retirer celui auquel il n'a pas droit, ajouter le bon — puis
-cliquer sur **Valider**. Le partage Google est appliqué au clic, et l'étudiant
-reçoit un message privé.
+C'est la voie normale. Le salon porte un **panneau permanent** avec un seul
+bouton, posé une fois par `/edt-panneau`. Un clic ouvre, **visible de la seule
+personne qui a cliqué**, une liste où elle coche les agendas voulus — plusieurs
+à la fois — puis une fenêtre pour son adresse. Rien n'est écrit dans le
+salon : il ne s'encombre pas, et personne ne lit l'adresse d'un autre.
+
+La demande arrive dans ton salon de validation sous forme de fiche. Tu peux y
+**corriger les agendas demandés** — retirer celui auquel la personne n'a pas
+droit, ajouter le bon — puis cliquer sur **Valider**. Le partage Google est
+appliqué au clic, et la personne reçoit un message privé. La fiche garde une
+ligne « Demandé à l'origine » quand tu as changé quelque chose.
 
 ```bash
 pip install -r requirements-bot.txt
@@ -484,7 +498,11 @@ il faut donc une machine allumée en permanence. GitHub Actions ne convient pas.
 | `DISCORD_ADMINS` | Identifiants autorisés à valider. **Vide = tout le monde peut** |
 | `DISCORD_SERVEUR` | Facultatif : les commandes apparaissent aussitôt sur ce serveur |
 
-`/edt-liste` affiche les abonnés de chaque agenda, en message éphémère.
+| Commande | Qui | Effet |
+|---|---|---|
+| `/edt-panneau` | toi | Pose le panneau d'inscription dans le salon courant |
+| `/edt` | tout le monde | Ouvre la même liste, pour qui ne retrouve pas le panneau |
+| `/edt-liste` | toi | Les abonnés de chaque agenda, en message éphémère |
 
 ### En ligne de commande
 
@@ -498,7 +516,9 @@ python src/partager.py --ajouter a@b.c M1G2  # une personne, tout de suite
 python src/partager.py --retirer a@b.c M1G2
 ```
 
-Choisir une promotion partage **deux** agendas, les cours et les examens :
+« Rendu M1 » est un agenda unique, sans jumeau et indépendant des promotions.
+Choisir une promotion partage en revanche **deux** agendas, les cours et les
+examens :
 ils sont séparés pour avoir des couleurs distinctes, mais personne ne veut de
 l'un sans l'autre. Le rôle donné est toujours `reader` — un agenda que le bot
 réécrit chaque heure ne doit être modifiable par personne.
