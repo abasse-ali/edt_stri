@@ -9,6 +9,11 @@
 *.yml       text eol=lf
 Dockerfile  text eol=lf
 
+# Remplace par le commit reel au moment du `git archive` : le bot annonce
+# ainsi au demarrage la version exactement deployee, et une archive perimee
+# renvoyee par megarde se voit tout de suite.
+src/version.txt export-subst
+
 # `git archive` sert a deposer le code sur un serveur : le bot Discord n'a
 # besoin ni des PDF, ni des JSON d'emploi du temps, ni des images de debug.
 donnees/    export-ignore

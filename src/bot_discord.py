@@ -111,6 +111,34 @@ VERT, ROUGE, ORANGE, GRIS = 0x2E9E5B, 0xC0392B, 0xE67E22, 0x7F8C8D
 DROITS = 1024 + 2048 + 16384 + 65536
 
 
+def version():
+    """La version déployée, telle que `git archive` l'a inscrite.
+
+    Le fichier contient un motif que Git remplace par le commit au moment de
+    fabriquer l'archive. Dans un dépôt cloné, le motif reste intact — on le
+    reconnaît à ses `$` — et on interroge Git directement.
+
+    Sans ce repère, rien ne distingue une archive à jour d'une ancienne
+    renvoyée par mégarde : la mise à jour semble réussir et le code ne change
+    pas.
+    """
+    try:
+        brut = (chemins.SRC / "version.txt").read_text(encoding="utf-8").strip()
+    except OSError:
+        return "inconnue"
+
+    if brut and not brut.startswith("$Format"):
+        return brut
+
+    import subprocess
+    try:
+        return subprocess.run(
+            ["git", "-C", str(chemins.RACINE), "log", "-1", "--format=%H %cI"],
+            capture_output=True, text=True, timeout=5).stdout.strip() or "developpement"
+    except Exception:
+        return "developpement"
+
+
 def lien_invitation(identifiant):
     """L'adresse qui ajoute le bot AVEC les droits qu'il lui faut.
 
@@ -756,6 +784,7 @@ class Bot(discord.Client):
 
     async def on_ready(self):
         print(f"✅ Connecté comme {self.user}.")
+        print(f"   Version : {version()}")
         print(f"   Valideurs : {', '.join(map(str, ADMINS)) or '(tout le monde !)'}")
         print(f"   {len(ETAT)} demande(s) en attente.")
         await self._verifier_destination()
