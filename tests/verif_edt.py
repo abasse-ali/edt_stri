@@ -11,11 +11,11 @@ imaginée : examens invisibles faute de fond assez large, cellules fantômes sur
 la grille vide, fins de ligne ICS invalides, PDF local périmé réécrivant les
 agendas avec des cours annulés.
 
-    python verif_edt.py                 tout, agendas Google compris
-    python verif_edt.py --hors-ligne    sans réseau : PDF, données et ICS
-    python verif_edt.py --promo L3      une seule promotion
-    python verif_edt.py --sans-fraicheur  sans recomparer les PDF en ligne
-    python verif_edt.py --silencieux    sans alerte Discord
+    python tests/verif_edt.py                 tout, agendas Google compris
+    python tests/verif_edt.py --hors-ligne    sans réseau : PDF, données, ICS
+    python tests/verif_edt.py --promo L3      une seule promotion
+    python tests/verif_edt.py --sans-fraicheur  sans recomparer les PDF
+    python tests/verif_edt.py --silencieux    sans alerte Discord
 
 Les rendus Moodle sont contrôlés en plus, s'ils ont été publiés.
 
@@ -31,12 +31,15 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 import pdfplumber
 
-import edt_stri
-import lecture_pdf
-import rendus
-from telechargement import PROMOS
+import chemins  # noqa: E402
+import edt_stri  # noqa: E402
+import lecture_pdf  # noqa: E402
+import rendus  # noqa: E402
+from telechargement import PROMOS  # noqa: E402
 
 for _flux in (sys.stdout, sys.stderr):
     try:
@@ -616,7 +619,7 @@ def controler_fraicheur(rap, promo):
                         f"{local.name} introuvable"):
         return
 
-    temporaire = Path(f".verif_{local.name}")
+    temporaire = chemins.donnee(f".verif_{local.name}")
     try:
         if not telechargement.telecharger_pdf(str(temporaire), url=PROMOS[promo]["url"]):
             rap.reserve("comparaison au PDF en ligne impossible", "téléchargement échoué")
@@ -777,7 +780,7 @@ def principale():
         print("Mode hors ligne : agendas Google et fraîcheur des PDF non vérifiés.")
 
     for promo in ([promo_voulue] if promo_voulue else list(PROMOS)):
-        rap.section(f"{promo} — {PROMOS[promo]['pdf']}")
+        rap.section(f"{promo} — {Path(PROMOS[promo]['pdf']).name}")
 
         chemin = Path(PROMOS[promo]["pdf"])
         if not chemin.exists():
@@ -800,7 +803,7 @@ def principale():
         donnees, manquant = {}, False
         for moitie in MOITIES:
             suffixe = PROMOS[promo]["suffixes"][moitie]
-            fichier = Path(f"edt_data{suffixe}.json")
+            fichier = chemins.donnee(f"edt_data{suffixe}.json")
             if not fichier.exists():
                 rap.anomalie(f"données {moitie} absentes", str(fichier))
                 manquant = True
@@ -814,7 +817,8 @@ def principale():
 
         for moitie in MOITIES:
             suffixe = PROMOS[promo]["suffixes"][moitie]
-            controler_donnees(rap, moitie, donnees[moitie], f"edt{suffixe}.ics")
+            controler_donnees(rap, moitie, donnees[moitie],
+                              chemins.donnee(f"edt{suffixe}.ics"))
             if not HORS_LIGNE:
                 controler_agendas(rap, promo, moitie, donnees[moitie])
 

@@ -6,8 +6,8 @@ Pendant que `edt_stri.py` s'occupe des cours (un PDF), ce script s'occupe des
 site eFormation. La source est le calendrier Moodle exporté en iCalendar ; sa
 lecture est dans `moodle.py`, qui explique aussi comment obtenir l'adresse.
 
-    python rendus.py            # télécharge, compare, publie
-    python rendus.py --lister   # affiche seulement ce que contient la source
+    python src/rendus.py            # télécharge, compare, publie
+    python src/rendus.py --lister   # affiche seulement ce que contient la source
 
 Les deux chaînes sont séparées à dessein : le PDF et Moodle changent à des
 moments différents, et un incident sur l'un ne doit pas empêcher l'autre de se
@@ -22,6 +22,7 @@ from pathlib import Path
 # edt_stri porte l'authentification Google, l'envoi Discord et le journal.
 # L'importer configure au passage une promotion (M1/BAS par défaut) dont on ne
 # se sert pas ici : sans effet, aucun traitement ne démarre à l'import.
+import chemins
 import edt_stri
 import google_agenda
 import moodle
@@ -43,7 +44,7 @@ CLE_AGENDA = "MOODLE-RENDUS"
 COULEUR_AGENDA = variable_env("MOODLE_COULEUR", "mangue")
 COULEUR_EVENEMENTS = variable_env("MOODLE_COULEUR_EVENEMENTS", "mandarine")
 
-FICHIER_JSON = variable_env("MOODLE_JSON", "rendus_data.json")
+FICHIER_JSON = variable_env("MOODLE_JSON", str(chemins.donnee("rendus_data.json")))
 
 # Même garde-fou que pour l'emploi du temps : une chute brutale du nombre
 # d'échéances est plus probablement une panne qu'une vraie annulation générale.

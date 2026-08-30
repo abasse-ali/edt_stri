@@ -60,7 +60,7 @@ _verifier_venv()
 if "--no-debug" not in sys.argv:
     os.environ.setdefault("EDT_DEBUG", "1")
 
-sys.path.insert(0, str(RACINE))
+sys.path.insert(0, str(RACINE / "src"))
 
 # telechargement est le module léger : il porte la table des promotions et ne
 # tire ni numpy ni OpenCV.
@@ -109,7 +109,7 @@ def main():
             nom = PROMOS[promo]["agendas"][moitie]
             print(f"\n─── {promo} / {moitie} → {nom} ───")
             code = subprocess.call(
-                [sys.executable, str(RACINE / "edt_stri.py")],
+                [sys.executable, str(RACINE / "src" / "edt_stri.py")],
                 env={**os.environ, "EDT_PROMO": promo, "EDT_MOITIE": moitie},
             )
             if code != 0:

@@ -17,6 +17,8 @@ import os
 import sys
 from pathlib import Path
 
+import chemins
+
 import requests
 
 # Le .env est chargé ici, dans le module que tous les autres importent : sinon
@@ -25,7 +27,7 @@ import requests
 # vient de l'environnement.
 try:
     from dotenv import load_dotenv
-    load_dotenv(Path(__file__).resolve().parent / ".env")
+    load_dotenv(chemins.RACINE / ".env")
 except ImportError:
     pass
 
@@ -54,7 +56,7 @@ def variable_env(nom, defaut=""):
 PROMOS = {
     "M1": {
         "url": "https://stri.fr/Gestion_STRI/TAV/M1/EDT_STRI4A-M1RT_TAV.pdf",
-        "pdf": "edt_m1.pdf",
+        "pdf": str(chemins.donnee("edt_m1.pdf")),
         "agendas": {"BAS": "STRI M1 G2", "HAUT": "STRI Ingé2 G1"},
         "suffixes": {"BAS": "_m1g2", "HAUT": "_inge2g1"},
         # Clés historiques, sans préfixe : elles étiquettent déjà les agendas
@@ -65,7 +67,7 @@ PROMOS = {
     },
     "L3": {
         "url": "https://stri.fr/Gestion_STRI/TAV/L3/EDT_STRI1A_L3IRT_TAV.pdf",
-        "pdf": "edt_l3.pdf",
+        "pdf": str(chemins.donnee("edt_l3.pdf")),
         # La moitié haute de la L3, c'est la promotion Ingé1 — exactement comme
         # la moitié haute du M1 est celle des Ingé.
         "agendas": {"BAS": "IRT L3", "HAUT": "STRI Ingé1"},

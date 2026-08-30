@@ -1,7 +1,7 @@
 .env
 .vscode/
 __pycache__/
-export_cours/
+donnees/export_cours/
 venv/
 poppler/
 
@@ -11,7 +11,8 @@ token.*.json
 credentials.json
 
 # Sorties régénérées à chaque exécution.
-edt*.ics
+donnees/edt*.ics
+donnees/.verif_*
 
 # Ancien bac à sable, remplacé par le code à la racine.
 new_test/

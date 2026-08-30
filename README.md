@@ -12,7 +12,7 @@ apparaissent, se déplacent et disparaissent tout seuls quand le PDF change,
 sur ordinateur comme sur téléphone (Google Agenda, Apple Calendrier, Outlook).
 
 > Tu es étudiant et tu veux juste ton emploi du temps sur ton téléphone ?
-> Va directement dans **[TUTO.txt](TUTO.txt)**, écrit pour ça. Ce README
+> Va directement dans **[docs/TUTO.txt](docs/TUTO.txt)**, écrit pour ça. Ce README
 > s'adresse à qui veut comprendre ou modifier le code.
 
 ---
@@ -61,7 +61,50 @@ jour.
 
 Il n'y a **aucune IA** dans la chaîne : tout est lu dans la géométrie du PDF.
 Une version antérieure interrogeait un modèle de langage ; elle produisait des
-horaires inventés et a été retirée (voir [HISTORIQUE.md](HISTORIQUE.md)).
+horaires inventés et a été retirée (voir [docs/HISTORIQUE.md](docs/HISTORIQUE.md)).
+
+---
+
+## Structure du dépôt
+
+```
+edt_stri/
+├── src/          le code, et les données qu'il embarque
+│   ├── chemins.py          où vivent les fichiers — la seule source de vérité
+│   ├── telechargement.py   table PROMOS + téléchargement anti-bot
+│   ├── lecture_pdf.py      lecture de la couche vectorielle du PDF
+│   ├── edt_stri.py         chaîne des cours, une combinaison à la fois
+│   ├── moodle.py           lecture du calendrier Moodle
+│   ├── rendus.py           chaîne des rendus
+│   ├── google_agenda.py    écriture dans Google Agenda
+│   ├── alerte_ci.py        alerte Discord quand la CI casse
+│   └── professeurs.txt     initiales → nom complet
+│
+├── tests/
+│   ├── test_edt.py         la LOGIQUE, sans réseau ni PDF
+│   └── verif_edt.py        les DONNÉES du jour, PDF et agendas compris
+│
+├── donnees/      tout ce qui est régénéré, jamais écrit à la main
+│   ├── edt_m1.pdf  edt_l3.pdf
+│   ├── edt_data_*.json  rendus_data.json
+│   ├── edt_*.ics           (non versionnés)
+│   ├── journal.csv
+│   └── export_cours/       images de debug (non versionnées)
+│
+├── docs/         TUTO.txt, HISTORIQUE.md
+├── test_local.py           le lanceur, à la racine car c'est le point d'entrée
+├── requirements.txt
+└── .github/workflows/
+```
+
+Aucun module ne construit un chemin lui-même : ils passent tous par
+[src/chemins.py](src/chemins.py). C'est ce qui permet de lancer `python
+tests/verif_edt.py` depuis n'importe quel répertoire et de trouver quand même
+les bons fichiers — avant, tout se résolvait par rapport au répertoire courant
+et ne marchait que depuis la racine.
+
+`token.json` et `credentials.json` restent à la racine : ils ne sont pas
+versionnés, et la CI écrit le jeton avant de connaître la disposition du dépôt.
 
 ---
 
@@ -79,7 +122,7 @@ hauteur d'un créneau, les cours propres à un groupe n'en occupent que la moiti
 | `L3` | `HAUT` | STRI Ingé1    | `edt_data_inge1.json`, `edt_inge1.ics` |
 
 La table complète (URL du PDF, noms d'agenda, couleurs) est dans `PROMOS`, en
-tête de [telechargement.py](telechargement.py) : c'est le seul endroit à
+tête de [src/telechargement.py](src/telechargement.py) : c'est le seul endroit à
 modifier pour ajouter une promotion.
 
 ### Le code couleur du PDF
@@ -124,7 +167,7 @@ dans un message d'erreur.
 Pour voir ce que contient l'export avant de publier quoi que ce soit :
 
 ```bash
-python rendus.py --lister
+python src/rendus.py --lister
 ```
 
 La sortie liste les cours Moodle et le nombre d'événements de chacun. Si le
@@ -132,7 +175,7 @@ calendrier en mélange plusieurs et qu'un seul intéresse, `MOODLE_FILTRE` est u
 expression régulière testée sur l'intitulé, le cours et la description :
 
 ```bash
-MOODLE_FILTRE='Rendu M1' python rendus.py
+MOODLE_FILTRE='Rendu M1' python src/rendus.py
 ```
 
 Deux détails que Moodle impose et que le bot corrige au passage : les heures
@@ -149,38 +192,39 @@ la faisant **se terminer** à l'heure limite.
 
 | Fichier | Rôle |
 |---|---|
-| [edt_stri.py](edt_stri.py) | Chaîne complète pour **une** combinaison promo × demi-promo |
-| [lecture_pdf.py](lecture_pdf.py) | Lecture du PDF : cellules, couleurs, horaires, textes |
-| [telechargement.py](telechargement.py) | Table `PROMOS` + téléchargement derrière le pare-feu |
-| [moodle.py](moodle.py) | Lecture du calendrier Moodle exporté en iCalendar |
-| [rendus.py](rendus.py) | Chaîne complète des rendus : Moodle → agenda « Rendu M1 » |
-| [google_agenda.py](google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
+| [src/edt_stri.py](src/edt_stri.py) | Chaîne complète pour **une** combinaison promo × demi-promo |
+| [src/lecture_pdf.py](src/lecture_pdf.py) | Lecture du PDF : cellules, couleurs, horaires, textes |
+| [src/chemins.py](src/chemins.py) | Emplacement de chaque fichier, calculé une seule fois |
+| [src/telechargement.py](src/telechargement.py) | Table `PROMOS` + téléchargement derrière le pare-feu |
+| [src/moodle.py](src/moodle.py) | Lecture du calendrier Moodle exporté en iCalendar |
+| [src/rendus.py](src/rendus.py) | Chaîne complète des rendus : Moodle → agenda « Rendu M1 » |
+| [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
-| [verif_edt.py](verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [test_edt.py](test_edt.py) | Vérifie la **logique** du code (65 tests, sans réseau) |
-| [alerte_ci.py](alerte_ci.py) | Prévient sur Discord quand la CI échoue |
+| [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (67 tests, sans réseau) |
+| [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
 
 | Fichier | Rôle |
 |---|---|
-| `professeurs.txt` | Initiales → nom complet des enseignants |
-| `edt_m1.pdf`, `edt_l3.pdf` | Derniers PDF publiés, commités pour détecter les changements |
-| `edt_data_*.json` | État précédent de chaque agenda, base de la comparaison |
-| `rendus_data.json` | État précédent des rendus Moodle, même rôle |
-| `edt_*.ics` | Export standard, pour qui préfère un abonnement à un fichier |
-| `journal.csv` | Une ligne par exécution : nombre de cours, état |
+| `src/professeurs.txt` | Initiales → nom complet des enseignants |
+| `donnees/edt_m1.pdf`, `donnees/edt_l3.pdf` | Derniers PDF publiés, commités pour détecter les changements |
+| `donnees/edt_data_*.json` | État précédent de chaque agenda, base de la comparaison |
+| `donnees/rendus_data.json` | État précédent des rendus Moodle, même rôle |
+| `donnees/edt_*.ics` | Export standard, non versionné |
+| `donnees/journal.csv` | Une ligne par exécution : nombre de cours, état |
 | `credentials.json`, `token.json` | Identifiants Google (**jamais commités**) |
 
 ### Le reste
 
 | Fichier | Rôle |
 |---|---|
-| [TUTO.txt](TUTO.txt) | Mode d'emploi pour les étudiants qui s'abonnent |
-| [HISTORIQUE.md](HISTORIQUE.md) | Journal des bugs rencontrés et de leurs corrections |
+| [docs/TUTO.txt](docs/TUTO.txt) | Mode d'emploi pour les étudiants qui s'abonnent |
+| [docs/HISTORIQUE.md](docs/HISTORIQUE.md) | Journal des bugs rencontrés et de leurs corrections |
 | `.github/workflows/edt_sync.yml` | Exécution horaire des emplois du temps |
 | `.github/workflows/rendus_sync.yml` | Exécution horaire des rendus Moodle |
-| `export_cours/<promo>/` | Images de debug (générées si `EDT_DEBUG=1`) |
+| `donnees/export_cours/<promo>/` | Images de debug (générées si `EDT_DEBUG=1`) |
 
 ---
 
@@ -222,24 +266,27 @@ python test_local.py --moitie HAUT        # une seule demi-promo
 python test_local.py --no-debug           # sans les images de debug
 
 # Une passe précise, sans le lanceur
-EDT_PROMO=L3 EDT_MOITIE=HAUT python edt_stri.py
+EDT_PROMO=L3 EDT_MOITIE=HAUT python src/edt_stri.py
 
 # Télécharger seulement
-python telechargement.py --promo L3
+python src/telechargement.py --promo L3
 
 # Rendus Moodle
-python rendus.py                          # récupérer, comparer, publier
-python rendus.py --lister                 # voir la source sans rien publier
-python moodle.py                          # idem, sans passer par l'agenda
+python src/rendus.py                      # récupérer, comparer, publier
+python src/rendus.py --lister             # voir la source sans rien publier
+python src/moodle.py                      # idem, sans passer par l'agenda
 
 # Contrôler ce qui a été produit
-python verif_edt.py                       # tout, agendas Google compris
-python verif_edt.py --hors-ligne          # sans réseau ni agenda
-python verif_edt.py --promo M1
-python test_edt.py                        # tests de logique, instantané
+python tests/verif_edt.py                 # tout, agendas Google compris
+python tests/verif_edt.py --hors-ligne    # sans réseau ni agenda
+python tests/verif_edt.py --promo M1
+python tests/test_edt.py                  # tests de logique, instantané
 ```
 
-⚠️ `python edt_stri.py` seul ne traite **que le M1 en moitié basse**. La
+Ces commandes marchent depuis n'importe quel répertoire, pas seulement depuis
+la racine.
+
+⚠️ `python src/edt_stri.py` seul ne traite **que le M1 en moitié basse**. La
 configuration est lue au chargement du module, donc une exécution ne couvre
 qu'une combinaison : c'est pour cela que la CI lance quatre processus.
 
@@ -305,7 +352,7 @@ sur Discord :
    rend le code 1. La CI ne commite alors pas les PDF, donc la comparaison de
    l'heure suivante détecte à nouveau le changement et **réessaie**. Sans cela,
    un échec unique figeait les agendas jusqu'au PDF suivant.
-4. **`verif_edt.py`** relit après coup tout ce qui a été produit. La CI ne
+4. **`tests/verif_edt.py`** relit après coup tout ce qui a été produit. La CI ne
    sauvegarde les fichiers que si ce contrôle passe.
 
 Un cinquième cas ne concerne que les rendus : l'export Moodle porte sur une
@@ -316,7 +363,7 @@ suppressions sont donc bornées à aujourd'hui : le passé n'est jamais touché.
 
 Ces vérifications portent sur les données du jour. Les règles elles-mêmes
 (routage des couleurs, horaires, identifiants, format ICS) sont couvertes par
-`test_edt.py`, qui tourne **avant** la synchronisation en CI et ne demande ni
+`tests/test_edt.py`, qui tourne **avant** la synchronisation en CI et ne demande ni
 réseau ni PDF.
 
 ---
@@ -330,18 +377,18 @@ concurrence pour ne jamais pousser deux commits en même temps.
 
 1. télécharge les deux PDF ;
 2. les compare aux versions commitées — s'ils sont identiques, tout s'arrête là ;
-3. lance `test_edt.py` ;
+3. lance `tests/test_edt.py` ;
 4. reconstruit le jeton Google depuis le secret `GDRIVE_TOKEN` ;
 5. exécute les quatre passes ;
-6. lance `verif_edt.py --sans-fraicheur` ;
-7. efface le jeton, puis commite les PDF, les JSON et le journal sur `main`.
+6. lance `tests/verif_edt.py --sans-fraicheur` ;
+7. efface le jeton, puis commite `donnees/` (PDF, JSON, journal) sur `main`.
 
 [rendus_sync.yml](.github/workflows/rendus_sync.yml) — les rendus :
 
 1. s'arrête tout de suite si le secret `MOODLE_ICS_URL` n'est pas défini ;
 2. installe, teste, prépare le jeton comme ci-dessus ;
-3. exécute `rendus.py` ;
-4. efface le jeton, puis commite `rendus_data.json` et le journal.
+3. exécute `src/rendus.py` ;
+4. efface le jeton, puis commite `donnees/rendus_data.json` et le journal.
 
 Il ne dépend pas des PDF : le calendrier Moodle change quand il veut, et le
 workflow de l'EDT s'arrête dès que les PDF sont inchangés — y greffer les rendus
@@ -364,7 +411,7 @@ Depuis Google Agenda, « Partager avec des personnes en particulier », puis
 l'adresse Gmail de l'étudiant, en accès **lecture seule**. L'agenda apparaît
 alors dans son compte, et sur son iPhone après activation sur
 [calendar.google.com/calendar/syncselect](https://calendar.google.com/calendar/syncselect).
-La marche à suivre côté étudiant est détaillée dans [TUTO.txt](TUTO.txt).
+La marche à suivre côté étudiant est détaillée dans [docs/TUTO.txt](docs/TUTO.txt).
 
 À noter : la **couleur de fond** d'un agenda appartient à chaque abonné et ne
 peut pas lui être imposée. C'est pourquoi le bot pose aussi une couleur sur
@@ -381,4 +428,4 @@ pas servir à délimiter une journée, pourquoi une case de salle se teste sur s
 centre et non sur ses bords, pourquoi les identifiants d'événement sont des MD5,
 pourquoi l'ICS est écrit avec `newline=''`.
 
-[HISTORIQUE.md](HISTORIQUE.md) retrace tout ce qui a cassé, et comment.
+[docs/HISTORIQUE.md](docs/HISTORIQUE.md) retrace tout ce qui a cassé, et comment.

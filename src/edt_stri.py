@@ -7,11 +7,11 @@ configuration est lue au chargement du module. Pour les quatre, passer par
 `test_local.py`, qui lance un processus par combinaison — c'est aussi ce que
 fait la CI.
 
-  python test_local.py                       -> les 4 combinaisons
-  python edt_stri.py                         -> M1 / moitié basse seulement
-  EDT_PROMO=L3 EDT_MOITIE=HAUT python edt_stri.py  -> une autre combinaison
-  python telechargement.py --promo L3        -> télécharge un PDF (sans numpy)
-  EDT_DEBUG=1 python edt_stri.py             -> images dans export_cours/<promo>/
+  python test_local.py                   -> les 4 combinaisons
+  python src/edt_stri.py                 -> M1 / moitié basse seulement
+  EDT_PROMO=L3 EDT_MOITIE=HAUT python src/edt_stri.py  -> une autre combinaison
+  python src/telechargement.py --promo L3  -> télécharge un PDF (sans numpy)
+  EDT_DEBUG=1 python src/edt_stri.py     -> images dans donnees/export_cours/
 """
 
 import sys
@@ -32,6 +32,7 @@ from ics.contentline import ContentLine
 from pdf2image import convert_from_path
 
 import lecture_pdf
+import chemins
 import google_agenda
 # Le téléchargement vit dans un module sans dépendance lourde : la CI
 # l'appelle avant d'installer requirements.txt.
@@ -120,7 +121,7 @@ FORCER = variable_env("EDT_FORCER") == "1"
 
 # Journal des exécutions : une ligne par passe, pour voir les tendances et
 # repérer le jour où le nombre de cours a commencé à déraper.
-FICHIER_JOURNAL = variable_env("EDT_JOURNAL", "journal.csv")
+FICHIER_JOURNAL = variable_env("EDT_JOURNAL", str(chemins.donnee("journal.csv")))
 
 # CORRECTIF #6 : plus d'année en dur. None = déduction automatique depuis le PDF.
 ANNEE_FORCEE = None
@@ -131,12 +132,12 @@ TIMEOUT_HTTP = 20
 DEBUG = variable_env("EDT_DEBUG", "0") not in ("0", "false", "False")
 # Un dossier par promotion : les deux emplois du temps couvrent les mêmes
 # dates, et un dossier commun ferait écraser les imagettes de l'un par l'autre.
-DOSSIER_DEBUG = Path("export_cours") / PROMO
+DOSSIER_DEBUG = chemins.donnee("export_cours") / PROMO
 
 # EDT_PDF reste prioritaire : la CI télécharge sous un nom temporaire.
 FICHIER_PDF = variable_env("EDT_PDF", _PROMO["pdf"])
-FICHIER_JSON = f"edt_data{SUFFIXE}.json"
-FICHIER_ICS = f"edt{SUFFIXE}.ics"
+FICHIER_JSON = str(chemins.donnee(f"edt_data{SUFFIXE}.json"))
+FICHIER_ICS = str(chemins.donnee(f"edt{SUFFIXE}.ics"))
 
 
 DPI = 200
@@ -169,7 +170,7 @@ def _trouver_poppler():
         return variable_env("POPPLER_PATH")
     if sys.platform != "win32":
         return None  # poppler-utils est dans le PATH sous Linux/macOS
-    ici = Path(__file__).resolve().parent
+    ici = chemins.RACINE
     for racine in (Path.cwd(), ici, ici.parent):
         candidat = racine / "poppler" / "Library" / "bin"
         if (candidat / "pdftoppm.exe").exists():
@@ -299,10 +300,12 @@ def obtenir_identifiants(scopes=None, interactif=None):
         interactif = (variable_env("EDT_AUTORISER") == "1"
                       or (not variable_env("CI") and sys.stdin.isatty()))
 
+    jeton, client = chemins.racine('token.json'), chemins.racine('credentials.json')
+
     creds = None
-    if Path('token.json').exists():
+    if jeton.exists():
         try:
-            creds = Credentials.from_authorized_user_file('token.json', scopes)
+            creds = Credentials.from_authorized_user_file(str(jeton), scopes)
         except ValueError as e:
             print(f"⚠️ token.json illisible ({e}).")
 
@@ -319,7 +322,7 @@ def obtenir_identifiants(scopes=None, interactif=None):
     if creds and creds.expired and creds.refresh_token:
         try:
             creds.refresh(Request())
-            Path('token.json').write_text(creds.to_json(), encoding="utf-8")
+            jeton.write_text(creds.to_json(), encoding="utf-8")
             return creds
         except Exception as e:
             print(f"⚠️ Rafraîchissement du jeton impossible ({e}).")
@@ -330,13 +333,13 @@ def obtenir_identifiants(scopes=None, interactif=None):
         print("   puis mets à jour le secret GDRIVE_TOKEN du dépôt.")
         return None
 
-    if not Path('credentials.json').exists():
+    if not client.exists():
         print("❌ Le fichier credentials.json est introuvable.")
         return None
 
-    flow = InstalledAppFlow.from_client_secrets_file('credentials.json', scopes)
+    flow = InstalledAppFlow.from_client_secrets_file(str(client), scopes)
     creds = flow.run_local_server(port=0)
-    Path('token.json').write_text(creds.to_json(), encoding="utf-8")
+    jeton.write_text(creds.to_json(), encoding="utf-8")
     print("✅ Autorisation enregistrée dans token.json.")
     return creds
 

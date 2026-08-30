@@ -10,8 +10,8 @@ Chaque test correspond à un défaut réellement rencontré. Les commentaires
 rappellent lequel, pour qu'un futur lecteur sache ce qu'il casserait en
 simplifiant.
 
-    python test_edt.py            tout
-    python test_edt.py couleur    seulement les tests dont le nom contient ça
+    python tests/test_edt.py            tout
+    python tests/test_edt.py couleur    seulement ceux dont le nom contient ça
 
 Aucune dépendance de test : la bibliothèque standard suffit.
 """
@@ -21,15 +21,18 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+_RACINE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_RACINE / "src"))
+sys.path.insert(0, str(_RACINE / "tests"))
 
-import edt_stri
-import google_agenda
-import lecture_pdf
-import moodle
-import rendus
-import telechargement
-import verif_edt
+import chemins  # noqa: E402
+import edt_stri  # noqa: E402
+import google_agenda  # noqa: E402
+import lecture_pdf  # noqa: E402
+import moodle  # noqa: E402
+import rendus  # noqa: E402
+import telechargement  # noqa: E402
+import verif_edt  # noqa: E402
 
 for _flux in (sys.stdout, sys.stderr):
     try:
@@ -48,6 +51,19 @@ def test(fonction):
 def egal(obtenu, attendu, quoi=""):
     if obtenu != attendu:
         raise AssertionError(f"{quoi}\n      attendu : {attendu!r}\n      obtenu  : {obtenu!r}")
+
+
+def _modules_importes(chemin):
+    """Noms des modules importés par un fichier, sans l'exécuter."""
+    import ast
+    arbre = ast.parse(Path(chemin).read_text(encoding="utf-8"))
+    noms = set()
+    for noeud in ast.walk(arbre):
+        if isinstance(noeud, ast.Import):
+            noms.update(a.name.split(".")[0] for a in noeud.names)
+        elif isinstance(noeud, ast.ImportFrom) and noeud.module:
+            noms.add(noeud.module.split(".")[0])
+    return noms
 
 
 def cours(date="2026-09-08", start="08h00", end="10h00", titre="BD",
@@ -99,17 +115,13 @@ def promos_sont_coherentes():
 def module_de_telechargement_reste_leger():
     """La CI l'appelle AVANT d'installer requirements.txt : il ne doit importer
     ni numpy, ni OpenCV, ni pdfplumber."""
-    import ast
-    source = Path("telechargement.py").read_text(encoding="utf-8")
-    importes = set()
-    for noeud in ast.walk(ast.parse(source)):
-        if isinstance(noeud, ast.Import):
-            importes.update(a.name.split(".")[0] for a in noeud.names)
-        elif isinstance(noeud, ast.ImportFrom) and noeud.module:
-            importes.add(noeud.module.split(".")[0])
-    interdits = importes & {"numpy", "cv2", "pdfplumber", "ics", "pdf2image",
-                            "googleapiclient", "edt_stri"}
-    egal(interdits, set(), "dépendances lourdes importées")
+    lourdes = {"numpy", "cv2", "pdfplumber", "ics", "pdf2image",
+               "googleapiclient", "edt_stri"}
+    # `chemins` est importé par telechargement : la garantie ne vaut que si lui
+    # aussi reste léger, d'où les deux fichiers.
+    for nom in ("telechargement.py", "chemins.py"):
+        interdits = _modules_importes(chemins.SRC / nom) & lourdes
+        egal(interdits, set(), f"dépendances lourdes dans {nom}")
 
 
 # =====================================================================
@@ -564,14 +576,7 @@ def alerte_ci_ne_masque_jamais_la_panne_signalee():
 def alerte_ci_n_importe_que_la_bibliotheque_standard():
     """Elle doit fonctionner quand l'installation des dépendances est
     précisément ce qui a échoué."""
-    import ast
-    source = Path("alerte_ci.py").read_text(encoding="utf-8")
-    importes = set()
-    for noeud in ast.walk(ast.parse(source)):
-        if isinstance(noeud, ast.Import):
-            importes.update(a.name.split(".")[0] for a in noeud.names)
-        elif isinstance(noeud, ast.ImportFrom) and noeud.module:
-            importes.add(noeud.module.split(".")[0])
+    importes = _modules_importes(chemins.SRC / "alerte_ci.py")
     egal(importes - {"json", "os", "sys", "urllib"}, set(), "dépendance externe")
 
 
@@ -585,7 +590,7 @@ def tutoriel_reste_lisible_partout():
     passent partout — ils tiennent dans Latin-1, donc dans une console
     Windows. Les emoji et les caractères semi-graphiques, non : ils y
     deviennent des points d'interrogation."""
-    brut = Path("TUTO.txt").read_bytes()
+    brut = (chemins.DOCS / "TUTO.txt").read_bytes()
     texte = brut.decode("utf-8")
     illisibles = set()
     for c in texte:
@@ -602,7 +607,7 @@ def tutoriel_reste_lisible_partout():
 def tutoriel_cite_les_agendas_reels():
     """Un tutoriel nommant un agenda qui n'existe plus envoie les gens
     chercher quelque chose d'introuvable."""
-    texte = Path("TUTO.txt").read_text(encoding="utf-8")
+    texte = (chemins.DOCS / "TUTO.txt").read_text(encoding="utf-8")
     def sans_accent(s):
         for a, b in (("é", "e"), ("É", "E"), ("è", "e"), ("ê", "e")):
             s = s.replace(a, b)

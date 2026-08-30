@@ -45,8 +45,8 @@ jobs:
       #    installé et le module important numpy dès son chargement.
       - name: Télécharger les nouveaux PDF
         run: |
-          python telechargement.py --promo M1 edt_m1_nouveau.pdf
-          python telechargement.py --promo L3 edt_l3_nouveau.pdf
+          python src/telechargement.py --promo M1 edt_m1_nouveau.pdf
+          python src/telechargement.py --promo L3 edt_l3_nouveau.pdf
 
       # 4. Compare chaque PDF avec sa version précédente. Une seule promotion
       #    modifiée suffit à déclencher la suite : les passes sont idempotentes,
@@ -54,22 +54,23 @@ jobs:
       - name: Comparer les PDF
         id: verification
         run: |
-          touch edt_m1.pdf edt_l3.pdf
+          mkdir -p donnees
+          touch donnees/edt_m1.pdf donnees/edt_l3.pdf
           change=false
 
-          if cmp -s edt_m1_nouveau.pdf edt_m1.pdf; then
+          if cmp -s edt_m1_nouveau.pdf donnees/edt_m1.pdf; then
             echo "📄 M1 inchangé."
           else
             echo "🚨 Le PDF M1 a changé."
-            mv edt_m1_nouveau.pdf edt_m1.pdf
+            mv edt_m1_nouveau.pdf donnees/edt_m1.pdf
             change=true
           fi
 
-          if cmp -s edt_l3_nouveau.pdf edt_l3.pdf; then
+          if cmp -s edt_l3_nouveau.pdf donnees/edt_l3.pdf; then
             echo "📄 L3 inchangé."
           else
             echo "🚨 Le PDF L3 a changé."
-            mv edt_l3_nouveau.pdf edt_l3.pdf
+            mv edt_l3_nouveau.pdf donnees/edt_l3.pdf
             change=true
           fi
 
@@ -91,7 +92,7 @@ jobs:
       # ici, sans toucher aux agendas.
       - name: Tests unitaires
         if: steps.verification.outputs.run_script == 'true'
-        run: python test_edt.py
+        run: python tests/test_edt.py
 
       # GDRIVE_TOKEN : nom historique, le jeton ne sert plus qu'à l'API
       # Calendar. Le fichier de client OAuth n'est plus écrit — il ne servait
@@ -128,10 +129,10 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          EDT_PROMO=M1 EDT_MOITIE=BAS  python edt_stri.py
-          EDT_PROMO=M1 EDT_MOITIE=HAUT python edt_stri.py
-          EDT_PROMO=L3 EDT_MOITIE=BAS  python edt_stri.py
-          EDT_PROMO=L3 EDT_MOITIE=HAUT python edt_stri.py
+          EDT_PROMO=M1 EDT_MOITIE=BAS  python src/edt_stri.py
+          EDT_PROMO=M1 EDT_MOITIE=HAUT python src/edt_stri.py
+          EDT_PROMO=L3 EDT_MOITIE=BAS  python src/edt_stri.py
+          EDT_PROMO=L3 EDT_MOITIE=HAUT python src/edt_stri.py
 
       # La CI publiait sans jamais se relire. Un échec ici saute l'étape de
       # sauvegarde : les PDF ne sont pas commités, la prochaine exécution
@@ -144,7 +145,7 @@ jobs:
         if: steps.traitement.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python verif_edt.py --sans-fraicheur
+        run: python tests/verif_edt.py --sans-fraicheur
 
       # Filet de dernier recours : tout ce qui casse AVANT que edt_stri.py ne
       # démarre — téléchargement refusé par le WAF, dépendances, secret absent,
@@ -156,7 +157,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           LIEN_EXECUTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: python alerte_ci.py
+        run: python src/alerte_ci.py
 
       # Les secrets ne doivent pas survivre à l'étape suivante, qui commite.
       - name: Effacer le jeton
@@ -173,7 +174,8 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add edt_m1.pdf edt_l3.pdf edt_data*.json journal.csv
+          git add donnees/edt_m1.pdf donnees/edt_l3.pdf \
+                  donnees/edt_data*.json donnees/journal.csv
           git commit -m "Mise à jour automatique de l'EDT" || echo "Rien à commiter"
           git pull --rebase --autostash origin ${{ github.ref_name }}
           git push
