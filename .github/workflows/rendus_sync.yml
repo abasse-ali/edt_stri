@@ -29,16 +29,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Le secret n'est pas lisible dans un `if:` de job : on le teste ici, et
-      # sans lui tout le reste est sauté. Une fonctionnalité non configurée ne
-      # doit pas faire échouer un job toutes les heures.
+      # Les secrets ne sont pas lisibles dans un `if:` de job : on les teste
+      # ici, et sans eux tout le reste est sauté. Une fonctionnalité non
+      # configurée ne doit pas faire échouer un job toutes les heures.
+      #
+      # Une seule source suffit à déclencher la suite : elles sont facultatives
+      # l'une comme l'autre.
       - name: Vérifier la configuration
         id: config
         env:
           MOODLE_ICS_URL: ${{ secrets.MOODLE_ICS_URL }}
+          MOODLE_INETDOC_ICS_URL: ${{ secrets.MOODLE_INETDOC_ICS_URL }}
         run: |
-          if [ -z "$MOODLE_ICS_URL" ]; then
-            echo "ℹ️ Secret MOODLE_ICS_URL absent : rien à synchroniser."
+          if [ -z "$MOODLE_ICS_URL" ] && [ -z "$MOODLE_INETDOC_ICS_URL" ]; then
+            echo "ℹ️ Aucune source Moodle configurée : rien à synchroniser."
+            echo "   Secrets attendus : MOODLE_ICS_URL, MOODLE_INETDOC_ICS_URL"
             echo "configure=false" >> $GITHUB_OUTPUT
           else
             echo "configure=true" >> $GITHUB_OUTPUT
@@ -80,7 +85,7 @@ jobs:
               sys.exit("::error::GDRIVE_TOKEN sans refresh_token : inutilisable en CI.")
           PY
 
-      # MOODLE_ICS_URL contient un authtoken personnel : il ne doit apparaître
+      # Ces adresses contiennent un authtoken personnel : il ne doit apparaître
       # ni dans une commande, ni dans un affichage. Passé en variable
       # d'environnement, GitHub le masque automatiquement dans les journaux.
       - name: Synchroniser les rendus
@@ -88,6 +93,7 @@ jobs:
         if: steps.config.outputs.configure == 'true'
         env:
           MOODLE_ICS_URL: ${{ secrets.MOODLE_ICS_URL }}
+          MOODLE_INETDOC_ICS_URL: ${{ secrets.MOODLE_INETDOC_ICS_URL }}
           MOODLE_FILTRE: ${{ vars.MOODLE_FILTRE }}
           MOODLE_AGENDA: ${{ vars.MOODLE_AGENDA }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

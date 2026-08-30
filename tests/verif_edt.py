@@ -678,7 +678,7 @@ def controler_rendus(rap):
     if not chemin.exists():
         return
 
-    rap.section(f"Rendus Moodle — {chemin}")
+    rap.section(f"Rendus Moodle — {chemin.name}")
     try:
         evenements = json.loads(chemin.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
@@ -706,9 +706,9 @@ def controler_rendus(rap):
             continue
 
         if e.get("start"):
-            # Google refuse un événement de durée nulle, et une date limite
-            # Moodle arrive justement avec DURATION:PT0S.
-            if not (_minutes(e["start"]) < _minutes(e.get("end", ""))):
+            # Une date limite est ponctuelle : début et fin confondus, ce que
+            # Google accepte. Seule une fin ANTÉRIEURE au début est une faute.
+            if _minutes(e.get("end", "")) < _minutes(e["start"]):
                 creneaux_vides.append(f"{e['date']} {e['titre']}")
         else:
             # Journée entière : la fin est EXCLUSIVE, donc postérieure.
@@ -718,7 +718,7 @@ def controler_rendus(rap):
 
     rap.verifier(not dates_invalides, "dates lisibles",
                  detail_ko=", ".join(dates_invalides[:5]))
-    rap.verifier(not creneaux_vides, "aucun créneau de durée nulle",
+    rap.verifier(not creneaux_vides, "aucune fin antérieure au début",
                  detail_ko=", ".join(creneaux_vides[:5]))
     rap.verifier(not journees_invalides, "journées entières bien bornées",
                  detail_ko=", ".join(journees_invalides[:5]))

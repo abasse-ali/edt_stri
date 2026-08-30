@@ -2,9 +2,15 @@
 Synchronisation des rendus Moodle vers un agenda Google.
 
 Pendant que `edt_stri.py` s'occupe des cours (un PDF), ce script s'occupe des
-échéances : devoirs à déposer, dates limites, examens déclarés dans un cours du
-site eFormation. La source est le calendrier Moodle exporté en iCalendar ; sa
-lecture est dans `moodle.py`, qui explique aussi comment obtenir l'adresse.
+échéances : devoirs à déposer, validations de TP, ouvertures et fermetures de
+quiz. Elles viennent de PLUSIEURS calendriers Moodle — celui du STRI et celui
+de `moodle.inetdoc.net` — décrits dans `moodle.SOURCES`, qui explique aussi
+comment obtenir leurs adresses.
+
+Tout atterrit dans un seul agenda : c'est un endroit unique où regarder ce
+qu'il reste à rendre. La contrepartie est que la lecture est tout ou rien —
+une source illisible interrompt la publication, faute de quoi le rapprochement
+effacerait les échéances des autres.
 
     python src/rendus.py            # télécharge, compare, publie
     python src/rendus.py --lister   # affiche seulement ce que contient la source
@@ -209,21 +215,26 @@ def principale():
     print(f"📌 Rendus Moodle → « {NOM_AGENDA} »")
     print("=" * 60)
 
-    if not moodle.URL_ICS:
+    if not moodle.sources_configurees():
         # Fonctionnalité facultative : sans adresse d'export, il n'y a rien à
         # faire, et ce n'est pas une panne. Rendre 1 ferait échouer la CI toutes
         # les heures et alerterait sur Discord pour une absence de réglage.
-        print("ℹ️ MOODLE_ICS_URL n'est pas définie : rien à synchroniser.")
-        print("   Marche à suivre pour l'obtenir : voir l'en-tête de moodle.py.")
+        print("ℹ️ Aucune source Moodle configurée : rien à synchroniser.")
+        print("   Variables attendues : "
+              + ", ".join(c["variable"] for c in moodle.SOURCES.values()))
+        print("   Marche à suivre pour les obtenir : voir l'en-tête de moodle.py.")
         return 0
 
-    evenements = moodle.recuperer()
-    if evenements is None:
+    resultat = moodle.recuperer_tout()
+    if resultat is None:
         edt_stri.envoyer_alerte_discord(
             f"**{NOM_AGENDA} — calendrier Moodle illisible.** "
-            "Adresse d'export absente, expirée ou refusée.")
+            "Adresse d'export absente, expirée ou refusée. Rien n'a été publié.")
         return 1
 
+    evenements, bilan = resultat
+    for nom, nombre in bilan:
+        print(f"   {nom} : {nombre} événement(s)")
     print(f"📚 {len(evenements)} événement(s) retenu(s).")
     for nom, nombre in moodle.repartition(evenements):
         print(f"   {nombre:3d}  {nom}")
@@ -273,14 +284,18 @@ def principale():
 
 if __name__ == "__main__":
     if "--lister" in sys.argv:
-        liste = moodle.recuperer()
-        if liste is None:
+        resultat = moodle.recuperer_tout()
+        if resultat is None:
             sys.exit(1)
-        print(f"📚 {len(liste)} événement(s) :")
+        liste, bilan = resultat
+        for nom, nombre in bilan:
+            print(f"   {nom} : {nombre} événement(s)")
+        print(f"📚 {len(liste)} événement(s) au total :")
         for nom, nombre in moodle.repartition(liste):
             print(f"   {nombre:3d}  {nom}")
+        print()
         for e in liste:
-            creneau = f"{e['start']}-{e['end']}" if e['start'] else "journée"
-            print(f"   {e['date']}  {creneau:>12}  {e['titre']}")
+            quand = e['start'] if e['start'] else "journée"
+            print(f"   {e['date']}  {quand:>8}  {e['titre'][:60]:<60}  {e['provenance']}")
         sys.exit(0)
     sys.exit(principale())

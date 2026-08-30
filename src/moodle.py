@@ -6,15 +6,20 @@ limites, examens déclarés dans un cours — vivent ailleurs : dans le calendri
 Moodle de https://www.stri.fr/eformation/. Moodle sait l'exporter au format
 iCalendar, à une adresse personnelle et permanente.
 
-Comment obtenir cette adresse (une seule fois) :
+Deux calendriers sont lus, décrits dans SOURCES ci-dessous : celui du STRI
+et celui de `moodle.inetdoc.net`, où vivent les quiz et les validations de TP.
+En ajouter un troisième tient en trois lignes.
+
+Comment obtenir une adresse d'export (une seule fois, par calendrier) :
 
     1. https://www.stri.fr/eformation/calendar/view.php
+       ou https://moodle.inetdoc.net/calendar/view.php
     2. bouton « Exporter le calendrier »
     3. Événements à exporter : « Tous les événements »
        Durée : « Intervalle personnalisé » (la plus large : ~1 an)
     4. bouton « URL du calendrier » — et non « Exporter », qui télécharge un
        fichier figé
-    5. copier l'adresse obtenue dans la variable MOODLE_ICS_URL
+    5. copier l'adresse obtenue dans la variable indiquée par SOURCES
 
 ⚠️ Cette adresse contient `authtoken=…`, qui donne accès au calendrier
 personnel sans mot de passe. Elle se traite comme un mot de passe : dans un
@@ -36,7 +41,29 @@ from telechargement import variable_env
 FUSEAU = ZoneInfo("Europe/Paris")
 TIMEOUT_HTTP = 20
 
-# Adresse d'export personnelle, cf. l'en-tête. Sans elle, rien n'est fait.
+# Les calendriers Moodle lus, et la variable qui porte l'adresse de chacun.
+# Une source sans adresse configurée est simplement ignorée.
+#
+# `echeances_seulement` ne retient que les événements SANS DURÉE — une date
+# limite, l'ouverture ou la fermeture d'un quiz. C'est indispensable pour
+# inetdoc, dont le calendrier contient aussi les 49 séances de TP et de cours :
+# elles sont déjà dans les agendas de l'emploi du temps, elles y feraient
+# doublon, et la moitié d'entre elles concerne l'autre demi-promo (« - G1 »).
+# Le STRI n'en publie pas, sa liste passe donc entière.
+SOURCES = {
+    "STRI": {
+        "variable": "MOODLE_ICS_URL",
+        "nom": "eFormation STRI",
+        "echeances_seulement": False,
+    },
+    "INETDOC": {
+        "variable": "MOODLE_INETDOC_ICS_URL",
+        "nom": "Moodle inetdoc",
+        "echeances_seulement": True,
+    },
+}
+
+# Conservée pour les appels directs et les tests : l'adresse du STRI.
 URL_ICS = variable_env("MOODLE_ICS_URL")
 
 # Filtre facultatif : expression régulière testée sur le titre, le cours et la
@@ -44,10 +71,14 @@ URL_ICS = variable_env("MOODLE_ICS_URL")
 # Moodle en mélange plusieurs. Vide = tout garder.
 FILTRE = variable_env("MOODLE_FILTRE")
 
-# Une date limite Moodle est un instant, pas une plage : `DURATION:PT0S`. Un
-# événement de durée nulle est refusé par l'API Google, et illisible de toute
-# façon dans une grille horaire — on lui donne une épaisseur.
-DUREE_MINIMALE = timedelta(minutes=30)
+# Une date limite Moodle est un instant, pas une plage : `DURATION:PT0S`.
+# Vérifié contre l'API : Google accepte parfaitement un événement de durée
+# nulle, et c'est la représentation juste — le rappel s'ancre alors sur
+# l'échéance elle-même, et non trente minutes avant.
+#
+# Mettre un nombre de minutes ici donne au contraire une épaisseur visible dans
+# la grille ; l'événement se TERMINE alors à l'heure limite.
+DUREE_ECHEANCE = timedelta(minutes=int(variable_env("MOODLE_DUREE_ECHEANCE", "0")))
 
 # `P1DT2H30M` -> 1 jour, 2 h, 30 min. Les semaines (`W`) sont exclusives des
 # autres champs dans la norme, mais les accepter ensemble ne coûte rien.
@@ -230,7 +261,10 @@ def _en_evenement(champs):
     remplace la ligne « Enseignant : … » sans objet ici, et `date_fin`, qui
     n'existe que pour un événement d'une journée entière.
     """
-    titre = _decoder(champs.get('SUMMARY', '')).strip()
+    # Moodle laisse parfois des entités HTML dans le titre : inetdoc publie
+    # « Hub &amp\; Spoke ». Le `\;` est un échappement iCalendar, que _decoder
+    # défait ; reste `&amp;`, qui n'a rien à faire dans un titre d'agenda.
+    titre = html.unescape(_decoder(champs.get('SUMMARY', ''))).strip()
     if not titre:
         return None
 
@@ -243,12 +277,18 @@ def _en_evenement(champs):
         duree = _lire_duree(champs.get('DURATION', '')) or timedelta(0)
         fin = debut + duree
 
-    cours = champs.get('CATEGORIES', '').strip()
+    cours = html.unescape(_decoder(champs.get('CATEGORIES', ''))).strip()
     description = _texte_simple(_decoder(champs.get('DESCRIPTION', '')))
     lignes_description = [l for l in (f"Cours : {cours}" if cours else "",
                                       description) if l]
 
     uid = champs.get('UID', '').strip()
+    # inetdoc renseigne la salle ; le STRI, non.
+    salle = html.unescape(_decoder(champs.get('LOCATION', ''))).strip()
+
+    # Retenu AVANT d'épaissir le créneau : une fois la demi-heure ajoutée,
+    # plus rien ne distingue une date limite d'une vraie séance.
+    ponctuel = not journee and fin <= debut
 
     if journee:
         # Google veut une date de fin EXCLUSIVE : un événement d'un seul jour
@@ -259,24 +299,23 @@ def _en_evenement(champs):
             "date": debut.strftime('%Y-%m-%d'),
             "date_fin": fin.strftime('%Y-%m-%d'),
             "start": None, "end": None, "uid": uid,
-            "titre": titre, "room": "", "prof": cours,
+            "echeance": False,
+            "titre": titre, "room": salle, "prof": cours,
             "description": "\n".join(lignes_description),
         }
 
     if fin <= debut:
         # Date limite : Moodle l'exporte sans durée (DTEND égal à DTSTART, ou
-        # DURATION:PT0S). Google refuse un événement vide, il lui faut une
-        # épaisseur — donnée EN AMONT, de sorte qu'il se TERMINE à l'échéance.
-        # « 21h30 → 22h00 » décrit un devoir à rendre pour 22h ; « 22h00 →
-        # 22h30 » laisserait croire qu'on peut encore déposer après.
+        # DURATION:PT0S). On la laisse ponctuelle, sauf si MOODLE_DUREE_ECHEANCE
+        # demande une épaisseur — donnée EN AMONT, de sorte que l'événement se
+        # TERMINE à l'heure limite. « 21h30 → 22h00 » décrit un devoir à rendre
+        # pour 22h ; « 22h00 → 22h30 » laisserait croire qu'on peut déposer
+        # après.
         fin = debut
-        debut = fin - DUREE_MINIMALE
+        debut = fin - DUREE_ECHEANCE
         if debut.date() != fin.date():
-            # Échéance juste après minuit : reculer changerait de jour.
+            # Épaisseur qui déborderait sur la veille : on s'arrête à minuit.
             debut = fin.replace(hour=0, minute=0)
-        if debut >= fin:
-            # Échéance à minuit pile : plus rien en amont, on repart en aval.
-            fin = debut + DUREE_MINIMALE
     elif fin.date() != debut.date():
         # Un vrai créneau à cheval sur deux jours ne rentre pas dans la forme
         # « une date + deux heures » : on le ramène à la fin de sa journée
@@ -287,17 +326,21 @@ def _en_evenement(champs):
         "date": debut.strftime('%Y-%m-%d'),
         "start": debut.strftime('%Hh%M'),
         "end": fin.strftime('%Hh%M'), "uid": uid,
-        "titre": titre, "room": "", "prof": cours,
+        "echeance": ponctuel,
+        "titre": titre, "room": salle, "prof": cours,
         "description": "\n".join(lignes_description),
     }
 
 
-def analyser(texte, filtre=None):
+def analyser(texte, filtre=None, echeances_seulement=False):
     """Rend la liste des événements du calendrier, triée par date.
 
     `filtre` est une expression régulière facultative, testée sans tenir compte
     de la casse sur le titre, le cours et la description : elle permet de ne
     retenir qu'un cours quand Moodle en exporte plusieurs.
+
+    `echeances_seulement` écarte les séances — tout ce qui occupe un vrai
+    créneau — pour ne garder que les dates limites et les ouvertures de quiz.
     """
     filtre = FILTRE if filtre is None else filtre
     motif = re.compile(filtre, re.IGNORECASE) if filtre else None
@@ -318,6 +361,8 @@ def analyser(texte, filtre=None):
 
         evenement = _en_evenement(champs)
         if evenement is None:
+            continue
+        if echeances_seulement and not evenement["echeance"]:
             continue
         if motif and not motif.search(
                 f"{evenement['titre']} {evenement['prof']} {evenement['description']}"):
@@ -340,8 +385,8 @@ def repartition(evenements):
     return sorted(comptes.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
-def recuperer(url=None, filtre=None):
-    """Télécharge puis analyse. Rend None si la source est inexploitable.
+def recuperer(url=None, filtre=None, echeances_seulement=False):
+    """Télécharge puis analyse UNE source. Rend None si elle est inexploitable.
 
     None et liste vide sont deux réponses différentes : la première dit « je
     n'ai pas pu lire », la seconde « il n'y a rien ». Confondre les deux
@@ -350,7 +395,38 @@ def recuperer(url=None, filtre=None):
     texte = telecharger(url)
     if texte is None:
         return None
-    return analyser(texte, filtre)
+    return analyser(texte, filtre, echeances_seulement)
+
+
+def sources_configurees():
+    """Les sources de SOURCES dont l'adresse est renseignée."""
+    return [(cle, config) for cle, config in SOURCES.items()
+            if variable_env(config["variable"])]
+
+
+def recuperer_tout(filtre=None):
+    """Lit toutes les sources configurées. Rend (événements, bilan) ou None.
+
+    C'est TOUT ou RIEN : si une seule source est illisible, la fonction rend
+    None et rien n'est publié. La synchronisation étant un rapprochement
+    complet sur un agenda unique, publier les seules sources lisibles
+    effacerait les événements des autres — une panne réseau d'un côté ferait
+    disparaître les rendus de l'autre.
+    """
+    tous, bilan = [], []
+    for cle, config in sources_configurees():
+        liste = recuperer(variable_env(config["variable"]), filtre,
+                          config["echeances_seulement"])
+        if liste is None:
+            print(f"❌ Source « {config['nom']} » illisible : rien ne sera publié.")
+            return None
+        for evenement in liste:
+            evenement["provenance"] = config["nom"]
+        tous += liste
+        bilan.append((config["nom"], len(liste)))
+
+    tous.sort(key=lambda e: (e['date'], e['start'] or ''))
+    return tous, bilan
 
 
 if __name__ == "__main__":
@@ -362,10 +438,13 @@ if __name__ == "__main__":
         except (AttributeError, ValueError):
             pass
 
-    liste = recuperer()
-    if liste is None:
+    resultat = recuperer_tout()
+    if resultat is None:
         sys.exit(1)
-    print(f"📚 {len(liste)} événement(s) dans le calendrier Moodle.")
+    liste, bilan = resultat
+    for nom, nombre in bilan:
+        print(f"   {nom} : {nombre} événement(s)")
+    print(f"📚 {len(liste)} événement(s) au total.")
     for nom, nombre in repartition(liste):
         print(f"   {nombre:3d}  {nom}")
     print()

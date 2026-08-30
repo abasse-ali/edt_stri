@@ -40,9 +40,9 @@ sur ordinateur comme sur téléphone (Google Agenda, Apple Calendrier, Outlook).
    4 agendas Google  ─────────────►  notification Discord des changements
 
 
-   Calendrier Moodle (export iCalendar)
+   Calendriers Moodle (STRI + inetdoc, export iCalendar)
             │
-            │  moodle.py             dépliage des lignes, UTC -> Paris, filtrage
+            │  moodle.py             dépliage, UTC -> Paris, échéances vs séances
             ▼
    échéances
             │
@@ -146,18 +146,37 @@ les agendas Ingé. C'est le genre de règle qu'on ne devine pas — d'où
 
 ## Les rendus Moodle
 
-Le PDF ne dit rien des devoirs à rendre : ceux-là vivent dans le calendrier
-Moodle du site eFormation. Moodle sait l'exporter en iCalendar, à une adresse
-personnelle et permanente qu'il faut récupérer **une seule fois** :
+Le PDF ne dit rien des devoirs à rendre, des validations de TP ni des quiz :
+ceux-là vivent dans les calendriers Moodle. Il y en a **deux**, décrits dans
+`SOURCES` en tête de [src/moodle.py](src/moodle.py) :
 
-1. ouvrir <https://www.stri.fr/eformation/calendar/view.php> ;
+| Source | Adresse | Variable | Ce qui est retenu |
+|---|---|---|---|
+| eFormation STRI | `stri.fr/eformation` | `MOODLE_ICS_URL` | tout |
+| Moodle inetdoc | `moodle.inetdoc.net` | `MOODLE_INETDOC_ICS_URL` | les échéances seulement |
+
+Le calendrier d'inetdoc mélange 20 échéances et 49 **séances** — TP, cours,
+examens. Ces séances sont déjà dans les agendas de l'emploi du temps, elles y
+feraient doublon, et la moitié concerne l'autre demi-promo (« - G1 »). Seuls
+les événements **sans durée** — une date limite, l'ouverture ou la fermeture
+d'un quiz — sont donc retenus de cette source.
+
+Tout atterrit dans un **seul** agenda : un endroit unique où regarder ce qu'il
+reste à rendre. La contrepartie est que la lecture est **tout ou rien** — une
+source illisible interrompt la publication, faute de quoi le rapprochement
+effacerait les échéances de l'autre.
+
+Chaque adresse d'export se récupère **une seule fois** :
+
+1. ouvrir <https://www.stri.fr/eformation/calendar/view.php>
+   (ou <https://moodle.inetdoc.net/calendar/view.php>) ;
 2. **Exporter le calendrier** ;
 3. Événements à exporter : **Tous les événements** —
    Durée : **Intervalle personnalisé** (la fenêtre la plus large, ~1 an) ;
 4. bouton **URL du calendrier**, et non « Exporter » qui télécharge un fichier
    figé ;
-5. coller l'adresse obtenue dans `MOODLE_ICS_URL` (`.env` en local, secret du
-   dépôt en CI).
+5. coller l'adresse obtenue dans la variable de la source (`.env` en local,
+   secret du dépôt en CI).
 
 ⚠️ Cette adresse contient `authtoken=…`, qui donne accès au calendrier
 personnel **sans mot de passe**. Elle se traite comme un mot de passe : jamais
@@ -190,11 +209,17 @@ donc les leurs — comme pour la couleur de fond, aucune API ne permet de leur e
 imposer un. Les quatre agendas de cours n'en posent aucun, et ne sont pas
 touchés.
 
-Deux détails que Moodle impose et que le bot corrige au passage : les heures
-sont exportées en UTC (une échéance à 23h59 s'écrit `215900Z` — la lire telle
-quelle la daterait de deux heures trop tôt), et une date limite a une durée
-nulle, que l'API Google refuse. Le bot lui donne trente minutes d'épaisseur, en
-la faisant **se terminer** à l'heure limite.
+Trois détails que Moodle impose et que le bot corrige au passage :
+
+- les heures sont exportées en **UTC** — une échéance à 22h00 s'écrit
+  `200000Z`, la lire telle quelle la daterait de deux heures trop tôt ;
+- les titres gardent parfois des **entités HTML** : inetdoc publie
+  `Hub &amp\; Spoke`, où le `\;` est en plus un échappement iCalendar ;
+- une date limite a une **durée nulle**. Contrairement à ce qu'on pourrait
+  croire, l'API Google l'accepte — vérifié — et c'est la représentation juste :
+  le rappel s'ancre alors sur l'échéance elle-même. `MOODLE_DUREE_ECHEANCE`
+  permet de lui donner une épaisseur visible dans la grille, auquel cas
+  l'événement se **termine** à l'heure limite.
 
 ---
 
@@ -213,7 +238,7 @@ la faisant **se terminer** à l'heure limite.
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (73 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (76 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -336,7 +361,8 @@ Propres aux rendus Moodle :
 
 | Variable | Défaut | Rôle |
 |---|---|---|
-| `MOODLE_ICS_URL` | — | Adresse d'export du calendrier Moodle. **Secret.** Sans elle, `rendus.py` ne fait rien |
+| `MOODLE_ICS_URL` | — | Adresse d'export du Moodle du STRI. **Secret.** |
+| `MOODLE_INETDOC_ICS_URL` | — | Adresse d'export du Moodle inetdoc. **Secret.** Sans aucune des deux, `rendus.py` ne fait rien |
 | `MOODLE_FILTRE` | — | Expression régulière : ne garder que les événements correspondants |
 | `MOODLE_AGENDA` | `Rendu M1` | Nom de l'agenda Google des rendus |
 | `MOODLE_COULEUR` | `mangue` | Couleur de fond de cet agenda |
@@ -344,6 +370,7 @@ Propres aux rendus Moodle :
 | `MOODLE_JSON` | `rendus_data.json` | État précédent des rendus |
 | `MOODLE_CHUTE_MAX` | `50` | % de rendus perdus au-delà duquel on refuse de publier |
 | `MOODLE_RAPPEL_MINUTES` | `300` | Notification poussée tant de minutes avant l'échéance ; `0` pour aucune |
+| `MOODLE_DUREE_ECHEANCE` | `0` | Épaisseur donnée à une date limite, en minutes ; `0` la laisse ponctuelle |
 
 Les valeurs vides sont traitées comme absentes : dans un workflow GitHub, une
 variable non définie est quand même transmise comme chaîne vide, et sans cette
@@ -398,7 +425,7 @@ concurrence pour ne jamais pousser deux commits en même temps.
 
 [rendus_sync.yml](.github/workflows/rendus_sync.yml) — les rendus :
 
-1. s'arrête tout de suite si le secret `MOODLE_ICS_URL` n'est pas défini ;
+1. s'arrête tout de suite si aucune adresse Moodle n'est définie ;
 2. installe, teste, prépare le jeton comme ci-dessus ;
 3. exécute `src/rendus.py` ;
 4. efface le jeton, puis commite `donnees/rendus_data.json` et le journal.
@@ -410,7 +437,8 @@ les aurait figés la plupart du temps.
 Toute étape en échec déclenche `alerte_ci.py` et un message Discord.
 
 **Secrets à définir** dans le dépôt : `GDRIVE_TOKEN` (le `token.json` encodé en
-base64), `DISCORD_WEBHOOK_URL`, et `MOODLE_ICS_URL` pour les rendus.
+base64), `DISCORD_WEBHOOK_URL`, et `MOODLE_ICS_URL` /
+`MOODLE_INETDOC_ICS_URL` pour les rendus.
 
 ⚠️ GitHub désactive les workflows planifiés après **60 jours sans activité** sur
 le dépôt. Le bot commitant à chaque changement de PDF, le cas ne se présente

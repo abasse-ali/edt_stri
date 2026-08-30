@@ -18,7 +18,7 @@ Aucune dépendance de test : la bibliothèque standard suffit.
 
 import sys
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 _RACINE = Path(__file__).resolve().parent.parent
@@ -680,38 +680,86 @@ def moodle_lit_les_durees_iso():
 
 
 @test
-def moodle_fait_finir_une_echeance_a_l_heure_limite():
+def moodle_garde_l_instant_exact_d_une_echeance():
     # DURATION:PT0S (ou DTEND égal à DTSTART) est la forme normale d'une date
-    # limite : Google refuse un événement vide. L'épaisseur est donnée en
-    # AMONT — un devoir « à rendre pour 22h » se lit 21h30 → 22h00, alors que
-    # 22h00 → 22h30 laisserait croire qu'on peut déposer après l'heure.
+    # limite. Vérifié contre l'API : Google accepte un événement de durée
+    # nulle. L'épaissir décalerait le rappel, qui s'ancre sur le DÉBUT.
     ics = calendrier_moodle(["UID:1", "SUMMARY:DM_OSI doit être rendu",
                              "DTSTART:20260906T200000Z", "DTEND:20260906T200000Z"])
     evenement = moodle.analyser(ics)[0]
     egal(evenement["date"], "2026-09-06", "20h00 UTC est encore le 6 à Paris")
-    egal(evenement["end"], "22h00", "se termine à l'échéance")
-    egal(evenement["start"], "21h30", "et commence une demi-heure avant")
+    egal((evenement["start"], evenement["end"]), ("22h00", "22h00"))
+    egal(evenement["echeance"], True, "reconnue comme une date limite")
 
 
 @test
-def moodle_ne_deborde_pas_sur_le_lendemain_a_minuit():
-    # Une échéance à 23h59 ne doit pas mordre sur le jour suivant, que l'on
-    # épaississe vers l'avant ou vers l'arrière.
-    ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu", "DTSTART:20260915T215900Z",
-                             "DURATION:PT0S"])
-    evenement = moodle.analyser(ics)[0]
-    egal(evenement["date"], "2026-09-15", "toujours le même jour")
-    egal((evenement["start"], evenement["end"]), ("23h29", "23h59"))
+def moodle_distingue_une_echeance_d_une_seance():
+    # inetdoc publie les deux dans le même calendrier : 20 échéances et 49
+    # séances de TP, ces dernières déjà présentes dans l'emploi du temps.
+    ics = calendrier_moodle(
+        ["UID:1", "SUMMARY:Validations TP1 doit être achevée",
+         "DTSTART:20260910T203000Z", "DURATION:PT0S"],
+        ["UID:2", "SUMMARY:M1 ASR TP1 - iSCSI - G1",
+         "DTSTART:20260825T110000Z", "DTEND:20260825T140000Z"])
+    egal([e["echeance"] for e in moodle.analyser(ics)], [False, True],
+         "la séance du 25/08 n'en est pas une, la validation du 10/09 si")
+    retenus = moodle.analyser(ics, echeances_seulement=True)
+    egal([e["titre"] for e in retenus], ["Validations TP1 doit être achevée"])
 
 
 @test
-def moodle_gere_une_echeance_juste_apres_minuit():
-    # Reculer d'une demi-heure ferait changer de jour : on s'arrête à minuit.
-    ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu", "DTSTART:20260915T221000Z",
-                             "DURATION:PT0S"])
+def moodle_epaissit_une_echeance_si_on_le_demande():
+    # MOODLE_DUREE_ECHEANCE rend l'échéance visible dans la grille ; elle se
+    # TERMINE alors à l'heure limite, elle n'y commence pas.
+    sauvegarde = moodle.DUREE_ECHEANCE
+    try:
+        moodle.DUREE_ECHEANCE = timedelta(minutes=30)
+        ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu",
+                                 "DTSTART:20260906T200000Z", "DURATION:PT0S"])
+        egal_creneau = moodle.analyser(ics)[0]
+        egal((egal_creneau["start"], egal_creneau["end"]), ("21h30", "22h00"))
+
+        # 00h10 : reculer de 30 min changerait de jour, on s'arrête à minuit.
+        ics = calendrier_moodle(["UID:1", "SUMMARY:Rendu",
+                                 "DTSTART:20260915T221000Z", "DURATION:PT0S"])
+        minuit = moodle.analyser(ics)[0]
+        egal(minuit["date"], "2026-09-16", "00h10 le 16 à Paris")
+        egal((minuit["start"], minuit["end"]), ("00h00", "00h10"))
+    finally:
+        moodle.DUREE_ECHEANCE = sauvegarde
+
+
+@test
+def moodle_nettoie_les_entites_html_des_titres():
+    # inetdoc publie « Hub &amp\; Spoke » : un échappement iCalendar (\;) posé
+    # sur une entité HTML restée dans la base Moodle.
+    ics = calendrier_moodle(["UID:1", "SUMMARY:TP3 - Hub &amp\\; Spoke",
+                             "DTSTART:20260928T100000Z", "DURATION:PT0S",
+                             "CATEGORIES:Admin Sys &amp\\; Réseaux"])
     evenement = moodle.analyser(ics)[0]
-    egal(evenement["date"], "2026-09-16", "00h10 le 16 à Paris")
-    egal((evenement["start"], evenement["end"]), ("00h00", "00h10"))
+    egal(evenement["titre"], "TP3 - Hub & Spoke", "titre lisible")
+    egal(evenement["prof"], "Admin Sys & Réseaux", "cours lisible")
+
+
+@test
+def moodle_lit_la_salle_quand_elle_existe():
+    # inetdoc renseigne LOCATION, le STRI non.
+    ics = calendrier_moodle(["UID:1", "SUMMARY:TP", "LOCATION:U3 307/308",
+                             "DTSTART:20260825T110000Z", "DTEND:20260825T140000Z"])
+    egal(moodle.analyser(ics)[0]["room"], "U3 307/308")
+
+
+@test
+def moodle_est_tout_ou_rien_sur_plusieurs_sources():
+    """Si une source est illisible, aucune n'est publiée.
+
+    L'agenda est unique et la synchronisation est un rapprochement complet :
+    publier les seules sources lisibles effacerait les rendus des autres.
+    """
+    egal(sorted(moodle.SOURCES), ["INETDOC", "STRI"], "les deux Moodle")
+    for cle, config in moodle.SOURCES.items():
+        assert config["variable"].startswith("MOODLE_"), f"{cle} : variable nommée"
+        assert config["nom"], f"{cle} : source nommée"
 
 
 @test
