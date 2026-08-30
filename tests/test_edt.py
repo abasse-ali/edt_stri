@@ -767,6 +767,35 @@ def moodle_lit_la_salle_quand_elle_existe():
 
 
 @test
+def moodle_impose_le_perimetre_quel_que_soit_le_lien():
+    # L'adresse est copiée depuis une page où l'on a coché quelque chose. Ce
+    # choix ne doit pas décider de ce qui atterrit dans un agenda partagé.
+    base = "https://x/export_execute.php?userid=1&authtoken=abc"
+    egal(moodle.imposer_preset(base + "&preset_what=all", "courses"),
+         base + "&preset_what=courses", "paramètre remplacé")
+    egal(moodle.imposer_preset(base, "courses"),
+         base + "&preset_what=courses", "paramètre ajouté s'il manque")
+    egal(moodle.imposer_preset(base + "&preset_what=all&preset_time=custom", "courses"),
+         base + "&preset_what=courses&preset_time=custom", "le reste intact")
+    egal(moodle.imposer_preset(base, None), base, "sans consigne, on ne touche à rien")
+
+
+@test
+def moodle_ecarte_les_evenements_personnels():
+    # Moodle range une note privée dans le calendrier de son auteur sans
+    # CATEGORIES. C'est ce qui la distingue d'une échéance de cours — et ce
+    # qui rend l'agenda des rendus partageable.
+    ics = calendrier_moodle(
+        ["UID:1", "SUMMARY:Validations TP1 doit être achevée",
+         "DTSTART:20260910T203000Z", "DURATION:PT0S", "CATEGORIES:Admin Sys"],
+        ["UID:2", "SUMMARY:Rendez-vous dentiste",
+         "DTSTART:20260911T090000Z", "DTEND:20260911T093000Z"])
+    egal(len(moodle.analyser(ics)), 2, "sans filtre, les deux passent")
+    retenus = moodle.analyser(ics, sans_personnels=True)
+    egal([e["titre"] for e in retenus], ["Validations TP1 doit être achevée"])
+
+
+@test
 def moodle_est_tout_ou_rien_sur_plusieurs_sources():
     """Si une source est illisible, aucune n'est publiée.
 
@@ -965,12 +994,17 @@ def _demandes(*lignes):
 
 @test
 def partage_propose_une_cle_par_demi_promo():
-    egal(sorted(partager.CATALOGUE), ["INGE1", "INGE2G1", "IRTL3", "M1G2"])
+    egal(sorted(partager.CATALOGUE), ["INGE1", "INGE2G1", "IRTL3", "M1G2", "RENDU"])
     for cle, (intitule, agendas) in partager.CATALOGUE.items():
-        egal(len(agendas), 2, f"{cle} : les cours ET les examens")
         noms = [nom for _, nom in agendas]
-        egal(noms[0], intitule, f"{cle} : l'agenda des cours")
-        assert noms[1].endswith("— Examens"), f"{cle} : celui des examens"
+        egal(noms[0], intitule, f"{cle} : l'agenda principal")
+        if cle == "RENDU":
+            # Les rendus n'ont pas d'agenda d'examens jumeau, et ne dépendent
+            # d'aucune promotion.
+            egal(len(agendas), 1, "un seul agenda pour les rendus")
+        else:
+            egal(len(agendas), 2, f"{cle} : les cours ET les examens")
+            assert noms[1].endswith("— Examens"), f"{cle} : celui des examens"
 
 
 @test
@@ -1016,15 +1050,18 @@ def partage_refuse_une_ligne_douteuse_au_lieu_de_la_sauter():
 
 
 @test
-def partage_ne_propose_pas_l_agenda_des_rendus():
-    """Il vient d'un export « Tous les événements » du Moodle de son
-    propriétaire, événements personnels compris : le partager exposerait ce
-    que celui-ci noterait un jour dans son propre calendrier."""
-    intitules = [intitule for intitule, _ in partager.CATALOGUE.values()]
-    assert rendus.NOM_AGENDA not in intitules, "les rendus restent privés"
-    for _, agendas in partager.CATALOGUE.values():
-        for marque, _ in agendas:
-            assert marque != rendus.CLE_AGENDA, "ni par son marqueur"
+def partage_des_rendus_repose_sur_deux_garde_fous():
+    """L'agenda des rendus est partageable, mais seulement parce que rien de
+    personnel ne peut plus y entrer.
+
+    Il vient d'un export du Moodle de son propriétaire, qui pouvait contenir
+    ses propres rendez-vous. Retirer l'un des deux garde-fous ci-dessous
+    exposerait tout ce qu'il noterait un jour dans son calendrier.
+    """
+    egal(partager.CATALOGUE["RENDU"][0], rendus.NOM_AGENDA, "les rendus sont proposés")
+    for cle, config in moodle.SOURCES.items():
+        assert config.get("preset_what"), f"{cle} : le périmètre est imposé"
+        assert config.get("sans_personnels"), f"{cle} : les notes privées écartées"
 
 
 # =====================================================================
@@ -1051,14 +1088,43 @@ def bot_garde_ses_boutons_apres_un_redemarrage():
 def bot_propose_les_memes_agendas_que_le_script():
     if bot_discord is None:
         raise Passer("discord.py n'est pas installé")
-    egal(sorted(c.value for c in bot_discord.CHOIX), sorted(partager.CATALOGUE))
-    selecteur = [c for c in bot_discord.VueDemande().children
-                 if isinstance(c, bot_discord.SelecteurAdmin)][0]
-    egal(sorted(o.value for o in selecteur.options), sorted(partager.CATALOGUE))
-    # Plusieurs agendas d'un coup : c'est ce qui permet de retirer celui
-    # auquel la personne n'a pas droit et d'ajouter le bon.
-    egal(selecteur.min_values, 0, "on peut tout retirer")
-    egal(selecteur.max_values, len(partager.CATALOGUE), "on peut tout donner")
+    attendus = sorted(partager.CATALOGUE)
+
+    etudiant = [c for c in bot_discord.VueChoix().children
+                if isinstance(c, bot_discord.SelecteurEtudiant)][0]
+    egal(sorted(o.value for o in etudiant.options), attendus)
+    # Plusieurs agendas d'un coup : quelqu'un peut suivre les cours d'une
+    # promo ET vouloir les rendus.
+    egal(etudiant.min_values, 1, "au moins un, sinon la demande est vide")
+    egal(etudiant.max_values, len(attendus), "jusqu'à tous")
+
+    admin = [c for c in bot_discord.VueDemande().children
+             if isinstance(c, bot_discord.SelecteurAdmin)][0]
+    egal(sorted(o.value for o in admin.options), attendus)
+    # Côté validation, on peut au contraire tout retirer : c'est ce qui permet
+    # d'enlever un agenda auquel la personne n'a pas droit.
+    egal(admin.min_values, 0, "on peut tout retirer")
+    egal(admin.max_values, len(attendus), "on peut tout donner")
+
+
+@test
+def bot_ne_publie_rien_dans_le_salon_d_inscription():
+    """Le panneau est le SEUL message public ; tout le reste est éphémère.
+
+    C'est ce qui évite d'encombrer le salon, et surtout que l'adresse de
+    quelqu'un s'affiche devant tout le monde.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    panneau = bot_discord.VuePanneau()
+    assert panneau.is_persistent(), "le bouton survit à un redémarrage"
+    egal([c.custom_id for c in panneau.children], ["edt:inscrire"])
+
+    # La vue de choix n'est PAS persistante, et c'est voulu : elle n'appartient
+    # qu'à une personne et à un instant.
+    choix = bot_discord.VueChoix()
+    assert not choix.is_persistent(), "vue éphémère, pas enregistrée"
+    assert choix.timeout, "elle s'éteint d'elle-même"
 
 
 @test

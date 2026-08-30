@@ -1,11 +1,18 @@
 """
 Bot Discord : formulaire d'inscription aux agendas, et validation.
 
-Un étudiant tape `/edt` dans le salon, choisit sa promotion dans un menu
-déroulant et saisit son adresse Google. Sa demande arrive dans TON salon de
-validation, sous forme de fiche : tu peux corriger les agendas demandés — en
-retirer un auquel il n'a pas droit, en ajouter un autre — puis valider. Le
-partage Google est appliqué au clic, et l'étudiant est prévenu.
+Le salon d'inscription porte un panneau permanent avec un seul bouton. Un clic
+ouvre, VISIBLE DE LA SEULE PERSONNE QUI A CLIQUÉ, une liste où elle coche les
+agendas voulus, puis un formulaire pour son adresse Google. Rien n'est écrit
+dans le salon : il ne s'encombre pas, et personne ne lit l'adresse d'un autre.
+
+La demande arrive dans TON salon de validation, sous forme de fiche : tu peux
+corriger les agendas demandés — en retirer un auquel la personne n'a pas droit,
+en ajouter un autre — puis valider. Le partage Google est appliqué au clic, et
+la personne est prévenue en message privé.
+
+Pose le panneau une fois, dans le salon voulu, avec `/edt-panneau`. Il survit
+aux redémarrages. `/edt` ouvre la même liste, pour qui ne le retrouve pas.
 
     python src/bot_discord.py
 
@@ -165,6 +172,114 @@ def fiche(demande, etat="attente", par=None, detail=None):
     return embed
 
 
+def _options():
+    """Les agendas proposés, dans un ordre stable."""
+    return [discord.SelectOption(label=intitule, value=cle)
+            for cle, (intitule, _) in sorted(partager.CATALOGUE.items())]
+
+
+class SelecteurEtudiant(discord.ui.Select):
+    """La liste que coche la personne. Plusieurs agendas à la fois."""
+
+    def __init__(self, vue):
+        options = _options()
+        super().__init__(placeholder="Coche le ou les agendas qui te concernent…",
+                         min_values=1, max_values=len(options), options=options)
+        self.vue = vue
+
+    async def callback(self, interaction):
+        self.vue.choix = sorted(self.values)
+        # Le message étant éphémère et propre à cette personne, la sélection
+        # vit dans la vue : rien à écrire sur disque, rien à partager.
+        await interaction.response.edit_message(view=self.vue)
+
+
+class VueChoix(discord.ui.View):
+    """Le formulaire éphémère : la liste, puis le bouton d'envoi.
+
+    Volontairement NON persistante : elle n'appartient qu'à une personne et à
+    un instant. Passé le délai, elle s'éteint et il suffit de recliquer.
+    """
+
+    def __init__(self):
+        super().__init__(timeout=600)
+        self.choix = []
+        self.add_item(SelecteurEtudiant(self))
+
+    @discord.ui.button(label="Envoyer ma demande",
+                       style=discord.ButtonStyle.primary, row=1)
+    async def envoyer(self, interaction, bouton):
+        if not self.choix:
+            await interaction.response.send_message(
+                "Coche d'abord au moins un agenda.", ephemeral=True)
+            return
+        await interaction.response.send_modal(ModalCourriel(self.choix))
+
+
+class ModalCourriel(discord.ui.Modal, title="Ton adresse Google"):
+    """La dernière étape : l'adresse, saisie dans une fenêtre à elle."""
+
+    courriel = discord.ui.TextInput(
+        label="Adresse du compte Google de ton téléphone",
+        placeholder="prenom.nom@gmail.com",
+        max_length=120)
+
+    def __init__(self, cles):
+        super().__init__()
+        self.cles = cles
+
+    async def on_submit(self, interaction):
+        adresse = str(self.courriel.value).strip().lower()
+        if not partager.REGEX_COURRIEL.match(adresse):
+            await interaction.response.send_message(
+                f"`{adresse}` ne ressemble pas à une adresse. Reclique sur le "
+                "bouton pour réessayer.", ephemeral=True)
+            return
+
+        salon = interaction.client.get_channel(SALON_DEMANDES)
+        if salon is None:
+            await interaction.response.send_message(
+                "Le salon de validation n'est pas configuré : préviens la "
+                "personne qui gère les agendas.", ephemeral=True)
+            print("⛔ DISCORD_SALON_DEMANDES absent ou salon invisible pour le bot.")
+            return
+
+        demande = {
+            "discord_id": str(interaction.user.id),
+            "pseudo": str(interaction.user),
+            "courriel": adresse,
+            "cles": list(self.cles),
+            "cles_demandees": list(self.cles),
+        }
+        message = await salon.send(embed=fiche(demande), view=VueDemande())
+        ETAT[str(message.id)] = demande
+        enregistrer_etat(ETAT)
+
+        agendas = ", ".join(partager.CATALOGUE[c][0] for c in self.cles)
+        await interaction.response.send_message(
+            f"📨 Demande envoyée : **{agendas}**, adresse `{adresse}`.\n"
+            "Tu recevras un message privé dès qu'elle est validée. "
+            "Erreur de saisie ? Recommence, la nouvelle demande remplacera "
+            "l'ancienne.", ephemeral=True)
+
+
+class VuePanneau(discord.ui.View):
+    """Le bouton qui reste dans le salon. Persistant, comme la fiche admin."""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Recevoir mon emploi du temps",
+                       style=discord.ButtonStyle.success, emoji="📅",
+                       custom_id="edt:inscrire")
+    async def inscrire(self, interaction, bouton):
+        await interaction.response.send_message(
+            content="**Quels agendas te concernent ?**\n"
+                    "Coche-les, puis « Envoyer ma demande ». "
+                    "Cette fenêtre n'est visible que par toi.",
+            view=VueChoix(), ephemeral=True)
+
+
 class SelecteurAdmin(discord.ui.Select):
     """Menu qui permet de corriger les agendas AVANT de valider.
 
@@ -173,10 +288,7 @@ class SelecteurAdmin(discord.ui.Select):
     """
 
     def __init__(self):
-        options = [
-            discord.SelectOption(label=intitule, value=cle)
-            for cle, (intitule, _) in sorted(partager.CATALOGUE.items())
-        ]
+        options = _options()
         super().__init__(placeholder="Corriger les agendas…", min_values=0,
                          max_values=len(options), options=options,
                          custom_id="edt:choix", row=0)
@@ -305,6 +417,7 @@ class Bot(discord.Client):
         # Réenregistre la vue pour que les fiches postées AVANT le redémarrage
         # gardent des boutons vivants.
         self.add_view(VueDemande())
+        self.add_view(VuePanneau())
         if SERVEUR:
             serveur = discord.Object(id=SERVEUR)
             self.arbre.copy_global_to(guild=serveur)
@@ -321,50 +434,44 @@ class Bot(discord.Client):
 
 bot = Bot()
 
-CHOIX = [
-    app_commands.Choice(name=intitule, value=cle)
-    for cle, (intitule, _) in sorted(partager.CATALOGUE.items())
-]
-
-
 @bot.arbre.command(name="edt",
                    description="Recevoir son emploi du temps STRI dans son agenda")
-@app_commands.describe(
-    promotion="Ta promotion et ton groupe",
-    courriel="L'adresse du compte Google que tu utilises sur ton téléphone")
-@app_commands.choices(promotion=CHOIX)
-async def edt(interaction, promotion: app_commands.Choice[str], courriel: str):
-    """Enregistre une demande et l'envoie en validation."""
-    courriel = courriel.strip().lower()
-    if not partager.REGEX_COURRIEL.match(courriel):
-        await interaction.response.send_message(
-            f"`{courriel}` ne ressemble pas à une adresse. Réessaie.", ephemeral=True)
-        return
-
-    salon = interaction.client.get_channel(SALON_DEMANDES)
-    if salon is None:
-        await interaction.response.send_message(
-            "Le salon de validation n'est pas configuré : préviens la personne "
-            "qui gère les agendas.", ephemeral=True)
-        print("⛔ DISCORD_SALON_DEMANDES absent ou salon invisible pour le bot.")
-        return
-
-    demande = {
-        "discord_id": str(interaction.user.id),
-        "pseudo": str(interaction.user),
-        "courriel": courriel,
-        "cles": [promotion.value],
-        "cles_demandees": [promotion.value],
-    }
-    message = await salon.send(embed=fiche(demande), view=VueDemande())
-    ETAT[str(message.id)] = demande
-    enregistrer_etat(ETAT)
-
+async def edt(interaction):
+    """Ouvre la liste des agendas, visible de la seule personne qui l'a demandée."""
     await interaction.response.send_message(
-        f"📨 Demande envoyée pour **{promotion.name}**, adresse `{courriel}`.\n"
-        "Tu recevras un message privé dès qu'elle est validée. "
-        "Erreur de saisie ? Relance `/edt`, l'ancienne sera écartée.",
-        ephemeral=True)
+        content="**Quels agendas te concernent ?**\n"
+                "Coche-les, puis « Envoyer ma demande ». "
+                "Cette fenêtre n'est visible que par toi.",
+        view=VueChoix(), ephemeral=True)
+
+
+@bot.arbre.command(name="edt-panneau",
+                   description="Poser le panneau d'inscription dans ce salon")
+async def edt_panneau(interaction):
+    """Poste le message permanent portant le bouton d'inscription."""
+    if ADMINS and interaction.user.id not in ADMINS:
+        await interaction.response.send_message(
+            "Commande réservée à la personne qui gère les agendas.", ephemeral=True)
+        return
+
+    embed = discord.Embed(
+        title="📅 Ton emploi du temps, à jour tout seul",
+        description=(
+            "Clique sur le bouton, coche les agendas qui te concernent, donne "
+            "l'adresse du compte Google de ton téléphone. C'est tout.\n\n"
+            "Ta demande est vérifiée avant d'être acceptée, et tu reçois un "
+            "message privé dès qu'elle l'est. **Rien de ce que tu saisis "
+            "n'apparaît dans ce salon.**\n\n"
+            "Chaque promotion donne DEUX agendas, les cours et les examens : "
+            "pense à accepter les deux invitations, sinon tu ne verras rien."),
+        color=VERT)
+    embed.add_field(
+        name="Disponibles",
+        value="\n".join(f"• {intitule}" for _, (intitule, _)
+                        in sorted(partager.CATALOGUE.items())),
+        inline=False)
+    await interaction.channel.send(embed=embed, view=VuePanneau())
+    await interaction.response.send_message("Panneau posé.", ephemeral=True)
 
 
 @bot.arbre.command(name="edt-liste",

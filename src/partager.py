@@ -23,10 +23,12 @@ Choisir une promotion partage DEUX agendas : les cours et les examens. Ils sont
 séparés parce que c'est le seul moyen de leur donner des couleurs distinctes
 chez les personnes abonnées, mais personne ne veut de l'un sans l'autre.
 
-⚠️ L'agenda des rendus Moodle n'est volontairement PAS partageable ici. Il est
-construit à partir d'un export « Tous les événements », qui inclut les
-événements personnels de son propriétaire : le partager exposerait tout ce que
-celui-ci noterait un jour dans son propre calendrier Moodle.
+L'agenda des rendus Moodle figure parmi les choix. Il ne l'a pas toujours été :
+il vient d'un export qui pouvait contenir les événements personnels de son
+propriétaire. Deux garde-fous, dans `moodle.py`, ont réglé la question — le
+paramètre `preset_what` est imposé par le code, et tout événement sans cours
+rattaché est écarté. Sans eux, le partager exposerait ce que celui-ci noterait
+un jour dans son propre calendrier.
 """
 
 import re
@@ -36,6 +38,7 @@ from pathlib import Path
 import chemins
 import edt_stri
 import google_agenda
+import rendus
 from telechargement import PROMOS, variable_env
 
 for _flux in (sys.stdout, sys.stderr):
@@ -75,6 +78,10 @@ def catalogue():
                 (marque, nom),
                 (f"{marque}-EXAMENS", f"{nom} — Examens"),
             ])
+
+    # Les rendus n'ont pas d'agenda d'examens jumeau : c'est un agenda unique,
+    # et il ne dépend d'aucune promotion.
+    choix["RENDU"] = (rendus.NOM_AGENDA, [(rendus.CLE_AGENDA, rendus.NOM_AGENDA)])
     return choix
 
 

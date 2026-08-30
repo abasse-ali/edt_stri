@@ -50,16 +50,30 @@ TIMEOUT_HTTP = 20
 # elles sont déjà dans les agendas de l'emploi du temps, elles y feraient
 # doublon, et la moitié d'entre elles concerne l'autre demi-promo (« - G1 »).
 # Le STRI n'en publie pas, sa liste passe donc entière.
+# `preset_what` est imposé par le code, quelle que soit l'adresse enregistrée :
+# c'est un réglage de sécurité, il n'a pas à dépendre de ce qui a été coché sur
+# la page d'export le jour où on l'a copiée.
+#
+#   courses  n'exporte que les événements rattachés à un cours. Mesuré sur
+#            inetdoc : 20 échéances au lieu de 69, sans les séances de TP ni
+#            rien de personnel.
+#   all      tout. Nécessaire au STRI : `courses` y rend zéro événement — le
+#            devoir n'y est pas rattaché à un cours où l'on est inscrit.
+#            Le filtre `sans_personnels` prend alors le relais.
 SOURCES = {
     "STRI": {
         "variable": "MOODLE_ICS_URL",
         "nom": "eFormation STRI",
+        "preset_what": "all",
         "echeances_seulement": False,
+        "sans_personnels": True,
     },
     "INETDOC": {
         "variable": "MOODLE_INETDOC_ICS_URL",
         "nom": "Moodle inetdoc",
+        "preset_what": "courses",
         "echeances_seulement": True,
+        "sans_personnels": True,
     },
 }
 
@@ -86,6 +100,21 @@ REGEX_DUREE = re.compile(
     r'^[+-]?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$')
 
 REGEX_BALISE = re.compile(r'<[^>]+>')
+
+
+def imposer_preset(url, quoi):
+    """Force `preset_what` dans une adresse d'export.
+
+    L'agenda produit est partagé : ce qu'il contient ne peut pas dépendre de la
+    case cochée sur la page Moodle le jour où l'adresse a été copiée. Un
+    « Tous les événements » choisi par mégarde y ferait entrer les événements
+    personnels de son propriétaire.
+    """
+    if not url or not quoi:
+        return url
+    if "preset_what=" in url:
+        return re.sub(r'preset_what=[^&]*', f'preset_what={quoi}', url)
+    return url + ("&" if "?" in url else "?") + f"preset_what={quoi}"
 
 
 def _masquer(url):
@@ -332,7 +361,7 @@ def _en_evenement(champs):
     }
 
 
-def analyser(texte, filtre=None, echeances_seulement=False):
+def analyser(texte, filtre=None, echeances_seulement=False, sans_personnels=False):
     """Rend la liste des événements du calendrier, triée par date.
 
     `filtre` est une expression régulière facultative, testée sans tenir compte
@@ -341,6 +370,12 @@ def analyser(texte, filtre=None, echeances_seulement=False):
 
     `echeances_seulement` écarte les séances — tout ce qui occupe un vrai
     créneau — pour ne garder que les dates limites et les ouvertures de quiz.
+
+    `sans_personnels` écarte les événements qui ne relèvent d'aucun cours.
+    Moodle range un rendez-vous privé dans le calendrier de son auteur sans
+    `CATEGORIES` ; sans ce filtre, tout ce que le propriétaire noterait un jour
+    dans son propre calendrier partirait chez les personnes avec qui l'agenda
+    est partagé.
     """
     filtre = FILTRE if filtre is None else filtre
     motif = re.compile(filtre, re.IGNORECASE) if filtre else None
@@ -364,6 +399,12 @@ def analyser(texte, filtre=None, echeances_seulement=False):
             continue
         if echeances_seulement and not evenement["echeance"]:
             continue
+        if sans_personnels and not evenement["prof"]:
+            # Aucun cours : c'est une note personnelle, pas une échéance de
+            # cours. Signalé plutôt que silencieux — écarter un événement est
+            # une décision, elle doit se voir.
+            print(f"   🔒 Écarté, sans cours rattaché : « {evenement['titre'][:60]} »")
+            continue
         if motif and not motif.search(
                 f"{evenement['titre']} {evenement['prof']} {evenement['description']}"):
             continue
@@ -385,7 +426,8 @@ def repartition(evenements):
     return sorted(comptes.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
-def recuperer(url=None, filtre=None, echeances_seulement=False):
+def recuperer(url=None, filtre=None, echeances_seulement=False,
+              sans_personnels=False):
     """Télécharge puis analyse UNE source. Rend None si elle est inexploitable.
 
     None et liste vide sont deux réponses différentes : la première dit « je
@@ -395,7 +437,7 @@ def recuperer(url=None, filtre=None, echeances_seulement=False):
     texte = telecharger(url)
     if texte is None:
         return None
-    return analyser(texte, filtre, echeances_seulement)
+    return analyser(texte, filtre, echeances_seulement, sans_personnels)
 
 
 def sources_configurees():
@@ -415,8 +457,11 @@ def recuperer_tout(filtre=None):
     """
     tous, bilan = [], []
     for cle, config in sources_configurees():
-        liste = recuperer(variable_env(config["variable"]), filtre,
-                          config["echeances_seulement"])
+        adresse = imposer_preset(variable_env(config["variable"]),
+                                 config.get("preset_what"))
+        liste = recuperer(adresse, filtre,
+                          config["echeances_seulement"],
+                          config.get("sans_personnels", False))
         if liste is None:
             print(f"❌ Source « {config['nom']} » illisible : rien ne sera publié.")
             return None
