@@ -1304,6 +1304,24 @@ def tutoriel_dit_l_etape_que_tout_le_monde_rate():
 
 
 @test
+def diagnostic_des_droits_reste_branche():
+    """Le message qui explique un « Missing Access » doit être ATTEINT.
+
+    Il a passé plusieurs versions orphelin : écrit pour une panne réelle, puis
+    débranché par un remaniement qui a remplacé la fonction d'où il partait.
+    Personne ne s'en aperçoit — le code existe, les tests passent, et le jour
+    où le cas survient l'utilisateur reçoit une trace brute au lieu de la
+    marche à suivre.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    source = (chemins.SRC / "bot_discord.py").read_text(encoding="utf-8")
+    appels = source.count("expliquer_droits(") - source.count("def expliquer_droits(")
+    assert appels >= 2, (
+        f"appelé {appels} fois : il faut au moins le démarrage et l'envoi refusé")
+
+
+@test
 def bot_reinvite_avec_les_deux_scopes():
     """Le lien d'invitation doit porter `bot` ET `applications.commands`.
 

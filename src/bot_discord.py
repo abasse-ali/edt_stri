@@ -139,6 +139,25 @@ def version():
         return "developpement"
 
 
+def expliquer_droits(client, quoi):
+    """Explique un refus d'accès, et donne le lien qui le corrige.
+
+    Fonction et non méthode : elle sert au démarrage comme au moment d'un envoi
+    refusé. Elle a d'ailleurs passé plusieurs versions orpheline — écrite pour
+    un « Missing Access » réel, puis débranchée par un remaniement. Un
+    diagnostic qui ne se déclenche plus est pire qu'absent : il donne
+    l'illusion que le cas est couvert.
+    """
+    print(f"⛔ {quoi}.")
+    print("   Deux causes possibles, dans cet ordre de fréquence :")
+    print("   1. le bot a été invité avec le seul scope « applications.commands ».")
+    print("      Les commandes apparaissent, mais il n'est pas membre du serveur")
+    print("      et ne peut rien y poster. Réinvite-le avec ce lien :")
+    print(f"      {lien_invitation(client.application_id or client.user.id)}")
+    print("   2. le salon lui refuse l'accès. Paramètres du salon →")
+    print("      Permissions → ajoute le rôle du bot.")
+
+
 def lien_invitation(identifiant):
     """L'adresse qui ajoute le bot AVEC les droits qu'il lui faut.
 
@@ -380,7 +399,8 @@ class ModalCourriel(discord.ui.Modal, title="Ton adresse Google"):
         except discord.Forbidden:
             # La demande serait perdue en silence : mieux vaut le dire à la
             # personne, qui pourra signaler la panne, que la laisser attendre.
-            print(f"⛔ Fiche non postée ({description}) : accès refusé.")
+            expliquer_droits(interaction.client,
+                             f"fiche non postée ({description})")
             await interaction.response.send_message(
                 "⚠️ Ta demande n'a pas pu être transmise : le bot n'a pas pu "
                 "joindre la personne qui valide. Signale-le, ce n'est pas de "
@@ -799,24 +819,20 @@ class Bot(discord.Client):
         if VALIDEUR is None:
             print("⛔ Aucun valideur : renseigne DISCORD_ADMINS.")
             return
-        _, description = await destination(self)
-        if _ is None:
+        ou, description = await destination(self)
+        if ou is None:
             print(f"⛔ {description}.")
             print("   Le valideur doit autoriser les messages privés venant du")
             print("   serveur : Paramètres du serveur → Confidentialité.")
             print("   Ou renseigne DISCORD_SALON_DEMANDES comme repli.")
+            if SALON_DEMANDES:
+                # Un salon est configuré et reste inatteignable : ce n'est plus
+                # un réglage de confidentialité, c'est un problème de droits.
+                expliquer_droits(self, "le salon de repli est inaccessible")
             return
         print(f"   Les fiches partent en {description} ✅")
 
-    def _expliquer_droits(self, quoi):
-        print(f"⛔ {quoi}.")
-        print("   Deux causes possibles, dans cet ordre de fréquence :")
-        print("   1. le bot a été invité avec le seul scope « applications.commands ».")
-        print("      Les commandes apparaissent, mais il n'est pas membre du serveur")
-        print("      et ne peut rien y poster. Réinvite-le avec ce lien :")
-        print(f"      {lien_invitation(self.application_id or self.user.id)}")
-        print("   2. le salon lui refuse l'accès. Paramètres du salon →")
-        print("      Permissions → ajoute le rôle du bot.")
+
 
 
 bot = Bot()
