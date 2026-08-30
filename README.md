@@ -235,10 +235,11 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/telechargement.py](src/telechargement.py) | Table `PROMOS` + téléchargement derrière le pare-feu |
 | [src/moodle.py](src/moodle.py) | Lecture du calendrier Moodle exporté en iCalendar |
 | [src/rendus.py](src/rendus.py) | Chaîne complète des rendus : Moodle → agenda « Rendu M1 » |
+| [src/partager.py](src/partager.py) | Donne accès aux agendas, en lot, depuis un fichier de demandes |
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (76 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (84 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -251,6 +252,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | `donnees/rendus_data.json` | État précédent des rendus Moodle, même rôle |
 | `donnees/edt_*.ics` | Export standard, non versionné |
 | `donnees/journal.csv` | Une ligne par exécution : nombre de cours, état |
+| `donnees/inscriptions.txt` | Demandes de partage. **Non versionné** : adresses de tiers |
 | `credentials.json`, `token.json` | Identifiants Google (**jamais commités**) |
 
 ### Le reste
@@ -371,6 +373,7 @@ Propres aux rendus Moodle :
 | `MOODLE_CHUTE_MAX` | `50` | % de rendus perdus au-delà duquel on refuse de publier |
 | `MOODLE_RAPPEL_MINUTES` | `300` | Notification poussée tant de minutes avant l'échéance ; `0` pour aucune |
 | `MOODLE_DUREE_ECHEANCE` | `0` | Épaisseur donnée à une date limite, en minutes ; `0` la laisse ponctuelle |
+| `EDT_INSCRIPTIONS` | `donnees/inscriptions.txt` | Fichier des demandes de partage |
 
 Les valeurs vides sont traitées comme absentes : dans un workflow GitHub, une
 variable non définie est quand même transmise comme chaîne vide, et sans cette
@@ -448,11 +451,35 @@ qu'en période creuse — à surveiller à la rentrée.
 
 ## Partager un agenda
 
-Depuis Google Agenda, « Partager avec des personnes en particulier », puis
-l'adresse Gmail de l'étudiant, en accès **lecture seule**. L'agenda apparaît
-alors dans son compte, et sur son iPhone après activation sur
+Chaque étudiant choisit sa promotion et donne son adresse Google sur une **page
+d'inscription** publiée dans le salon Discord. Elle ne transmet rien : elle
+fabrique une ligne à coller dans le salon, au format exact que lit
+`partager.py` — `adresse@exemple.com   M1G2`.
+
+Les lignes récoltées vont dans `donnees/inscriptions.txt`, puis :
+
+```bash
+python src/partager.py --lister              # qui a accès à quoi
+python src/partager.py --appliquer           # tout le fichier d'un coup
+python src/partager.py --ajouter a@b.c M1G2  # une personne, tout de suite
+python src/partager.py --retirer a@b.c M1G2
+```
+
+Choisir une promotion partage **deux** agendas, les cours et les examens :
+ils sont séparés pour avoir des couleurs distinctes, mais personne ne veut de
+l'un sans l'autre. Le rôle donné est toujours `reader` — un agenda que le bot
+réécrit chaque heure ne doit être modifiable par personne.
+
+Le fichier d'inscriptions n'est **pas versionné** : ce sont des adresses de
+tiers. Et l'agenda des rendus Moodle n'est délibérément **pas** partageable —
+il vient d'un export « Tous les événements » qui inclut les événements
+personnels de son propriétaire.
+
+L'agenda apparaît ensuite dans le compte de l'étudiant, et sur son iPhone après
+activation sur
 [calendar.google.com/calendar/syncselect](https://calendar.google.com/calendar/syncselect).
-La marche à suivre côté étudiant est détaillée dans [docs/TUTO.txt](docs/TUTO.txt).
+La marche à suivre côté étudiant est détaillée dans [docs/TUTO.txt](docs/TUTO.txt)
+et sur la page d'inscription.
 
 À noter : la **couleur de fond** d'un agenda appartient à chaque abonné et ne
 peut pas lui être imposée. C'est pourquoi le bot pose aussi une couleur sur

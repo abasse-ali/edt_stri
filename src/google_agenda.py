@@ -287,32 +287,58 @@ def trouver_ou_creer_agenda(service, nom=NOM_AGENDA, identifiant=None, cle="BAS"
     if identifiant:
         return identifiant
 
+    trouve = trouver_agenda(service, cle, nom)
+    if trouve:
+        return trouve
+
     etiquette = marqueur(cle)
-    proprietaires, jeton = [], None
-    while True:
-        page = service.calendarList().list(pageToken=jeton).execute()
-        proprietaires += [a for a in page.get("items", [])
-                          if a.get("accessRole") == "owner"
-                          and not a.get("id", "").endswith("@import.calendar.google.com")]
-        jeton = page.get("nextPageToken")
-        if not jeton:
-            break
-
-    for agenda in proprietaires:
-        if etiquette in (agenda.get("description") or ""):
-            return agenda["id"]
-
-    for agenda in proprietaires:
-        if agenda.get("summary") == nom:
-            _etiqueter(service, agenda["id"], etiquette)
-            return agenda["id"]
-
     print(f"   Création de l'agenda « {nom} »...")
     cree = service.calendars().insert(
         body={"summary": nom, "timeZone": FUSEAU,
               "description": f"{description} {etiquette}"}
     ).execute()
     return cree["id"]
+
+
+def agendas_possedes(service):
+    """Les agendas dont ce compte est propriétaire.
+
+    Un agenda auquel on est seulement abonné est écarté : il est en lecture
+    seule, y écrire échouerait en 403 — et le fichier ICS publié par ce projet
+    porte justement le même nom que l'agenda.
+    """
+    possedes, jeton = [], None
+    while True:
+        page = service.calendarList().list(pageToken=jeton).execute()
+        possedes += [a for a in page.get("items", [])
+                     if a.get("accessRole") == "owner"
+                     and not a.get("id", "").endswith("@import.calendar.google.com")]
+        jeton = page.get("nextPageToken")
+        if not jeton:
+            return possedes
+
+
+def trouver_agenda(service, cle, nom=None):
+    """Identifiant de l'agenda portant ce marqueur, ou None. Ne crée rien.
+
+    La recherche se fait sur le MARQUEUR, pas sur le nom : renommer son agenda
+    dans l'interface Google est légitime et ne doit pas faire perdre sa trace.
+    Le repli par nom sert aux agendas antérieurs au marqueur ; ils sont
+    étiquetés au passage.
+    """
+    etiquette = marqueur(cle)
+    possedes = agendas_possedes(service)
+
+    for agenda in possedes:
+        if etiquette in (agenda.get("description") or ""):
+            return agenda["id"]
+
+    if nom:
+        for agenda in possedes:
+            if agenda.get("summary") == nom:
+                _etiqueter(service, agenda["id"], etiquette)
+                return agenda["id"]
+    return None
 
 
 def _etiqueter(service, agenda_id, etiquette):

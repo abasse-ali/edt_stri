@@ -30,6 +30,7 @@ import edt_stri  # noqa: E402
 import google_agenda  # noqa: E402
 import lecture_pdf  # noqa: E402
 import moodle  # noqa: E402
+import partager  # noqa: E402
 import rendus  # noqa: E402
 import telechargement  # noqa: E402
 import verif_edt  # noqa: E402
@@ -932,6 +933,82 @@ def rendus_ne_bloque_pas_sur_de_petits_effectifs():
     # et le garde-fou bloquerait toutes les publications suivantes.
     assert rendus.effondrement([], [{"uid": "1"}]) is None, "1 -> 0 accepté"
     assert rendus.effondrement([], [{"uid": str(i)} for i in range(3)]) is None
+
+
+# =====================================================================
+# Partage des agendas
+# =====================================================================
+
+def _demandes(*lignes):
+    """Écrit un fichier de demandes temporaire et le lit."""
+    with tempfile.TemporaryDirectory() as dossier:
+        chemin = Path(dossier) / "inscriptions.txt"
+        chemin.write_text("\n".join(lignes), encoding="utf-8")
+        return partager.lire_demandes(chemin)
+
+
+@test
+def partage_propose_une_cle_par_demi_promo():
+    egal(sorted(partager.CATALOGUE), ["INGE1", "INGE2G1", "IRTL3", "M1G2"])
+    for cle, (intitule, agendas) in partager.CATALOGUE.items():
+        egal(len(agendas), 2, f"{cle} : les cours ET les examens")
+        noms = [nom for _, nom in agendas]
+        egal(noms[0], intitule, f"{cle} : l'agenda des cours")
+        assert noms[1].endswith("— Examens"), f"{cle} : celui des examens"
+
+
+@test
+def partage_ne_donne_jamais_l_ecriture():
+    # Un agenda que le bot réécrit chaque heure ne doit être modifiable par
+    # personne : une correction faite à la main disparaîtrait sans trace.
+    egal(partager.ROLE, "reader")
+
+
+@test
+def partage_lit_une_demande_simple():
+    egal(_demandes("alice@gmail.com   M1G2"), [("alice@gmail.com", "M1G2")])
+
+
+@test
+def partage_ignore_commentaires_et_lignes_vides():
+    egal(_demandes("# les M1", "", "  ", "bob@gmail.com IRTL3  # groupe 1"),
+         [("bob@gmail.com", "IRTL3")])
+
+
+@test
+def partage_survit_a_la_mise_en_forme_de_discord():
+    # Les lignes sont recopiées d'un salon : elles gardent les backticks, les
+    # tirets de liste et les chevrons que Discord ou le client mail ajoutent.
+    egal(_demandes("`alice@gmail.com   M1G2`"), [("alice@gmail.com", "M1G2")])
+    egal(_demandes("- bob@gmail.com IRTL3"), [("bob@gmail.com", "IRTL3")])
+    egal(_demandes("<chloe@gmail.com> INGE1"), [("chloe@gmail.com", "INGE1")])
+
+
+@test
+def partage_normalise_casse_et_separateurs():
+    egal(_demandes("Alice@Gmail.COM, m1g2"), [("alice@gmail.com", "M1G2")])
+
+
+@test
+def partage_refuse_une_ligne_douteuse_au_lieu_de_la_sauter():
+    # Sauter une ligne fautive, c'est quelqu'un qui attend son emploi du temps
+    # sans savoir pourquoi il ne vient jamais.
+    egal(_demandes("pas-une-adresse M1G2"), None, "adresse invalide")
+    egal(_demandes("alice@gmail.com PROMOX"), None, "clé inconnue")
+    egal(_demandes("alice@gmail.com"), None, "clé absente")
+    egal(_demandes("alice@gmail.com M1G2 IRTL3"), None, "deux clés")
+
+
+@test
+def partage_ne_propose_pas_l_agenda_des_rendus():
+    """Il vient d'un export « Tous les événements » du Moodle de son
+    propriétaire, événements personnels compris : le partager exposerait ce
+    que celui-ci noterait un jour dans son propre calendrier."""
+    intitules = [intitule for intitule, _ in partager.CATALOGUE.values()]
+    assert rendus.NOM_AGENDA not in intitules, "les rendus restent privés"
+    for _, agendas in partager.CATALOGUE.values():
+        for marque, _ in agendas:
+            assert marque != rendus.CLE_AGENDA, "ni par son marqueur"
 
 
 # =====================================================================
