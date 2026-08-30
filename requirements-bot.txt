@@ -1,0 +1,4 @@
+# Bot Discord d'inscription (src/bot_discord.py).
+# Separe de requirements.txt : la CI n'en a pas besoin, et le bot ne tourne
+# pas en CI — il lui faut une machine allumee en permanence.
+discord.py>=2.3.0

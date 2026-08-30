@@ -31,6 +31,14 @@ import google_agenda  # noqa: E402
 import lecture_pdf  # noqa: E402
 import moodle  # noqa: E402
 import partager  # noqa: E402
+
+# Le bot a sa propre dépendance, que la CI n'installe pas : il ne tourne pas
+# en CI, il lui faut une machine allumée en permanence. Ses tests se sautent
+# alors au lieu de faire échouer toute la série.
+try:
+    import bot_discord  # noqa: E402
+except (ImportError, SystemExit):
+    bot_discord = None
 import rendus  # noqa: E402
 import telechargement  # noqa: E402
 import verif_edt  # noqa: E402
@@ -42,6 +50,14 @@ for _flux in (sys.stdout, sys.stderr):
         pass
 
 TESTS = []
+
+
+class Passer(Exception):
+    """Levé par un test qui ne peut pas s'exécuter ici.
+
+    Un test sauté est ANNONCÉ, pas silencieux : un test qui passerait sans
+    rien vérifier serait pire que pas de test du tout.
+    """
 
 
 def test(fonction):
@@ -1012,6 +1028,85 @@ def partage_ne_propose_pas_l_agenda_des_rendus():
 
 
 # =====================================================================
+# Bot Discord
+# =====================================================================
+
+@test
+def bot_garde_ses_boutons_apres_un_redemarrage():
+    """Une vue non persistante perd ses boutons au redémarrage du bot.
+
+    Les fiches déjà postées deviendraient alors inertes, et la personne
+    attendrait un accès que plus aucun clic ne peut donner. Il faut pour cela
+    `timeout=None` ET un `custom_id` sur chaque composant.
+    """
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    vue = bot_discord.VueDemande()
+    assert vue.is_persistent(), "vue persistante"
+    identifiants = sorted(c.custom_id for c in vue.children)
+    egal(identifiants, ["edt:choix", "edt:refuser", "edt:valider"])
+
+
+@test
+def bot_propose_les_memes_agendas_que_le_script():
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    egal(sorted(c.value for c in bot_discord.CHOIX), sorted(partager.CATALOGUE))
+    selecteur = [c for c in bot_discord.VueDemande().children
+                 if isinstance(c, bot_discord.SelecteurAdmin)][0]
+    egal(sorted(o.value for o in selecteur.options), sorted(partager.CATALOGUE))
+    # Plusieurs agendas d'un coup : c'est ce qui permet de retirer celui
+    # auquel la personne n'a pas droit et d'ajouter le bon.
+    egal(selecteur.min_values, 0, "on peut tout retirer")
+    egal(selecteur.max_values, len(partager.CATALOGUE), "on peut tout donner")
+
+
+@test
+def bot_montre_ce_qui_a_ete_corrige():
+    # Sans cette trace, on ne saurait plus, en relisant le salon, que la
+    # personne avait demandé autre chose que ce qu'on lui a donné.
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    demande = {"discord_id": "1", "pseudo": "x", "courriel": "a@b.com",
+               "cles": ["M1G2"], "cles_demandees": ["IRTL3"]}
+    noms = [champ.name for champ in bot_discord.fiche(demande).fields]
+    assert "Demandé à l'origine" in noms, "la demande initiale est rappelée"
+
+    demande["cles_demandees"] = ["M1G2"]
+    noms = [champ.name for champ in bot_discord.fiche(demande).fields]
+    assert "Demandé à l'origine" not in noms, "rien à signaler si rien n'a changé"
+
+
+@test
+def bot_lit_les_identifiants_colles_a_la_main():
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    egal(bot_discord.identifiants("123, 456"), {123, 456}, "virgule")
+    egal(bot_discord.identifiants("123 456"), {123, 456}, "espace")
+    egal(bot_discord.identifiants("<@123>"), {123}, "mention collée")
+    egal(bot_discord.identifiants(""), set(), "vide")
+    egal(bot_discord.identifiants("pseudo#1234"), set(), "pas un identifiant")
+
+
+@test
+def bot_repart_proprement_d_un_etat_illisible():
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    sauvegarde = bot_discord.FICHIER_ETAT
+    try:
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "demandes.json"
+            bot_discord.FICHIER_ETAT = chemin
+            egal(bot_discord.charger_etat(), {}, "fichier absent")
+            chemin.write_text("{ceci n'est pas du JSON", encoding="utf-8")
+            egal(bot_discord.charger_etat(), {}, "fichier abîmé")
+            bot_discord.enregistrer_etat({"7": {"courriel": "a@b.com"}})
+            egal(bot_discord.charger_etat(), {"7": {"courriel": "a@b.com"}})
+    finally:
+        bot_discord.FICHIER_ETAT = sauvegarde
+
+
+# =====================================================================
 # Exécution
 # =====================================================================
 
@@ -1020,12 +1115,15 @@ def principale():
     choisis = [t for t in TESTS if not filtre or filtre in t.__name__]
 
     print(f"Tests de la chaîne EDT — {len(choisis)} cas\n")
-    echecs = []
+    echecs, sautes = [], []
     for fonction in choisis:
         intitule = fonction.__name__.replace("_", " ")
         try:
             fonction()
             print(f"  ✅ {intitule}")
+        except Passer as e:
+            sautes.append(fonction.__name__)
+            print(f"  ⏭️  {intitule} — {e}")
         except AssertionError as e:
             echecs.append(fonction.__name__)
             print(f"  ❌ {intitule}\n      {e}")
@@ -1037,7 +1135,8 @@ def principale():
     if echecs:
         print(f"❌ {len(echecs)} échec(s) sur {len(choisis)} : {', '.join(echecs)}")
         return 1
-    print(f"✅ {len(choisis)} tests passés.")
+    reste = f", {len(sautes)} sauté(s)" if sautes else ""
+    print(f"✅ {len(choisis) - len(sautes)} tests passés{reste}.")
     return 0
 
 

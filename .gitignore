@@ -13,6 +13,7 @@ credentials.json
 # Adresses de camarades : des données personnelles de tiers n'ont rien à faire
 # dans un dépôt public. Le format du fichier est décrit dans src/partager.py.
 donnees/inscriptions.txt
+donnees/demandes_discord.json
 
 # Sorties régénérées à chaque exécution.
 donnees/edt*.ics

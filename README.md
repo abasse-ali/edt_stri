@@ -236,10 +236,11 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/moodle.py](src/moodle.py) | Lecture du calendrier Moodle exporté en iCalendar |
 | [src/rendus.py](src/rendus.py) | Chaîne complète des rendus : Moodle → agenda « Rendu M1 » |
 | [src/partager.py](src/partager.py) | Donne accès aux agendas, en lot, depuis un fichier de demandes |
+| [src/bot_discord.py](src/bot_discord.py) | Formulaire `/edt` dans Discord et validation des demandes |
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (84 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (89 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -253,6 +254,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | `donnees/edt_*.ics` | Export standard, non versionné |
 | `donnees/journal.csv` | Une ligne par exécution : nombre de cours, état |
 | `donnees/inscriptions.txt` | Demandes de partage. **Non versionné** : adresses de tiers |
+| `donnees/demandes_discord.json` | Demandes en attente de validation. **Non versionné** |
 | `credentials.json`, `token.json` | Identifiants Google (**jamais commités**) |
 
 ### Le reste
@@ -374,6 +376,7 @@ Propres aux rendus Moodle :
 | `MOODLE_RAPPEL_MINUTES` | `300` | Notification poussée tant de minutes avant l'échéance ; `0` pour aucune |
 | `MOODLE_DUREE_ECHEANCE` | `0` | Épaisseur donnée à une date limite, en minutes ; `0` la laisse ponctuelle |
 | `EDT_INSCRIPTIONS` | `donnees/inscriptions.txt` | Fichier des demandes de partage |
+| `DISCORD_DEMANDES` | `donnees/demandes_discord.json` | Demandes en attente de validation |
 
 Les valeurs vides sont traitées comme absentes : dans un workflow GitHub, une
 variable non définie est quand même transmise comme chaîne vide, et sans cette
@@ -456,7 +459,37 @@ d'inscription** publiée dans le salon Discord. Elle ne transmet rien : elle
 fabrique une ligne à coller dans le salon, au format exact que lit
 `partager.py` — `adresse@exemple.com   M1G2`.
 
-Les lignes récoltées vont dans `donnees/inscriptions.txt`, puis :
+### Le formulaire Discord
+
+C'est la voie normale. Un étudiant tape `/edt` dans le salon, choisit sa
+promotion dans un menu déroulant et saisit son adresse ; sa demande arrive dans
+ton salon de validation sous forme de fiche. Tu peux y **corriger les agendas
+demandés** — retirer celui auquel il n'a pas droit, ajouter le bon — puis
+cliquer sur **Valider**. Le partage Google est appliqué au clic, et l'étudiant
+reçoit un message privé.
+
+```bash
+pip install -r requirements-bot.txt
+python src/bot_discord.py
+```
+
+⚠️ Ce script est le seul du projet qui ne peut pas tourner par tâche planifiée.
+Discord n'envoie une commande ou un clic qu'à un programme **déjà connecté** :
+il faut donc une machine allumée en permanence. GitHub Actions ne convient pas.
+
+| Variable | Rôle |
+|---|---|
+| `DISCORD_BOT_TOKEN` | Jeton du bot (Developer Portal → Bot → Reset Token) |
+| `DISCORD_SALON_DEMANDES` | Identifiant du salon où arrivent les demandes |
+| `DISCORD_ADMINS` | Identifiants autorisés à valider. **Vide = tout le monde peut** |
+| `DISCORD_SERVEUR` | Facultatif : les commandes apparaissent aussitôt sur ce serveur |
+
+`/edt-liste` affiche les abonnés de chaque agenda, en message éphémère.
+
+### En ligne de commande
+
+Sans le bot, ou pour reprendre un lot d'anciennes demandes, les lignes vont
+dans `donnees/inscriptions.txt`, puis :
 
 ```bash
 python src/partager.py --lister              # qui a accès à quoi
