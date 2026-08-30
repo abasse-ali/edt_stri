@@ -88,7 +88,7 @@ Mesuré, pour choisir une offre en connaissance de cause :
 |---|---|
 | Disque, avec `requirements-bot.txt` | **161 Mo** |
 | Disque, avec `requirements.txt` | 483 Mo — trois fois plus, pour rien |
-| Mémoire | quelques dizaines de mégaoctets ; aucune offre ne cale là-dessus |
+| Mémoire | **64 Mo** au pic, mesuré par systemd en production |
 | Port entrant | **aucun** |
 
 Ce dernier point élimine toute une catégorie d'hébergeurs : Render, Koyeb,
