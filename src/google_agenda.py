@@ -151,7 +151,42 @@ def _borne(cours, cote):
     return {"date": fin}
 
 
-def _en_evenement(cours, couleur_cours=None):
+def _rappels(minutes):
+    """Bloc `reminders` d'un événement, ou None pour ne rien imposer.
+
+    `useDefault: False` est indispensable : sans lui Google applique les
+    réglages par défaut de l'agenda et ignore la liste. `minutes = 0` sert donc
+    à dire « aucun rappel », ce qui n'est pas la même chose que ne pas envoyer
+    le champ du tout — ce dernier cas laisse l'événement tel quel.
+
+    Le rappel vaut pour le propriétaire de l'agenda : Google range les rappels
+    dans la part privée de l'événement, propre à chaque compte. Les personnes
+    avec qui l'agenda est partagé gardent les leurs, et aucune API ne permet de
+    leur en imposer un — comme pour la couleur de fond.
+    """
+    if minutes is None:
+        return None
+    if not minutes:
+        return {"useDefault": False, "overrides": []}
+    return {"useDefault": False,
+            "overrides": [{"method": "popup", "minutes": int(minutes)}]}
+
+
+def _cle_rappels(bloc):
+    """Forme comparable d'un bloc `reminders`.
+
+    L'API rend `{"useDefault": false}` sans `overrides` quand il n'y en a
+    aucun, et l'ordre de la liste n'est pas garanti : comparer les
+    dictionnaires bruts ferait réécrire les événements à chaque exécution.
+    """
+    bloc = bloc or {}
+    if bloc.get("useDefault"):
+        return ("defaut",)
+    return tuple(sorted((o.get("method"), o.get("minutes"))
+                        for o in bloc.get("overrides", [])))
+
+
+def _en_evenement(cours, couleur_cours=None, rappel_minutes=None):
     """Traduit un cours en ressource Event de l'API.
 
     `couleur_cours` est posé sur CHAQUE événement, et pas seulement sur les
@@ -175,6 +210,10 @@ def _en_evenement(cours, couleur_cours=None):
         evenement["colorId"] = COULEUR_EXAMEN
     elif couleur_cours:
         evenement["colorId"] = couleur_cours
+
+    rappels = _rappels(rappel_minutes)
+    if rappels is not None:
+        evenement["reminders"] = rappels
     return evenement
 
 
@@ -187,6 +226,13 @@ def _identique(existant, voulu):
     for champ in ("summary", "location", "description", "colorId"):
         if (existant.get(champ) or "") != (voulu.get(champ) or ""):
             return False
+    # Comparé UNIQUEMENT si l'appelant en a demandé un. Les agendas de cours
+    # n'en posent pas : comparer le champ les ferait tous réécrire à la
+    # première exécution, pour rien.
+    if "reminders" in voulu:
+        if _cle_rappels(existant.get("reminders")) != _cle_rappels(voulu["reminders"]):
+            return False
+
     for borne in ("start", "end"):
         a, b = existant.get(borne, {}), voulu[borne]
         # Journée entière d'un côté, créneau horaire de l'autre : deux formes
@@ -307,8 +353,12 @@ def _debut(evenement):
 
 
 def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
-                 couleur_cours=None, depuis=None):
+                 couleur_cours=None, depuis=None, rappel_minutes=None):
     """Aligne l'agenda sur la liste de cours. Renvoie (ajouts, modifs, retraits).
+
+    `rappel_minutes` pose une notification tant de minutes avant l'événement.
+    Laissé à None, le champ n'est pas envoyé du tout et les rappels existants
+    ne sont pas touchés.
 
     `depuis` limite les SUPPRESSIONS aux événements à partir de cette date. Le
     PDF de l'emploi du temps couvre toute l'année et n'en a pas besoin ; le
@@ -321,7 +371,7 @@ def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
     voulus = {}
     for cours in cours_list:
         try:
-            evt = _en_evenement(cours, couleur_cours)
+            evt = _en_evenement(cours, couleur_cours, rappel_minutes)
         except (ValueError, KeyError) as e:
             print(f"   ⚠️ Cours ignoré ({cours.get('titre', '?')}) : {e}")
             continue

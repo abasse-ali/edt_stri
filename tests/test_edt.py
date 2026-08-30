@@ -762,6 +762,66 @@ def moodle_distingue_panne_et_calendrier_vide():
 
 
 @test
+def rappel_pose_une_notification_avant_l_echeance():
+    evenement = google_agenda._en_evenement(
+        cours(titre="DM_OSI doit être rendu"), rappel_minutes=300)
+    egal(evenement["reminders"],
+         {"useDefault": False, "overrides": [{"method": "popup", "minutes": 300}]})
+
+
+@test
+def rappel_a_zero_veut_dire_aucun_rappel():
+    # « Aucun rappel » n'est pas « ne rien dire » : sans useDefault=False,
+    # Google appliquerait les réglages par défaut de l'agenda.
+    evenement = google_agenda._en_evenement(cours(), rappel_minutes=0)
+    egal(evenement["reminders"], {"useDefault": False, "overrides": []})
+
+
+@test
+def rappel_absent_ne_touche_pas_l_evenement():
+    # Les quatre agendas de cours n'en posent pas. Si le champ partait quand
+    # même, la première exécution réécrirait leurs ~300 événements.
+    assert "reminders" not in google_agenda._en_evenement(cours()), "champ non envoyé"
+
+
+@test
+def rappel_non_demande_n_est_jamais_compare():
+    # Google renvoie toujours un bloc `reminders`, même quand on n'en a pas
+    # envoyé. Le comparer sans l'avoir demandé ferait réécrire tous les cours.
+    voulu = google_agenda._en_evenement(cours())
+    existant = dict(voulu, reminders={"useDefault": True})
+    assert google_agenda._identique(existant, voulu), "cours laissé tranquille"
+
+
+@test
+def rappel_modifie_est_bien_detecte():
+    voulu = google_agenda._en_evenement(cours(), rappel_minutes=300)
+    inchange = dict(voulu)
+    assert google_agenda._identique(inchange, voulu), "identique à lui-même"
+
+    autre = dict(voulu, reminders={"useDefault": False,
+                                   "overrides": [{"method": "popup", "minutes": 60}]})
+    assert not google_agenda._identique(autre, voulu), "délai changé"
+
+    defaut = dict(voulu, reminders={"useDefault": True})
+    assert not google_agenda._identique(defaut, voulu), "rappel effacé à la main"
+
+
+@test
+def rappel_compare_sans_tenir_compte_de_l_ordre():
+    # L'API ne garantit pas l'ordre de `overrides` : le comparer tel quel
+    # ferait réécrire l'événement à chaque exécution.
+    a = {"useDefault": False, "overrides": [{"method": "popup", "minutes": 300},
+                                            {"method": "email", "minutes": 60}]}
+    b = {"useDefault": False, "overrides": [{"method": "email", "minutes": 60},
+                                            {"method": "popup", "minutes": 300}]}
+    egal(google_agenda._cle_rappels(a), google_agenda._cle_rappels(b))
+    # Sans overrides, l'API omet la clé plutôt que d'envoyer une liste vide.
+    egal(google_agenda._cle_rappels({"useDefault": False}),
+         google_agenda._cle_rappels({"useDefault": False, "overrides": []}))
+
+
+@test
 def google_traduit_une_journee_entiere_en_dates():
     # Une journée entière s'exprime avec `date`, pas `dateTime` ; sa fin est
     # EXCLUSIVE, donc au lendemain.

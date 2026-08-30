@@ -46,6 +46,15 @@ COULEUR_EVENEMENTS = variable_env("MOODLE_COULEUR_EVENEMENTS", "mandarine")
 
 FICHIER_JSON = variable_env("MOODLE_JSON", str(chemins.donnee("rendus_data.json")))
 
+# Notification poussée par le téléphone tant de minutes avant l'échéance.
+# 300 = 5 h. Mettre 0 pour n'en poser aucun.
+#
+# C'est Google qui la déclenche, pas ce script : le rappel part même si la CI
+# est en panne, et il n'y a rien à retenir entre deux exécutions. Un rappel
+# appartient en revanche au propriétaire de l'agenda — les personnes avec qui
+# il serait partagé garderaient les leurs.
+RAPPEL_MINUTES = int(variable_env("MOODLE_RAPPEL_MINUTES", "300"))
+
 # Même garde-fou que pour l'emploi du temps : une chute brutale du nombre
 # d'échéances est plus probablement une panne qu'une vraie annulation générale.
 CHUTE_MAX = int(variable_env("MOODLE_CHUTE_MAX", "50"))
@@ -179,7 +188,7 @@ def synchroniser_agenda(evenements, creds):
         bilan = google_agenda.synchroniser(
             service, evenements, identifiant_agenda=agenda_id,
             couleur_cours=google_agenda.couleur_evenement(COULEUR_EVENEMENTS),
-            depuis=date.today().isoformat())
+            depuis=date.today().isoformat(), rappel_minutes=RAPPEL_MINUTES)
         edt_stri._rapporter("Rendus", bilan)
         return agenda_id
     except Exception as e:

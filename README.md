@@ -178,6 +178,18 @@ expression régulière testée sur l'intitulé, le cours et la description :
 MOODLE_FILTRE='Rendu M1' python src/rendus.py
 ```
 
+Chaque rendu porte un **rappel 5 h avant l'échéance** : une notification
+poussée par le téléphone, comme n'importe quel rappel d'agenda. C'est Google
+qui la déclenche, pas le bot — elle part même si la CI est en panne, et il n'y
+a rien à retenir d'une exécution à l'autre. Le délai se règle avec
+`MOODLE_RAPPEL_MINUTES` (`0` pour n'en poser aucun).
+
+Un rappel appartient au propriétaire de l'agenda : Google le range dans la part
+privée de l'événement. Les personnes avec qui l'agenda serait partagé gardent
+donc les leurs — comme pour la couleur de fond, aucune API ne permet de leur en
+imposer un. Les quatre agendas de cours n'en posent aucun, et ne sont pas
+touchés.
+
 Deux détails que Moodle impose et que le bot corrige au passage : les heures
 sont exportées en UTC (une échéance à 23h59 s'écrit `215900Z` — la lire telle
 quelle la daterait de deux heures trop tôt), et une date limite a une durée
@@ -201,7 +213,7 @@ la faisant **se terminer** à l'heure limite.
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (67 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (73 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -331,6 +343,7 @@ Propres aux rendus Moodle :
 | `MOODLE_COULEUR_EVENEMENTS` | `mandarine` | Couleur de ses événements |
 | `MOODLE_JSON` | `rendus_data.json` | État précédent des rendus |
 | `MOODLE_CHUTE_MAX` | `50` | % de rendus perdus au-delà duquel on refuse de publier |
+| `MOODLE_RAPPEL_MINUTES` | `300` | Notification poussée tant de minutes avant l'échéance ; `0` pour aucune |
 
 Les valeurs vides sont traitées comme absentes : dans un workflow GitHub, une
 variable non définie est quand même transmise comme chaîne vide, et sans cette
