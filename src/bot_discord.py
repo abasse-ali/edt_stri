@@ -203,6 +203,26 @@ async def destination(client):
 # FICHE DE DEMANDE
 # =====================================================================
 
+def identite(personne):
+    """Ce qu'on retient de la personne qui demande : pseudo, nom affiché, rôles.
+
+    Les rôles sont relevés au moment de la demande, pas à celui de la
+    validation. La fiche reste ainsi un compte rendu fidèle de ce qui était
+    vrai quand la personne a cliqué — c'est ce qu'on veut d'une trace.
+
+    `roles` n'existe que sur un membre de serveur. Une interaction venue d'un
+    message privé donne un simple utilisateur, sans rôle : d'où le `getattr`.
+    """
+    roles = [r.name for r in getattr(personne, "roles", [])
+             if r.name != "@everyone"]
+    return {
+        "discord_id": str(personne.id),
+        "pseudo": str(personne),
+        "affiche": getattr(personne, "display_name", str(personne)),
+        "roles": roles,
+    }
+
+
 def fiche(demande, etat="attente", par=None, detail=None):
     """L'encadré affiché dans le salon de validation."""
     cles = demande["cles"]
@@ -215,8 +235,25 @@ def fiche(demande, etat="attente", par=None, detail=None):
     couleurs = {"attente": ORANGE, "valide": VERT, "refus": GRIS, "erreur": ROUGE}
 
     embed = discord.Embed(title=titres[etat], color=couleurs[etat])
-    embed.add_field(name="Demandeur", value=f"<@{demande['discord_id']}>", inline=True)
-    embed.add_field(name="Adresse Google", value=f"`{demande['courriel']}`", inline=True)
+
+    qui = f"<@{demande['discord_id']}>"
+    affiche = demande.get("affiche")
+    pseudo = demande.get("pseudo")
+    # Le nom affiché est celui du serveur, souvent le vrai prénom ; le pseudo
+    # est l'identifiant Discord. Les deux ne coïncident presque jamais, et
+    # c'est le premier qui permet de reconnaître quelqu'un.
+    if affiche and affiche != pseudo:
+        qui += f"\n{affiche}"
+    if pseudo:
+        qui += f"\n`{pseudo}`"
+    embed.add_field(name="Demandeur", value=qui, inline=True)
+
+    roles = demande.get("roles") or []
+    embed.add_field(name="Rôles",
+                    value=", ".join(roles) if roles else "*aucun*",
+                    inline=True)
+
+    embed.add_field(name="Adresse Google", value=f"`{demande['courriel']}`", inline=False)
     embed.add_field(
         name="Agendas",
         value="\n".join(f"• {partager.CATALOGUE[c][0]}" for c in cles) or "*aucun*",
@@ -305,8 +342,7 @@ class ModalCourriel(discord.ui.Modal, title="Ton adresse Google"):
             return
 
         demande = {
-            "discord_id": str(interaction.user.id),
-            "pseudo": str(interaction.user),
+            **identite(interaction.user),
             "courriel": adresse,
             "cles": list(self.cles),
             "cles_demandees": list(self.cles),

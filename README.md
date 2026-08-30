@@ -249,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (102 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (104 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -478,7 +478,10 @@ personne qui a cliqué**, une liste où elle coche les agendas voulus — plusie
 à la fois — puis une fenêtre pour son adresse. Rien n'est écrit dans le
 salon : il ne s'encombre pas, et personne ne lit l'adresse d'un autre.
 
-La demande t'arrive **en message privé**, sous forme de fiche. Tu peux y
+La demande t'arrive **en message privé**, sous forme de fiche : mention,
+nom affiché, pseudo Discord, **rôles sur le serveur**, adresse et agendas
+demandés. Les rôles disent souvent la promo — ils permettent de vérifier d'un
+coup d'œil qu'une demande est cohérente. Tu peux y
 **corriger les agendas demandés** — retirer celui auquel la personne n'a pas
 droit, ajouter le bon — puis cliquer sur **Valider**. Le partage Google est
 appliqué au clic, et la personne reçoit un message privé à son tour. La fiche

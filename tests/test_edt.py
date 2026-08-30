@@ -1152,6 +1152,62 @@ def bot_n_a_pas_besoin_de_la_chaine_des_pdf():
         egal(interdits, set(), f"{nom} reste léger à l'import")
 
 
+class _RoleFactice:
+    def __init__(self, nom):
+        self.name = nom
+
+
+class _MembreFactice:
+    """Juste ce que `identite()` lit d'un membre Discord."""
+    id = 42
+    display_name = "Abasse"
+    roles = [_RoleFactice("@everyone"), _RoleFactice("M1 STRI"),
+             _RoleFactice("Alternant")]
+
+    def __str__(self):
+        return "abasse_ali"
+
+
+@test
+def fiche_montre_le_pseudo_et_les_roles():
+    """Les rôles disent souvent la promo : ils permettent de vérifier d'un
+    coup d'œil qu'une demande est cohérente avant de la valider."""
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+    releve = bot_discord.identite(_MembreFactice())
+    egal(releve["pseudo"], "abasse_ali", "l'identifiant Discord")
+    egal(releve["affiche"], "Abasse", "le nom affiché sur le serveur")
+    egal(releve["roles"], ["M1 STRI", "Alternant"], "@everyone écarté")
+
+    demande = {**releve, "courriel": "a@b.com",
+               "cles": ["M1G2"], "cles_demandees": ["M1G2"]}
+    champs = {c.name: c.value for c in bot_discord.fiche(demande).fields}
+    egal(champs["Rôles"], "M1 STRI, Alternant")
+    assert "abasse_ali" in champs["Demandeur"], "le pseudo est affiché"
+    assert "Abasse" in champs["Demandeur"], "le nom affiché aussi"
+
+
+@test
+def fiche_supporte_une_demande_sans_roles():
+    """Deux cas réels : une interaction venue d'un message privé ne donne pas
+    de membre, donc pas de rôle ; et les fiches enregistrées avant cette
+    version n'en contiennent pas. Ni l'un ni l'autre ne doit planter."""
+    if bot_discord is None:
+        raise Passer("discord.py n'est pas installé")
+
+    class _UtilisateurNu:
+        id = 7
+        def __str__(self):
+            return "quelquun"
+
+    egal(bot_discord.identite(_UtilisateurNu())["roles"], [], "aucun rôle")
+
+    ancienne = {"discord_id": "1", "pseudo": "x", "courriel": "a@b.com",
+                "cles": ["M1G2"], "cles_demandees": ["M1G2"]}
+    champs = {c.name: c.value for c in bot_discord.fiche(ancienne).fields}
+    egal(champs["Rôles"], "*aucun*", "signalé, pas planté")
+
+
 @test
 def bot_sait_effacer_ses_propres_fiches():
     """Discord n'autorise personne à supprimer le message d'un autre.
