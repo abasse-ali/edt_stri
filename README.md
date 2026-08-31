@@ -249,7 +249,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (105 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (107 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -388,6 +388,7 @@ Propres aux rendus Moodle :
 | `MOODLE_RAPPEL_MINUTES` | `300` | Notification poussée tant de minutes avant l'échéance ; `0` pour aucune |
 | `MOODLE_DUREE_ECHEANCE` | `0` | Épaisseur donnée à une date limite, en minutes ; `0` la laisse ponctuelle |
 | `EDT_INSCRIPTIONS` | `donnees/inscriptions.txt` | Fichier des demandes de partage |
+| `EDT_NOTIFIER` | `1` | `0` : partage sans prévenir par courriel. À n'utiliser que pour soi-même |
 | `DISCORD_DEMANDES` | `donnees/demandes_discord.json` | Demandes en attente de validation |
 
 Les valeurs vides sont traitées comme absentes : dans un workflow GitHub, une
@@ -552,7 +553,12 @@ python src/partager.py --lister              # qui a accès à quoi
 python src/partager.py --appliquer           # tout le fichier d'un coup
 python src/partager.py --ajouter a@b.c M1G2  # une personne, tout de suite
 python src/partager.py --retirer a@b.c M1G2
+python src/partager.py --relancer a@b.c M1G2  # renvoyer l'invitation
+python src/partager.py --relancer-tous        # à tous les abonnés
 ```
+
+Google n'envoie l'invitation qu'à la **création** de la règle d'accès :
+relancer suppose donc de la retirer et de la reposer, ce que fait `--relancer`.
 
 « Rendu M1 » est un agenda unique, sans jumeau et indépendant des promotions.
 Choisir une promotion partage en revanche **deux** agendas, les cours et les

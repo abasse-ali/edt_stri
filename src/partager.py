@@ -10,6 +10,8 @@ quatre d'examens et une trentaine de personnes, cela fait vite deux cents clics.
     python src/partager.py --appliquer           applique le fichier de demandes
     python src/partager.py --ajouter a@b.c M1G2  une personne, tout de suite
     python src/partager.py --retirer a@b.c M1G2
+    python src/partager.py --relancer a@b.c M1G2   renvoie l'invitation
+    python src/partager.py --relancer-tous        à tous les abonnés
 
 Le fichier de demandes est `donnees/inscriptions.txt`, une ligne par personne :
 
@@ -53,6 +55,15 @@ FICHIER_DEMANDES = variable_env("EDT_INSCRIPTIONS",
 # temps. Aucun rôle d'écriture n'est proposé : personne ne doit pouvoir
 # modifier un agenda que le bot réécrit à chaque heure.
 ROLE = "reader"
+
+# Google prévient par courriel la personne avec qui on partage — « … a partagé
+# un agenda avec vous », avec le bouton « Ajouter cet agenda ». C'est SUR CE
+# COURRIEL que repose tout le tutoriel, et sans lui l'agenda n'apparaît nulle
+# part : la personne attend un accès qu'elle a pourtant reçu.
+#
+# Ce paramètre était à False, par excès de discrétion. Personne ne recevait
+# rien. Le mettre à 0 n'a de sens que pour se partager un agenda à soi-même.
+NOTIFIER = variable_env("EDT_NOTIFIER", "1") != "0"
 
 # Une adresse plausible suffit : Google refusera de toute façon ce qui n'est
 # pas un compte valide. Le but est d'attraper les fautes de frappe évidentes
@@ -175,11 +186,41 @@ def partager(service, courriel, cle):
         service.acl().insert(
             calendarId=identifiant,
             body={"scope": {"type": "user", "value": courriel}, "role": ROLE},
-            sendNotifications=False,
+            sendNotifications=NOTIFIER,
         ).execute()
-        print(f"   ✅ {courriel} → « {nom} »")
+        print(f"   ✅ {courriel} → « {nom} »"
+              + ("" if NOTIFIER else "  (sans courriel)"))
         ajoutes += 1
     return ajoutes
+
+
+def relancer(service, courriel, cle):
+    """Renvoie l'invitation à quelqu'un qui a déjà l'accès.
+
+    Google n'expédie le courriel qu'à la CRÉATION de la règle : il faut donc la
+    retirer et la reposer. L'accès n'est pas interrompu de façon perceptible —
+    les deux appels s'enchaînent — et la personne reçoit une invitation neuve.
+
+    Sert à rattraper les partages faits quand les notifications étaient
+    désactivées : ces personnes ont l'accès sans l'avoir jamais su.
+    """
+    renvoyes = 0
+    for identifiant, nom in _agendas_du_choix(service, cle):
+        regle = _regles(service, identifiant).get(courriel)
+        if regle is None:
+            print(f"   ⚠️ {courriel} n'a pas accès à « {nom} », rien à relancer.")
+            continue
+        if regle.get("role") == "owner":
+            continue
+        service.acl().delete(calendarId=identifiant, ruleId=regle["id"]).execute()
+        service.acl().insert(
+            calendarId=identifiant,
+            body={"scope": {"type": "user", "value": courriel}, "role": ROLE},
+            sendNotifications=True,
+        ).execute()
+        print(f"   📧 Invitation renvoyée à {courriel} pour « {nom} »")
+        renvoyes += 1
+    return renvoyes
 
 
 def retirer(service, courriel, cle):
@@ -240,7 +281,19 @@ def principale():
         lister(service)
         return 0
 
-    for action, fonction in (("--ajouter", partager), ("--retirer", retirer)):
+    if "--relancer-tous" in sys.argv:
+        total = 0
+        for cle in sorted(CATALOGUE):
+            for identifiant, _ in _agendas_du_choix(service, cle):
+                for adresse, regle in _regles(service, identifiant).items():
+                    if regle.get("role") == ROLE:
+                        total += relancer(service, adresse, cle)
+                break  # les deux agendas d'un choix ont les mêmes abonnés
+        print(f"\n📧 {total} invitation(s) renvoyée(s).")
+        return 0
+
+    for action, fonction in (("--ajouter", partager), ("--retirer", retirer),
+                             ("--relancer", relancer)):
         if action in sys.argv:
             i = sys.argv.index(action)
             if i + 2 >= len(sys.argv):

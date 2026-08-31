@@ -1015,6 +1015,39 @@ def partage_propose_une_cle_par_demi_promo():
 
 
 @test
+def partage_previent_bien_par_courriel():
+    """Sans le courriel de Google, l'agenda n'apparaît nulle part.
+
+    Tout le tutoriel repose dessus — « tu reçois deux courriels, clique sur
+    Ajouter cet agenda ». Le paramètre était à False : les partages étaient
+    créés, personne n'était prévenu, et les gens attendaient un accès qu'ils
+    avaient pourtant déjà.
+    """
+    egal(partager.NOTIFIER, True, "les invitations partent par défaut")
+
+    source = (chemins.SRC / "partager.py").read_text(encoding="utf-8")
+    assert "sendNotifications=False" not in source,         "aucun partage ne doit être créé en silence"
+
+    # Le code et le tutoriel doivent dire la même chose.
+    tuto = (chemins.DOCS / "TUTO.txt").read_text(encoding="utf-8")
+    assert "mails" in tuto or "courriel" in tuto.lower(),         "le tutoriel promet bien un courriel"
+
+
+@test
+def partage_sait_relancer_une_invitation():
+    """Google n'envoie le courriel qu'à la CRÉATION de la règle.
+
+    Relancer suppose donc de la retirer puis de la reposer — sans quoi les
+    personnes partagées avant la correction n'auraient jamais rien reçu.
+    """
+    source = (chemins.SRC / "partager.py").read_text(encoding="utf-8")
+    corps = source[source.index("def relancer("):source.index("def lister(")]
+    assert "acl().delete" in corps, "la règle est retirée"
+    assert "acl().insert" in corps, "puis reposée"
+    assert "sendNotifications=True" in corps, "et le courriel part"
+
+
+@test
 def partage_ne_donne_jamais_l_ecriture():
     # Un agenda que le bot réécrit chaque heure ne doit être modifiable par
     # personne : une correction faite à la main disparaîtrait sans trace.
