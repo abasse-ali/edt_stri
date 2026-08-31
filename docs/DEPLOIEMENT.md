@@ -168,10 +168,30 @@ type $env:USERPROFILE\.ssh\id_ed25519.pub    # à coller dans la console
 
 ### Installer le bot
 
-⚠️ **Le dépôt est privé.** GitHub répond 404 aux requêtes anonymes : ni
-`curl … | bash`, ni `git clone` sans identifiants ne fonctionnent. Deux voies.
+Le dépôt est **public** : `git clone` fonctionne sans identifiants, et c'est
+de loin le plus simple.
 
-#### a. Envoyer une archive depuis ton PC — le plus simple
+```bash
+ssh ubuntu@<adresse-ip>
+git clone https://github.com/abasse-ali/edt_stri.git
+bash edt_stri/deploiement/installer_serveur.sh
+```
+
+Le script s'arrête en réclamant `.env` et `token.json`, absents du dépôt — et
+qui n'ont rien à y faire. Dépose-les depuis ton PC :
+
+```powershell
+scp .env token.json ubuntu@<adresse-ip>:/opt/edt_stri/
+```
+
+puis relance le script. Les mises à jour suivantes se réduisent alors à une
+seule commande, qui fait le `git pull` et redémarre le service :
+
+```bash
+bash /opt/edt_stri/deploiement/installer_serveur.sh
+```
+
+#### La voie de l'archive, si tu préfères ne rien cloner
 
 `git archive` exporte le contenu **du dépôt**, pas celui de ton disque. C'est
 important : ta copie de travail Windows a des fins de ligne CRLF, et un script
@@ -195,23 +215,6 @@ bash edt_stri/deploiement/installer_serveur.sh
 
 Pour mettre à jour plus tard, refais l'archive et relance le script : il est
 idempotent.
-
-#### b. Poser une clé de déploiement — pour un `git pull` sur le serveur
-
-```bash
-ssh-keygen -t ed25519 -f ~/.ssh/depot -N ""
-cat ~/.ssh/depot.pub
-```
-
-Colle cette clé dans **GitHub → le dépôt → Settings → Deploy keys → Add**, en
-lecture seule. Puis, sur le serveur :
-
-```bash
-printf 'Host github.com
-  IdentityFile ~/.ssh/depot
-' >> ~/.ssh/config
-DEPOT=git@github.com:abasse-ali/edt_stri.git bash installer_serveur.sh
-```
 
 ### Ce que fait le script
 
@@ -329,14 +332,15 @@ lecture des PDF, écriture dans les agendas.
 
 ### Le garde-fou qui compte
 
-Un dépôt privé n'a que **2 000 minutes d'Actions par mois**. Réveiller les deux
-workflows toutes les heures en consommerait 1 700, dont l'essentiel pour refaire
-ce que GitHub venait de faire.
+Le réveil ne déclenche que si **aucun passage n'a eu lieu depuis 50 minutes**.
+Sans cette condition, il relancerait un workflow que GitHub vient de lancer :
+deux exécutions concurrentes sur les mêmes agendas, et des notifications
+Discord en double.
 
-Le réveil ne déclenche donc que si **aucun passage n'a eu lieu depuis 50
-minutes**, et ne concerne par défaut que l'emploi du temps : une échéance de
-devoir ne se périme pas en trois heures. Coût réel : les créneaux réellement
-manqués, rien de plus.
+Le dépôt étant **public**, les minutes d'Actions sont illimitées — les deux
+workflows sont donc réveillés. Sur un dépôt privé, le plafond de 2 000 minutes
+par mois rendrait ce garde-fou doublement nécessaire, et `REVEIL_WORKFLOWS`
+permettrait de se limiter à l'emploi du temps.
 
 ### Mise en place
 
@@ -369,7 +373,7 @@ créneau manqué pendant une coupure.
 |---|---|---|
 | `GITHUB_TOKEN` | — | Sans lui, le timer reste en veille |
 | `GITHUB_DEPOT` | `abasse-ali/edt_stri` | Le dépôt visé |
-| `REVEIL_WORKFLOWS` | `edt_sync.yml` | Ajouter `rendus_sync.yml` double la dépense |
+| `REVEIL_WORKFLOWS` | les deux | Sur un dépôt privé, s'en tenir à `edt_sync.yml` divise la dépense par deux |
 | `REVEIL_DELAI_MIN` | `50` | Âge au-delà duquel un créneau est jugé manqué |
 
 ## Ce que le bot emporte avec lui
@@ -390,9 +394,9 @@ Au démarrage, le bot dit où il en est :
 
 ```
 ✅ Connecté comme Alfred#6538.
-   Valideurs : 794845504089227265
+   Valideurs : 000000000000000000
    0 demande(s) en attente.
-   Les fiches partent en message privé à jpixfred1527 ✅
+   Les fiches partent en message privé à ton-pseudo ✅
 ```
 
 La dernière ligne est la plus importante : elle confirme qu'une demande pourra

@@ -1457,19 +1457,23 @@ def bot_repart_proprement_d_un_etat_illisible():
 # =====================================================================
 
 @test
-def reveil_ne_declenche_que_l_emploi_du_temps_par_defaut():
-    """Un dépôt privé n'a que 2 000 minutes d'Actions par mois.
+def reveil_ne_double_jamais_une_execution_de_github():
+    """Le garde-fou de délai est la pièce maîtresse.
 
-    Réveiller les deux workflows toutes les heures en consommerait 1 700, pour
-    refaire ce que GitHub vient souvent de faire. Les rendus Moodle changent
-    rarement : quelques heures de retard n'y font aucune différence.
+    Sans lui, le réveil relancerait un workflow que GitHub vient de lancer :
+    deux exécutions concurrentes sur les mêmes agendas, et un lot de
+    notifications Discord en double. Sur un dépôt privé s'y ajouterait le coût
+    — 2 000 minutes d'Actions par mois, vite consommées.
+
+    Les bornes encadrent le seul réglage qui compte : trop long, un créneau sur
+    deux est perdu ; trop court, chaque passage de GitHub est doublé.
     """
     import reveil
-    egal(reveil.WORKFLOWS, ["edt_sync.yml"], "l'emploi du temps seulement")
-    assert reveil.DELAI.total_seconds() < 3600, (
-        "le délai doit rester sous l'heure, sinon un créneau sur deux est perdu")
-    assert reveil.DELAI.total_seconds() > 1800, (
-        "trop court, on doublerait chaque exécution de GitHub")
+    assert reveil.DELAI.total_seconds() < 3600, "au-delà, un créneau sur deux est perdu"
+    assert reveil.DELAI.total_seconds() > 1800, "en deçà, on double les exécutions"
+    assert reveil.WORKFLOWS, "au moins un workflow à réveiller"
+    for w in reveil.WORKFLOWS:
+        assert (chemins.RACINE / ".github" / "workflows" / w).exists(),             f"{w} doit exister, sinon GitHub répond 404 toutes les heures"
 
 
 @test

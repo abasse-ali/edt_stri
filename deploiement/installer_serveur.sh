@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
 # Installe le bot Discord sur un serveur Linux (Oracle Cloud, Raspberry Pi, VPS).
 #
-# Le dépôt est PRIVÉ : ni `curl` ni `git clone` anonyme ne peuvent l'atteindre,
-# GitHub répond 404. Deux façons de faire, donc.
+# Le dépôt est public : le plus simple est de le cloner sur la machine.
 #
-#   1. Déposer les fichiers depuis ton PC, puis lancer le script sur place :
+#        git clone https://github.com/abasse-ali/edt_stri.git
+#        bash edt_stri/deploiement/installer_serveur.sh
 #
-#        ssh ubuntu@<ip> mkdir -p edt_stri
-#        scp -r src docs bot.py requirements-bot.txt deploiement .env token.json \
-#            ubuntu@<ip>:~/edt_stri/
-#        ssh ubuntu@<ip> "bash ~/edt_stri/deploiement/installer_serveur.sh"
-#
-#   2. Poser une clé de déploiement en lecture seule sur le serveur
-#      (voir docs/DEPLOIEMENT.md), puis :
-#
-#        DEPOT=git@github.com:abasse-ali/edt_stri.git bash installer_serveur.sh
+# Il se débrouille aussi avec des fichiers simplement déposés en scp, sans dépôt
+# git du tout — utile quand la machine n'a pas accès à GitHub.
 #
 # Le script est IDEMPOTENT : le relancer met simplement à jour. Il ne touche
 # jamais à .env ni à token.json, qui se déposent à la main — ces deux fichiers
@@ -22,8 +15,7 @@
 
 set -euo pipefail
 
-# Vide par défaut : sans clé de déploiement, on n'essaie même pas de cloner.
-DEPOT="${DEPOT:-}"
+DEPOT="${DEPOT:-https://github.com/abasse-ali/edt_stri.git}"
 RACINE="${RACINE:-/opt/edt_stri}"
 UTILISATEUR="${UTILISATEUR:-$(id -un)}"
 SERVICE="edt-bot"
@@ -96,9 +88,7 @@ elif [ -n "$DEPOT" ]; then
     sudo git clone --depth 1 "$DEPOT" "$RACINE"
 else
     echo "⛔ Aucun code trouvé, et aucun dépôt indiqué."
-    echo "   Le dépôt étant privé, dépose les fichiers en scp, ou pose une clé"
-    echo "   de déploiement et relance avec :"
-    echo "     DEPOT=git@github.com:abasse-ali/edt_stri.git bash $0"
+    echo "   Relance avec DEPOT=<adresse du dépôt>, ou dépose les fichiers en scp."
     exit 1
 fi
 sudo chown -R "$UTILISATEUR":"$UTILISATEUR" "$RACINE"

@@ -17,11 +17,14 @@ tourne en permanence et possède une horloge fiable : elle sert de réveil.
     python src/reveil.py --forcer   déclenche sans condition
     python src/reveil.py --etat     montre les derniers passages, sans rien lancer
 
-⚠️ Il ne déclenche QUE si aucun passage récent n'a eu lieu. Un dépôt privé n'a
-que 2 000 minutes d'Actions par mois : réveiller aveuglément les deux workflows
-toutes les heures en consommerait 1 700, pour refaire ce que GitHub venait de
-faire. Avec ce garde-fou, le réveil ne coûte que les créneaux réellement
-manqués.
+⚠️ Il ne déclenche QUE si aucun passage récent n'a eu lieu. Le dépôt étant
+public, les minutes d'Actions sont illimitées et l'économie n'est plus le sujet
+— mais relancer un workflow que GitHub vient de lancer produirait deux
+exécutions concurrentes sur les mêmes agendas, et des notifications Discord en
+double. Le garde-fou reste donc nécessaire, pour une autre raison.
+
+Sur un dépôt PRIVÉ, il redevient aussi une question de coût : 2 000 minutes par
+mois, dont 1 700 seraient consommées par un réveil aveugle.
 
 Réglages, dans `.env` :
 
@@ -30,9 +33,8 @@ Réglages, dans `.env` :
                         Fine-grained tokens)
     GITHUB_DEPOT        « proprietaire/depot », si ce n'est pas celui par défaut
     REVEIL_WORKFLOWS    les fichiers à réveiller, séparés par des virgules.
-                        Par défaut le seul emploi du temps : les rendus Moodle
-                        changent rarement, quelques heures de retard n'y font
-                        aucune différence.
+                        Les deux par défaut. Sur un dépôt privé, se limiter à
+                        « edt_sync.yml » divise la dépense par deux.
     REVEIL_DELAI_MIN    âge au-delà duquel on considère un créneau manqué
 """
 
@@ -47,10 +49,11 @@ from telechargement import variable_env
 DEPOT = variable_env("GITHUB_DEPOT", "abasse-ali/edt_stri")
 JETON = variable_env("GITHUB_TOKEN")
 
-# L'emploi du temps seulement, par défaut. Ajouter « rendus_sync.yml » double
-# la consommation de minutes pour un gain nul : une échéance de devoir ne se
-# périme pas en trois heures.
-WORKFLOWS = [w for w in variable_env("REVEIL_WORKFLOWS", "edt_sync.yml")
+# Les deux, le dépôt étant public : les minutes d'Actions y sont illimitées.
+# Sur un dépôt privé, se limiter à « edt_sync.yml » divise la dépense par deux
+# pour un gain faible — une échéance de devoir ne se périme pas en trois heures.
+WORKFLOWS = [w for w in variable_env("REVEIL_WORKFLOWS",
+                                     "edt_sync.yml,rendus_sync.yml")
              .replace(",", " ").split() if w]
 
 # 50 et non 60 : les exécutions de GitHub ne tombent jamais à la minute
