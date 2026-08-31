@@ -35,9 +35,9 @@
     "date": "2026-08-27",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Tech. de trans.",
+    "titre": "Tech. de trans. (Eric GONNEAU)",
     "room": "U3-amphi",
-    "prof": "Inconnu"
+    "prof": "Eric GONNEAU"
   },
   {
     "date": "2026-08-28",
@@ -107,9 +107,9 @@
     "date": "2026-09-02",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Tech. de trans. (LF)",
+    "titre": "Tech. de trans. (Eric GONNEAU)",
     "room": "U3-amphi",
-    "prof": "LF"
+    "prof": "Eric GONNEAU"
   },
   {
     "date": "2026-09-02",
@@ -140,14 +140,14 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Informatique (André AOUN)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "André AOUN"
   },
   {
     "date": "2026-09-03",
     "start": "13h30",
     "end": "17h45",
-    "titre": "Activités UPSSITECH /Examen de Mise à Niveau pour les 3A",
+    "titre": "Activités UPSSITECH / Examen de Mise à Niveau pour les 3A",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -196,7 +196,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Informatique (André AOUN)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "André AOUN"
   },
   {
@@ -211,8 +211,8 @@
     "date": "2026-09-08",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Tech. de trans. - TD",
-    "room": "U3-04",
+    "titre": "Phy (Réseaux) - C Tech. de trans. (EG)",
+    "room": "U3-110 U3-04",
     "prof": "Inconnu"
   },
   {
@@ -228,7 +228,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "Non attribuée",
+    "room": "U3-103",
     "prof": "Abdelmalek BENZEKRI"
   },
   {
@@ -236,7 +236,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Informatique (André AOUN)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "André AOUN"
   },
   {
@@ -260,7 +260,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Outils de modélisation info (FB)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "FB"
   },
   {
@@ -268,7 +268,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Outils Maths (Jérôme SOKOLOFF)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "Jérôme SOKOLOFF"
   },
   {
@@ -283,17 +283,17 @@
     "date": "2026-09-15",
     "start": "07h45",
     "end": "09h45",
-    "titre": "O de mod info - TD (KINX5AB1",
-    "room": "Non attribuée",
+    "titre": "O de mod info - TD",
+    "room": "U3-04",
     "prof": "Inconnu"
   },
   {
     "date": "2026-09-15",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
+    "titre": "Réseaux (André AOUN)",
     "room": "U3-306",
-    "prof": "KUPT5BB3"
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-15",
@@ -307,9 +307,9 @@
     "date": "2026-09-16",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Tech. de trans. (LF)",
-    "room": "Non attribuée",
-    "prof": "LF"
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
+    "room": "U3-amphi",
+    "prof": "Frédéric MOUTIER"
   },
   {
     "date": "2026-09-16",
@@ -328,11 +328,19 @@
     "prof": "André AOUN"
   },
   {
+    "date": "2026-09-18",
+    "start": "13h30",
+    "end": "17h45",
+    "titre": "Activités / Conférences UPSSITECH",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
     "date": "2026-09-21",
     "start": "07h45",
     "end": "09h45",
     "titre": "Outils de modélisation info - C (KINX5AB1)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "KINX5AB1"
   },
   {
@@ -340,7 +348,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Outils Maths - C (KINX5AA2)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "KINX5AA2"
   },
   {
@@ -356,8 +364,8 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths - TD (KINX5AA2)",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
+    "room": "- U3-110",
+    "prof": "KINX5AA2"
   },
   {
     "date": "2026-09-21",
@@ -371,17 +379,17 @@
     "date": "2026-09-22",
     "start": "07h45",
     "end": "09h45",
-    "titre": "O de mod info - TD (KINX5AB1",
-    "room": "Non attribuée",
+    "titre": "O de mod info - TD",
+    "room": "U3-04",
     "prof": "Inconnu"
   },
   {
     "date": "2026-09-22",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
-    "room": "Non attribuée",
-    "prof": "KUPT5BB3"
+    "titre": "Tech. de trans. (Eric GONNEAU)",
+    "room": "U3-04",
+    "prof": "Eric GONNEAU"
   },
   {
     "date": "2026-09-22",
@@ -403,17 +411,17 @@
     "date": "2026-09-23",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils Maths - C (KINX5AA2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AA2"
+    "titre": "Outils Maths - C (Abdelmalek BENZEKRI)",
+    "room": "U3-amphi",
+    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-09-23",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Outils Maths - TD (KINX5AA2) - AB",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
+    "titre": "Outils Maths - TD (Abdelmalek BENZEKRI)",
+    "room": "U3-amphi",
+    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-09-23",
@@ -435,7 +443,7 @@
     "date": "2026-09-25",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Outils Maths - TD (KINX5AA2) -J",
+    "titre": "Outils Maths -TD (KINX5AA2) - J",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -444,7 +452,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths - C (KINX5AA2)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "KINX5AA2"
   }
 ]
