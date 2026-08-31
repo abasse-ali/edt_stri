@@ -96,14 +96,6 @@
     "prof": "Thierry DESPRATS"
   },
   {
-    "date": "2026-09-03",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interopérabilité (André AOUN)",
-    "room": "U3-Amphi",
-    "prof": "André AOUN"
-  },
-  {
     "date": "2026-09-04",
     "start": "07h45",
     "end": "09h45",
@@ -195,9 +187,17 @@
     "date": "2026-09-09",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Interop (André AOUN)",
+    "titre": "Interopérabilité (André AOUN)",
     "room": "U3-Amphi",
     "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-09",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Interopérabilité",
+    "room": "U2-119",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-09-09",
@@ -484,7 +484,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "[EXAMEN] BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-Amphi",
+    "room": "U2-Amphi Vandel",
     "prof": "Karen PINEL-SAUVAGNAT"
   },
   {
@@ -588,7 +588,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "[EXAMEN] Interco (Thierry DESPRATS)",
-    "room": "U3-Amphi",
+    "room": "U2-Amphi Vandel",
     "prof": "Thierry DESPRATS"
   }
 ]
