@@ -121,6 +121,32 @@ sudo sed -e "s|^User=.*|User=$UTILISATEUR|" \
 sudo systemctl daemon-reload
 sudo systemctl enable "$SERVICE" >/dev/null
 
+# --- 4 bis. Le reveil des workflows GitHub --------------------------------
+# GitHub abandonne la plupart des declenchements planifies d'un depot gratuit.
+# Cette machine tourne en permanence : elle sert d'horloge fiable. Le timer ne
+# demarre que si GITHUB_TOKEN est renseigne — sans jeton il n'y a rien a faire,
+# et une unite qui echoue toutes les heures ne ferait que polluer le journal.
+for unite in "$SERVICE-reveil.service" "$SERVICE-reveil.timer"; do
+    sudo sed -e "s|^User=.*|User=$UTILISATEUR|" \
+             -e "s|^WorkingDirectory=.*|WorkingDirectory=$RACINE|" \
+             -e "s|^ExecStart=.*|ExecStart=$RACINE/venv/bin/python -u $RACINE/src/reveil.py|" \
+             "$RACINE/deploiement/$unite" \
+        | sudo tee "/etc/systemd/system/$unite" >/dev/null
+done
+
+# Le jeton GitHub vit dans .env, comme le reste des secrets.
+sudo sed -i "/^\[Service\]/a EnvironmentFile=$RACINE/.env" \
+    "/etc/systemd/system/$SERVICE-reveil.service"
+sudo systemctl daemon-reload
+
+if grep -qs '^GITHUB_TOKEN=.' "$RACINE/.env"; then
+    sudo systemctl enable --now "$SERVICE-reveil.timer" >/dev/null
+    echo "⏰ Réveil horaire des workflows activé."
+else
+    sudo systemctl disable --now "$SERVICE-reveil.timer" >/dev/null 2>&1 || true
+    echo "ℹ️  Réveil des workflows en veille : GITHUB_TOKEN absent de .env."
+fi
+
 # --- 5. Ce qui reste à faire à la main ------------------------------------
 manquants=()
 [ -f "$RACINE/.env" ]        || manquants+=(".env")

@@ -302,6 +302,76 @@ powercfg /change standby-timeout-ac 0
 
 ---
 
+## Le réveil des workflows GitHub
+
+Le cron des deux workflows demande une exécution par heure. GitHub le documente
+franchement : un déclenchement planifié peut être **retardé, voire abandonné**
+quand la file est chargée, et les dépôts gratuits passent en dernier.
+
+Mesuré sur ce dépôt, du 26 au 31 août :
+
+```
+31/08 04:59   ← 3 h 56 après le précédent
+31/08 01:03   ← 2 h 40
+30/08 22:23   ← 3 h 16
+30/08 19:07   ← 4 h 38
+30/08 14:29   ← 6 h 15
+28/08 22:36   ← 12 h 02
+```
+
+Environ **cinq exécutions par jour au lieu de vingt-quatre**. Un emploi du
+temps publié le matin pouvait n'être traité qu'en début d'après-midi.
+
+La machine qui héberge le bot tourne en permanence et possède une horloge
+fiable : elle sert de réveil. `src/reveil.py` demande simplement à GitHub de
+lancer le workflow — **tout le traitement reste là-bas**, téléchargement,
+lecture des PDF, écriture dans les agendas.
+
+### Le garde-fou qui compte
+
+Un dépôt privé n'a que **2 000 minutes d'Actions par mois**. Réveiller les deux
+workflows toutes les heures en consommerait 1 700, dont l'essentiel pour refaire
+ce que GitHub venait de faire.
+
+Le réveil ne déclenche donc que si **aucun passage n'a eu lieu depuis 50
+minutes**, et ne concerne par défaut que l'emploi du temps : une échéance de
+devoir ne se périme pas en trois heures. Coût réel : les créneaux réellement
+manqués, rien de plus.
+
+### Mise en place
+
+Crée un jeton sur GitHub — **Settings → Developer settings → Fine-grained
+tokens** — limité à ce seul dépôt, avec la permission **Actions : Read and
+write**. Ajoute-le au `.env` de la machine :
+
+```
+GITHUB_TOKEN=github_pat_...
+```
+
+Puis relance l'installeur. Il pose le service et le timer, et ne les active que
+si le jeton est présent :
+
+```bash
+bash /opt/edt_stri/deploiement/installer_serveur.sh
+```
+
+```bash
+systemctl list-timers edt-bot-reveil        # prochain déclenchement
+journalctl -u edt-bot-reveil -n 20          # ce qu'il a fait
+/opt/edt_stri/venv/bin/python /opt/edt_stri/src/reveil.py --etat
+```
+
+Le timer sonne à la 40ᵉ minute : après les créneaux de GitHub (:00 et :25),
+pour lui laisser sa chance avant d'intervenir. `Persistent=true` rattrape un
+créneau manqué pendant une coupure.
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `GITHUB_TOKEN` | — | Sans lui, le timer reste en veille |
+| `GITHUB_DEPOT` | `abasse-ali/edt_stri` | Le dépôt visé |
+| `REVEIL_WORKFLOWS` | `edt_sync.yml` | Ajouter `rendus_sync.yml` double la dépense |
+| `REVEIL_DELAI_MIN` | `50` | Âge au-delà duquel un créneau est jugé manqué |
+
 ## Ce que le bot emporte avec lui
 
 Il n'installe que `requirements-bot.txt` : `discord.py`, `requests`,

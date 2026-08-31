@@ -1,0 +1,18 @@
+# Toutes les heures, a la 40e minute.
+#
+# Pourquoi 40 : les workflows sont planifies a :00 et :25. En sonnant apres,
+# on laisse a GitHub sa chance de tenir sa propre planification — et le reveil
+# ne declenche que les creneaux qu'il a reellement manques.
+
+[Unit]
+Description=Reveil horaire des workflows GitHub de l'EDT STRI
+
+[Timer]
+OnCalendar=*:40
+# Rattrape le creneau manque si la machine etait eteinte ou en maintenance.
+Persistent=true
+# Evite que toutes les machines du monde sonnent a la meme seconde.
+RandomizedDelaySec=90
+
+[Install]
+WantedBy=timers.target

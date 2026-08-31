@@ -1453,6 +1453,56 @@ def bot_repart_proprement_d_un_etat_illisible():
 
 
 # =====================================================================
+# Réveil des workflows GitHub
+# =====================================================================
+
+@test
+def reveil_ne_declenche_que_l_emploi_du_temps_par_defaut():
+    """Un dépôt privé n'a que 2 000 minutes d'Actions par mois.
+
+    Réveiller les deux workflows toutes les heures en consommerait 1 700, pour
+    refaire ce que GitHub vient souvent de faire. Les rendus Moodle changent
+    rarement : quelques heures de retard n'y font aucune différence.
+    """
+    import reveil
+    egal(reveil.WORKFLOWS, ["edt_sync.yml"], "l'emploi du temps seulement")
+    assert reveil.DELAI.total_seconds() < 3600, (
+        "le délai doit rester sous l'heure, sinon un créneau sur deux est perdu")
+    assert reveil.DELAI.total_seconds() > 1800, (
+        "trop court, on doublerait chaque exécution de GitHub")
+
+
+@test
+def reveil_ne_fait_rien_sans_jeton():
+    """Sans GITHUB_TOKEN il n'y a rien à faire, et ce n'est pas une panne.
+
+    Rendre un code d'erreur ferait passer le cas normal pour un échec dans les
+    journaux de systemd, toutes les heures.
+    """
+    import reveil
+    sauvegarde = reveil.JETON
+    try:
+        reveil.JETON = ""
+        egal(reveil.principale(), 0, "silencieux et sans erreur")
+    finally:
+        reveil.JETON = sauvegarde
+
+
+@test
+def reveil_est_installe_avec_le_bot():
+    """Le timer ne sert à rien s'il n'est pas posé sur la machine."""
+    installeur = (chemins.RACINE / "deploiement" / "installer_serveur.sh").read_text(
+        encoding="utf-8")
+    assert "reveil.timer" in installeur, "le timer est installé"
+    assert "GITHUB_TOKEN" in installeur, "et activé seulement si le jeton existe"
+
+    minuterie = (chemins.RACINE / "deploiement" / "edt-reveil.timer").read_text(
+        encoding="utf-8")
+    assert "Persistent=true" in minuterie, (
+        "sans quoi un créneau manqué pendant une coupure est perdu")
+
+
+# =====================================================================
 # Exécution
 # =====================================================================
 

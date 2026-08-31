@@ -244,12 +244,13 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/telechargement.py](src/telechargement.py) | Table `PROMOS` + téléchargement derrière le pare-feu |
 | [src/moodle.py](src/moodle.py) | Lecture du calendrier Moodle exporté en iCalendar |
 | [src/rendus.py](src/rendus.py) | Chaîne complète des rendus : Moodle → agenda « Rendu M1 » |
+| [src/reveil.py](src/reveil.py) | Déclenche les workflows que GitHub oublie de lancer |
 | [src/partager.py](src/partager.py) | Donne accès aux agendas, en lot, depuis un fichier de demandes |
 | [src/bot_discord.py](src/bot_discord.py) | Formulaire `/edt` dans Discord et validation des demandes |
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (107 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (110 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
