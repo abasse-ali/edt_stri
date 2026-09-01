@@ -457,6 +457,14 @@
   },
   {
     "date": "2026-09-24",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] BD (Karen PINEL-SAUVAGNAT)",
+    "room": "U3-Amphi",
+    "prof": "Karen PINEL-SAUVAGNAT"
+  },
+  {
+    "date": "2026-09-24",
     "start": "10h00",
     "end": "12h00",
     "titre": "BD (Riad MOKADEM)",
@@ -470,14 +478,6 @@
     "titre": "Tél. Spat. (MA & Frédéric MOUTIER)",
     "room": "U4-307/308",
     "prof": "MA & Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-09-25",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "[EXAMEN] BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U2-Amphi Vandel",
-    "prof": "Karen PINEL-SAUVAGNAT"
   },
   {
     "date": "2026-09-28",
