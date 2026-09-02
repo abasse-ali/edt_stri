@@ -365,16 +365,23 @@ journalctl -u edt-bot-reveil -n 20          # ce qu'il a fait
 /opt/edt_stri/venv/bin/python /opt/edt_stri/src/reveil.py --etat
 ```
 
-Le timer sonne à la 40ᵉ minute : après les créneaux de GitHub (:00 et :25),
-pour lui laisser sa chance avant d'intervenir. `Persistent=true` rattrape un
-créneau manqué pendant une coupure.
+Le timer sonne **deux fois par heure**, à :10 et :40 — après chacun des
+créneaux de GitHub (:00 et :25), pour lui laisser sa chance avant d'intervenir.
+`Persistent=true` rattrape une sonnerie manquée pendant une coupure.
+
+⚠️ La cadence du timer et `REVEIL_DELAI_MIN` vont de pair. Le seuil doit rester
+**sous** l'intervalle entre deux sonneries : à 50 minutes pour un timer de 30,
+le second réveil trouverait toujours un passage « récent » et ne ferait rien.
+Un test lit le fichier `.timer` et vérifie cet accord.
+
+Le retard maximal passe ainsi d'une heure à une demi-heure.
 
 | Variable | Défaut | Rôle |
 |---|---|---|
 | `GITHUB_TOKEN` | — | Sans lui, le timer reste en veille |
 | `GITHUB_DEPOT` | `abasse-ali/edt_stri` | Le dépôt visé |
 | `REVEIL_WORKFLOWS` | les deux | Sur un dépôt privé, s'en tenir à `edt_sync.yml` divise la dépense par deux |
-| `REVEIL_DELAI_MIN` | `50` | Âge au-delà duquel un créneau est jugé manqué |
+| `REVEIL_DELAI_MIN` | `25` | Âge au-delà duquel un créneau est jugé manqué — à garder sous l'intervalle du timer |
 
 ## Ce que le bot emporte avec lui
 

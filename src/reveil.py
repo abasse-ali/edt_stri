@@ -36,7 +36,8 @@ Réglages, dans `.env` :
     REVEIL_WORKFLOWS    les fichiers à réveiller, séparés par des virgules.
                         Les deux par défaut. Sur un dépôt privé, se limiter à
                         « edt_sync.yml » divise la dépense par deux.
-    REVEIL_DELAI_MIN    âge au-delà duquel on considère un créneau manqué
+    REVEIL_DELAI_MIN    âge au-delà duquel on considère un créneau manqué.
+                        À garder sous l'intervalle du timer (30 min).
 """
 
 import json
@@ -57,9 +58,12 @@ WORKFLOWS = [w for w in variable_env("REVEIL_WORKFLOWS",
                                      "edt_sync.yml,rendus_sync.yml")
              .replace(",", " ").split() if w]
 
-# 50 et non 60 : les exécutions de GitHub ne tombent jamais à la minute
-# demandée, et une marge trop serrée déclencherait un doublon à chaque fois.
-DELAI = timedelta(minutes=int(variable_env("REVEIL_DELAI_MIN", "50")))
+# Doit rester SOUS l'intervalle entre deux sonneries du timer, qui est de
+# 30 minutes : à 50, le second réveil de chaque heure trouverait toujours un
+# passage « récent » et ne ferait rien. Et pas trop bas non plus — les
+# exécutions de GitHub ne tombent jamais à la minute demandée, une marge trop
+# serrée doublerait celles qu'il honore.
+DELAI = timedelta(minutes=int(variable_env("REVEIL_DELAI_MIN", "25")))
 
 TIMEOUT = 30
 API = "https://api.github.com"

@@ -1,14 +1,18 @@
-# Toutes les heures, a la 40e minute.
+# Deux fois par heure, a :10 et :40.
 #
-# Pourquoi 40 : les workflows sont planifies a :00 et :25. En sonnant apres,
-# on laisse a GitHub sa chance de tenir sa propre planification — et le reveil
-# ne declenche que les creneaux qu'il a reellement manques.
+# Les workflows sont planifies a :00 et :25 : en sonnant apres chacun, on laisse
+# a GitHub sa chance de tenir sa propre planification, et le reveil ne declenche
+# que les creneaux qu'il a reellement manques.
+#
+# La cadence du timer et REVEIL_DELAI_MIN vont de pair. Le seuil doit rester
+# SOUS l'intervalle entre deux sonneries : a 50 minutes pour un timer de 30, le
+# second reveil trouverait toujours un passage « recent » et ne ferait rien.
 
 [Unit]
 Description=Reveil horaire des workflows GitHub de l'EDT STRI
 
 [Timer]
-OnCalendar=*:40
+OnCalendar=*:10,40
 # Rattrape le creneau manque si la machine etait eteinte ou en maintenance.
 Persistent=true
 # Evite que toutes les machines du monde sonnent a la meme seconde.

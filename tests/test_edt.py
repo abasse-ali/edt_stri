@@ -1500,8 +1500,19 @@ def reveil_ne_double_jamais_une_execution_de_github():
     deux est perdu ; trop court, chaque passage de GitHub est doublé.
     """
     import reveil
-    assert reveil.DELAI.total_seconds() < 3600, "au-delà, un créneau sur deux est perdu"
-    assert reveil.DELAI.total_seconds() > 1800, "en deçà, on double les exécutions"
+    import re
+    minuterie = (chemins.RACINE / "deploiement" / "edt-reveil.timer").read_text(
+        encoding="utf-8")
+    minutes = sorted(int(m) for m in
+                     re.search(r"OnCalendar=\*:([\d,]+)", minuterie).group(1).split(","))
+    # L'intervalle entre deux sonneries, en minutes.
+    intervalle = min([b - a for a, b in zip(minutes, minutes[1:])] + [60])
+
+    assert reveil.DELAI.total_seconds() / 60 < intervalle, (
+        f"seuil de {reveil.DELAI.total_seconds()/60:.0f} min pour un timer de "
+        f"{intervalle} min : une sonnerie sur deux ne ferait rien")
+    assert reveil.DELAI.total_seconds() > 900, (
+        "en deçà d'un quart d'heure, on double les exécutions que GitHub honore")
     assert reveil.WORKFLOWS, "au moins un workflow à réveiller"
     for w in reveil.WORKFLOWS:
         assert (chemins.RACINE / ".github" / "workflows" / w).exists(),             f"{w} doit exister, sinon GitHub répond 404 toutes les heures"
