@@ -1,22 +1,27 @@
-# Deux fois par heure, a :10 et :40.
+# Toutes les dix minutes.
 #
-# Les workflows sont planifies a :00 et :25 : en sonnant apres chacun, on laisse
-# a GitHub sa chance de tenir sa propre planification, et le reveil ne declenche
-# que les creneaux qu'il a reellement manques.
+# Cette cadence ne declenche PAS de workflow toutes les dix minutes : elle
+# regarde si les sources ont change. Un HEAD sur deux PDF et la lecture de
+# moins de 25 ko d'exports Moodle, c'est negligeable — la ou une execution de
+# workflow lit des PDF avec OpenCV et ecrit dans six agendas.
 #
-# La cadence du timer et REVEIL_DELAI_MIN vont de pair. Le seuil doit rester
-# SOUS l'intervalle entre deux sonneries : a 50 minutes pour un timer de 30, le
-# second reveil trouverait toujours un passage « recent » et ne ferait rien.
+# Dix minutes plutot que cinq par egard pour les serveurs du STRI et
+# d'inetdoc, qui ne nous doivent rien : 144 sondages par jour au lieu de 288,
+# pour un delai de detection qui reste sans commune mesure avec les douze
+# heures de trou mesurees sur la planification de GitHub.
+#
+# Voir src/reveil.py : le filet de securite (REVEIL_FILET_H) reste ce qui
+# garantit un passage regulier, changement ou non.
 
 [Unit]
-Description=Reveil horaire des workflows GitHub de l'EDT STRI
+Description=Surveillance des sources et reveil des workflows GitHub
 
 [Timer]
-OnCalendar=*:10,40
+OnCalendar=*:0/10
 # Rattrape le creneau manque si la machine etait eteinte ou en maintenance.
 Persistent=true
 # Evite que toutes les machines du monde sonnent a la meme seconde.
-RandomizedDelaySec=90
+RandomizedDelaySec=45
 
 [Install]
 WantedBy=timers.target

@@ -1,31 +1,40 @@
 """
-Réveille les workflows GitHub que la planification n'honore pas.
+Déclenche les workflows GitHub quand la source a changé — et à défaut, rarement.
 
 Le cron d'un workflow demande une exécution par heure. GitHub le documente
 franchement : un déclenchement planifié peut être **retardé, voire abandonné**
 quand la file d'attente est chargée, et les dépôts gratuits passent en dernier.
 Mesuré sur ce dépôt : environ cinq exécutions par jour au lieu de vingt-quatre,
-avec des trous allant jusqu'à douze heures. Un emploi du temps publié le matin
-pouvait n'être traité qu'en début d'après-midi.
+avec des trous allant jusqu'à douze heures.
 
-Ce script ne fait que **sonner** : il demande à GitHub de lancer le workflow.
-Tout le traitement reste là-bas — le téléchargement, la lecture des PDF,
-l'écriture dans les agendas. La machine qui héberge le bot Discord, elle,
-tourne en permanence et possède une horloge fiable : elle sert de réveil.
+La première version sonnait deux fois par heure, à l'aveugle. C'était doublement
+maladroit : la quasi-totalité des exécutions ne trouvaient rien à faire — les
+PDF changent quelques fois par semaine — et malgré cela un changement survenu
+juste après une sonnerie attendait la suivante.
 
-    python src/reveil.py            déclenche si nécessaire
+Ce script fait l'inverse : il **surveille** les sources, ce qui ne coûte
+presque rien, et ne déclenche que sur changement réel.
+
+    HEAD sur les deux PDF        → Last-Modified + Content-Length
+    GET sur les exports Moodle   → empreinte du contenu, hors champs volatils
+
+Mesuré le 2 septembre 2026 : les PDF exposent bien `Last-Modified`, mais
+répondent 200 à une requête conditionnelle — d'où le HEAD plutôt que
+`If-Modified-Since`. Les exports Moodle, eux, sont du PHP : leur `Last-Modified`
+vaut « maintenant » à chaque appel et ne dit rien. Seul leur contenu est stable,
+une fois `DTSTAMP` et consorts écartés.
+
+    python src/reveil.py            surveille, déclenche si nécessaire
     python src/reveil.py --forcer   déclenche sans condition
-    python src/reveil.py --etat     les derniers passages — le dépôt étant
-                                    public, cette lecture ne demande aucun jeton
+    python src/reveil.py --etat     ce qui est vu, sans rien déclencher — le
+                                    dépôt étant public, aucun jeton nécessaire
 
-⚠️ Il ne déclenche QUE si aucun passage récent n'a eu lieu. Le dépôt étant
-public, les minutes d'Actions sont illimitées et l'économie n'est plus le sujet
-— mais relancer un workflow que GitHub vient de lancer produirait deux
-exécutions concurrentes sur les mêmes agendas, et des notifications Discord en
-double. Le garde-fou reste donc nécessaire, pour une autre raison.
-
-Sur un dépôt PRIVÉ, il redevient aussi une question de coût : 2 000 minutes par
-mois, dont 1 700 seraient consommées par un réveil aveugle.
+⚠️ Le filet de sécurité reste indispensable. Une exécution périodique ne sert
+pas qu'à publier des nouveautés : elle rattrape une publication échouée, répare
+un agenda modifié à la main, applique les rappels d'un nouvel inscrit. Surtout,
+la signature est enregistrée dès que GitHub accepte le déclenchement, sans
+attendre l'issue du workflow : si celui-ci échoue, le changement serait perdu.
+D'où REVEIL_FILET_H, qui borne cette perte.
 
 Réglages, dans `.env` :
 
@@ -33,41 +42,56 @@ Réglages, dans `.env` :
                         sur ce seul dépôt (Settings → Developer settings →
                         Fine-grained tokens)
     GITHUB_DEPOT        « proprietaire/depot », si ce n'est pas celui par défaut
-    REVEIL_WORKFLOWS    les fichiers à réveiller, séparés par des virgules.
-                        Les deux par défaut. Sur un dépôt privé, se limiter à
-                        « edt_sync.yml » divise la dépense par deux.
-    REVEIL_DELAI_MIN    âge au-delà duquel on considère un créneau manqué.
-                        À garder sous l'intervalle du timer (30 min).
+    REVEIL_WORKFLOWS    les fichiers à réveiller, séparés par des virgules
+    REVEIL_FILET_H      heures au-delà desquelles on déclenche même sans
+                        changement. Ne pas monter trop haut : c'est le délai
+                        maximal de rattrapage d'un workflow en échec.
 """
 
+import hashlib
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+import chemins
+import moodle
+import telechargement
 from telechargement import variable_env
 
 DEPOT = variable_env("GITHUB_DEPOT", "abasse-ali/edt_stri")
 JETON = variable_env("GITHUB_TOKEN")
 
-# Les deux, le dépôt étant public : les minutes d'Actions y sont illimitées.
-# Sur un dépôt privé, se limiter à « edt_sync.yml » divise la dépense par deux
-# pour un gain faible — une échéance de devoir ne se périme pas en trois heures.
 WORKFLOWS = [w for w in variable_env("REVEIL_WORKFLOWS",
                                      "edt_sync.yml,rendus_sync.yml")
              .replace(",", " ").split() if w]
 
-# Doit rester SOUS l'intervalle entre deux sonneries du timer, qui est de
-# 30 minutes : à 50, le second réveil de chaque heure trouverait toujours un
-# passage « récent » et ne ferait rien. Et pas trop bas non plus — les
-# exécutions de GitHub ne tombent jamais à la minute demandée, une marge trop
-# serrée doublerait celles qu'il honore.
-DELAI = timedelta(minutes=int(variable_env("REVEIL_DELAI_MIN", "25")))
+# Ce que chaque workflow lit, donc ce qu'il faut surveiller pour lui. Un
+# workflow absent de cette table n'est déclenché que par le filet de sécurité.
+SURVEILLE = {
+    "edt_sync.yml": "pdf",
+    "rendus_sync.yml": "moodle",
+}
+
+# Sans changement détecté, on déclenche quand même de temps en temps. Voir
+# l'avertissement de l'en-tête : ce n'est pas une précaution décorative.
+FILET = timedelta(hours=int(variable_env("REVEIL_FILET_H", "6")))
+
+# Les signatures observées la dernière fois. Leur perte est sans gravité : elle
+# provoque un déclenchement de plus, pas un oubli.
+FICHIER_SIGNATURES = chemins.donnee("reveil_signatures.json")
+
+# Champs régénérés à chaque export Moodle, sans rapport avec le contenu.
+# Les garder ferait changer l'empreinte à chaque appel, et déclencher sans fin.
+VOLATILS = re.compile(r"^(DTSTAMP|PRODID|CREATED|LAST-MODIFIED):.*$", re.M)
 
 TIMEOUT = 30
 API = "https://api.github.com"
 
+
+# --- L'API GitHub ----------------------------------------------------------
 
 def _appeler(chemin, corps=None):
     """Appelle l'API GitHub. Rend (code HTTP, données) ; données à None si vide."""
@@ -99,7 +123,7 @@ def _appeler(chemin, corps=None):
 
 
 def dernier_passage(workflow):
-    """Date de départ du dernier passage, ou None.
+    """Rend (départ du dernier passage, s'il est encore en cours).
 
     On regarde le DÉBUT et non la fin : un passage en cours compte, sinon on en
     lancerait un second par-dessus.
@@ -112,15 +136,16 @@ def dernier_passage(workflow):
         elif code in (401, 403):
             print(f"   ⚠️ Jeton refusé ({code}) : vérifie la permission "
                   "« Actions » en écriture.")
-        return None
+        return None, False
     passages = donnees.get("workflow_runs") or []
     if not passages:
-        return None
+        return None, False
     try:
-        return datetime.fromisoformat(
+        depart = datetime.fromisoformat(
             passages[0]["created_at"].replace("Z", "+00:00"))
     except (KeyError, ValueError):
-        return None
+        return None, False
+    return depart, passages[0].get("status") != "completed"
 
 
 def reveiller(workflow, branche="main"):
@@ -136,12 +161,103 @@ def reveiller(workflow, branche="main"):
     return False
 
 
+# --- La surveillance des sources -------------------------------------------
+
+def _signature_pdf():
+    """Empreinte des PDF d'emploi du temps, sans les télécharger. None si échec.
+
+    Un HEAD suffit : le serveur annonce Last-Modified et Content-Length. La
+    taille accompagne la date car une réécriture à la même seconde reste
+    concevable, et parce qu'elle ne coûte rien de plus.
+    """
+    marques = []
+    for cle, promo in sorted(telechargement.PROMOS.items()):
+        requete = urllib.request.Request(
+            promo["url"], method="HEAD",
+            headers={"User-Agent": "edt-stri-reveil"})
+        try:
+            with urllib.request.urlopen(requete, timeout=TIMEOUT) as reponse:
+                marques.append("{}:{}:{}".format(
+                    cle,
+                    reponse.headers.get("Last-Modified", ""),
+                    reponse.headers.get("Content-Length", "")))
+        except Exception as e:
+            print(f"   ⚠️ PDF {cle} injoignable ({type(e).__name__}).")
+            return None
+    return hashlib.sha256("|".join(marques).encode()).hexdigest()
+
+
+def _signature_moodle():
+    """Empreinte des exports Moodle configurés. None si l'un échoue.
+
+    Ils sont petits — moins de 25 ko à eux tous — et leur Last-Modified ne dit
+    rien, étant régénéré à chaque appel. On lit donc le contenu, débarrassé des
+    champs volatils.
+    """
+    empreintes = []
+    for cle, config in sorted(moodle.SOURCES.items()):
+        adresse = variable_env(config["variable"])
+        if not adresse:
+            continue          # source non configurée ici : rien à surveiller
+        requete = urllib.request.Request(
+            moodle.imposer_preset(adresse, config.get("preset_what")),
+            headers={"User-Agent": "edt-stri-reveil"})
+        try:
+            with urllib.request.urlopen(requete, timeout=TIMEOUT) as reponse:
+                texte = reponse.read().decode("utf-8", "replace")
+        except Exception as e:
+            print(f"   ⚠️ Export « {config['nom']} » injoignable "
+                  f"({type(e).__name__}).")
+            return None
+        empreintes.append(cle + ":" + VOLATILS.sub("", texte))
+    if not empreintes:
+        return None           # aucune adresse ici : le filet prendra le relais
+    return hashlib.sha256("|".join(empreintes).encode()).hexdigest()
+
+
+def signature(quoi):
+    """L'empreinte d'un type de source, ou None si on n'a pas pu la calculer."""
+    if quoi == "pdf":
+        return _signature_pdf()
+    if quoi == "moodle":
+        return _signature_moodle()
+    return None
+
+
+def _lire_signatures():
+    try:
+        return json.loads(FICHIER_SIGNATURES.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _ecrire_signatures(signatures):
+    try:
+        FICHIER_SIGNATURES.write_text(
+            json.dumps(signatures, ensure_ascii=False, indent=2),
+            encoding="utf-8")
+    except OSError as e:
+        # Sans enregistrement, le même changement serait redétecté à chaque
+        # passage et déclencherait en boucle : il faut le dire, pas le subir.
+        print(f"   ⚠️ {FICHIER_SIGNATURES.name} non enregistré ({e}) : "
+              "le même changement sera redétecté au prochain passage.")
+
+
+# --- Le programme ----------------------------------------------------------
+
+def _age(depuis, maintenant):
+    if depuis is None:
+        return "inconnu"
+    minutes = int((maintenant - depuis).total_seconds() // 60)
+    return f"il y a {minutes // 60} h {minutes % 60:02d}"
+
+
 def principale():
     """Réveille ce qui doit l'être. Rend 0 même sans rien faire.
 
-    Un réveil qui ne trouve rien à faire est le cas NORMAL — celui où GitHub a
-    honoré sa planification. Rendre un code d'erreur ferait passer le succès
-    pour une panne dans les journaux de systemd.
+    Un réveil qui ne trouve rien à faire est le cas NORMAL — c'est même
+    devenu le cas très majoritaire. Rendre un code d'erreur ferait passer le
+    succès pour une panne dans les journaux de systemd.
     """
     etat_seulement = "--etat" in sys.argv
     if not JETON and not etat_seulement:
@@ -156,25 +272,49 @@ def principale():
 
     forcer = "--forcer" in sys.argv
     maintenant = datetime.now(timezone.utc)
+    connues = _lire_signatures()
+    a_enregistrer = dict(connues)
 
     for workflow in WORKFLOWS:
-        depuis = dernier_passage(workflow)
-        if depuis is None:
-            age = "inconnu"
-        else:
-            minutes = int((maintenant - depuis).total_seconds() // 60)
-            age = f"il y a {minutes // 60} h {minutes % 60:02d}"
+        depuis, en_cours = dernier_passage(workflow)
+        age = _age(depuis, maintenant)
+
+        quoi = SURVEILLE.get(workflow)
+        vue = signature(quoi) if quoi else None
+        change = vue is not None and vue != connues.get(workflow)
 
         if etat_seulement:
-            print(f"   {workflow:<20} dernier passage {age}")
+            if vue is None:
+                source = "source non surveillée" if not quoi else "source illisible"
+            else:
+                source = "source CHANGÉE" if change else "source inchangée"
+            print(f"   {workflow:<20} dernier passage {age:<16} {source}"
+                  + ("  (en cours)" if en_cours else ""))
             continue
 
-        if not forcer and depuis is not None and maintenant - depuis < DELAI:
-            print(f"   {workflow:<20} passage récent ({age}), on ne réveille pas")
+        if forcer:
+            raison = "forcé"
+        elif en_cours:
+            # Ne pas empiler une exécution sur une autre. La signature n'est
+            # pas enregistrée : on redétectera le changement au prochain
+            # passage, une fois celle-ci terminée.
+            print(f"   {workflow:<20} déjà en cours, on attend")
+            continue
+        elif change:
+            raison = "source modifiée"
+        elif depuis is None or maintenant - depuis > FILET:
+            raison = f"filet de sécurité, dernier passage {age}"
+        else:
+            print(f"   {workflow:<20} rien de neuf ({age})")
             continue
 
         if reveiller(workflow):
-            print(f"   {workflow:<20} réveillé (dernier passage {age})")
+            print(f"   {workflow:<20} réveillé — {raison}")
+            if vue is not None:
+                a_enregistrer[workflow] = vue
+
+    if not etat_seulement and a_enregistrer != connues:
+        _ecrire_signatures(a_enregistrer)
 
     return 0
 

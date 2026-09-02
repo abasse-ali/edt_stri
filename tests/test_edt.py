@@ -18,7 +18,7 @@ Aucune dépendance de test : la bibliothèque standard suffit.
 
 import sys
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 _RACINE = Path(__file__).resolve().parent.parent
@@ -1534,19 +1534,105 @@ def reveil_ne_double_jamais_une_execution_de_github():
     import re
     minuterie = (chemins.RACINE / "deploiement" / "edt-reveil.timer").read_text(
         encoding="utf-8")
-    minutes = sorted(int(m) for m in
-                     re.search(r"OnCalendar=\*:([\d,]+)", minuterie).group(1).split(","))
-    # L'intervalle entre deux sonneries, en minutes.
-    intervalle = min([b - a for a, b in zip(minutes, minutes[1:])] + [60])
+    # L'intervalle entre deux sondages, en minutes : « *:0/10 » ou « *:10,40 ».
+    calendrier = re.search(r"OnCalendar=\*:(\S+)", minuterie).group(1)
+    if "/" in calendrier:
+        intervalle = int(calendrier.split("/")[1])
+    else:
+        minutes = sorted(int(m) for m in calendrier.split(","))
+        intervalle = min([b - a for a, b in zip(minutes, minutes[1:])] + [60])
 
-    assert reveil.DELAI.total_seconds() / 60 < intervalle, (
-        f"seuil de {reveil.DELAI.total_seconds()/60:.0f} min pour un timer de "
-        f"{intervalle} min : une sonnerie sur deux ne ferait rien")
-    assert reveil.DELAI.total_seconds() > 900, (
-        "en deçà d'un quart d'heure, on double les exécutions que GitHub honore")
+    # Le filet doit rester TRÈS au-dessus de l'intervalle de sondage : il ne
+    # sert qu'à rattraper, la détection de changement fait le travail courant.
+    assert reveil.FILET.total_seconds() / 60 > intervalle * 4, (
+        f"filet de {reveil.FILET.total_seconds()/3600:.1f} h pour un sondage "
+        f"toutes les {intervalle} min : il déclencherait le cas courant")
+    # Et pas si haut qu'un workflow en échec attende une journée : la signature
+    # est enregistrée dès le déclenchement accepté, sans attendre son issue.
+    assert reveil.FILET <= timedelta(hours=12), (
+        "au-delà de douze heures, un workflow échoué n'est plus rattrapé "
+        "dans un délai utile — c'est le trou qu'on cherchait à combler")
     assert reveil.WORKFLOWS, "au moins un workflow à réveiller"
     for w in reveil.WORKFLOWS:
         assert (chemins.RACINE / ".github" / "workflows" / w).exists(),             f"{w} doit exister, sinon GitHub répond 404 toutes les heures"
+
+
+@test
+def reveil_ne_declenche_que_sur_changement():
+    """Le cœur du dispositif : sonder souvent, déclencher rarement.
+
+    Trois situations, dans l'ordre où elles comptent :
+      — source inchangée et passage récent : on ne fait rien ;
+      — source modifiée : on déclenche, et on retient la nouvelle signature ;
+      — exécution en cours : on s'abstient SANS retenir la signature, sinon le
+        changement serait oublié pendant que le workflow tourne encore.
+    """
+    import reveil
+    origines = (reveil.JETON, reveil.dernier_passage, reveil.signature,
+                reveil.reveiller, reveil._lire_signatures,
+                reveil._ecrire_signatures, reveil.WORKFLOWS)
+    reveilles, retenues = [], {}
+    etat = {"empreinte": "aaa", "depuis": datetime.now(timezone.utc),
+            "en_cours": False}
+    try:
+        reveil.JETON = "faux-jeton"
+        reveil.WORKFLOWS = ["edt_sync.yml"]
+        reveil.dernier_passage = lambda w: (etat["depuis"], etat["en_cours"])
+        reveil.signature = lambda quoi: etat["empreinte"]
+        reveil.reveiller = lambda w, branche="main": reveilles.append(w) or True
+        reveil._lire_signatures = lambda: dict(retenues)
+        reveil._ecrire_signatures = lambda s: retenues.update(s)
+
+        retenues["edt_sync.yml"] = "aaa"
+        reveil.principale()
+        egal(reveilles, [], "source inchangée et passage récent : rien")
+
+        etat["empreinte"] = "bbb"
+        reveil.principale()
+        egal(reveilles, ["edt_sync.yml"], "source modifiée : on déclenche")
+        egal(retenues["edt_sync.yml"], "bbb", "et on retient la signature")
+
+        # Un changement qui survient pendant une exécution ne doit pas être
+        # avalé : la signature reste celle d'avant, on redéclenchera après.
+        etat["empreinte"], etat["en_cours"] = "ccc", True
+        reveil.principale()
+        egal(reveilles, ["edt_sync.yml"], "exécution en cours : on attend")
+        egal(retenues["edt_sync.yml"], "bbb",
+             "et le changement n'est PAS oublié")
+
+        # Le filet, enfin : rien n'a bougé, mais le dernier passage est vieux.
+        etat["empreinte"], etat["en_cours"] = "ccc", False
+        reveil.principale()                       # déclenche, retient « ccc »
+        reveilles.clear()
+        etat["depuis"] = datetime.now(timezone.utc) - reveil.FILET - timedelta(minutes=1)
+        reveil.principale()
+        egal(reveilles, ["edt_sync.yml"],
+             "sans changement mais passage trop ancien : le filet joue")
+    finally:
+        (reveil.JETON, reveil.dernier_passage, reveil.signature,
+         reveil.reveiller, reveil._lire_signatures,
+         reveil._ecrire_signatures, reveil.WORKFLOWS) = origines
+
+
+@test
+def reveil_ignore_les_champs_regeneres_a_chaque_export():
+    """Sans quoi l'empreinte Moodle changerait à chaque appel.
+
+    Mesuré : deux lectures successives du même export diffèrent par DTSTAMP.
+    Une empreinte brute déclencherait alors toutes les dix minutes, pour rien —
+    exactement le défaut qu'on cherchait à corriger.
+    """
+    import reveil
+    avant = ("BEGIN:VCALENDAR\r\nPRODID:-//Moodle//EN\r\n"
+             "DTSTAMP:20260902T114501Z\r\nSUMMARY:DM\r\nEND:VCALENDAR")
+    apres = ("BEGIN:VCALENDAR\r\nPRODID:-//Moodle//EN\r\n"
+             "DTSTAMP:20260902T115959Z\r\nSUMMARY:DM\r\nEND:VCALENDAR")
+    egal(reveil.VOLATILS.sub("", avant), reveil.VOLATILS.sub("", apres),
+         "seul l'horodatage de génération a bougé")
+
+    change = apres.replace("SUMMARY:DM", "SUMMARY:DM reporte")
+    assert reveil.VOLATILS.sub("", avant) != reveil.VOLATILS.sub("", change), (
+        "mais un vrai changement doit rester visible")
 
 
 @test

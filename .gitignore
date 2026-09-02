@@ -24,3 +24,6 @@ donnees/.verif_*
 
 # Ancien bac à sable, remplacé par le code à la racine.
 new_test/
+
+# Signatures des sources, propres a chaque machine de surveillance.
+donnees/reveil_signatures.json
