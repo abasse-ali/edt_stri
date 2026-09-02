@@ -511,10 +511,26 @@ def controler_donnees(rap, moitie, cours, chemin_ics):
                  "fins de ligne \\r\\r\\n : fichier rejeté par les clients stricts")
 
     texte = brut.decode("utf-8")
-    rap.verifier(texte.count("BEGIN:VEVENT") == len(cours),
-                 "ICS et données concordent",
-                 f"{len(cours)} événements",
-                 f"{texte.count('BEGIN:VEVENT')} dans l'ICS, {len(cours)} attendus")
+    # L'ICS n'est pas versionné : la CI le regénère sur son runner et le jette.
+    # En local, un `git pull` ramène donc un JSON neuf à côté d'un ICS resté à
+    # la dernière exécution locale. Les compter l'un contre l'autre signalerait
+    # une corruption là où il n'y a qu'un décalage d'époques — d'où la
+    # comparaison des dates avant de crier au loup.
+    json_correspondant = chemin.with_name(
+        chemin.name.replace("edt", "edt_data", 1)).with_suffix(".json")
+    perime = (json_correspondant.exists()
+              and chemin.stat().st_mtime < json_correspondant.stat().st_mtime)
+
+    if texte.count("BEGIN:VEVENT") == len(cours):
+        rap.ok("ICS et données concordent", f"{len(cours)} événements")
+    elif perime:
+        rap.reserve("ICS local plus ancien que les données",
+                    f"{texte.count('BEGIN:VEVENT')} contre {len(cours)} — "
+                    "relancer test_local.py le régénère")
+    else:
+        rap.anomalie("ICS et données concordent",
+                     f"{texte.count('BEGIN:VEVENT')} dans l'ICS, "
+                     f"{len(cours)} attendus")
 
     uid_ics = set(re.findall(r"^UID:(.+)$", texte, re.M))
     rap.verifier(len(uid_ics) == texte.count("BEGIN:VEVENT"),
