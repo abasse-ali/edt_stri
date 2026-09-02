@@ -73,8 +73,19 @@ fi
 ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [ "$ICI" = "$RACINE" ]; then
-    echo "→ Déjà installé ici"
-    [ -d "$RACINE/.git" ] && git -C "$RACINE" pull --ff-only || true
+    if [ -d "$RACINE/.git" ]; then
+        echo "→ Déjà installé ici, mise à jour depuis le dépôt"
+        git -C "$RACINE" pull --ff-only
+    else
+        # Installé par copie de fichiers : il n'y a rien d'où tirer. Le dire,
+        # plutôt que de laisser croire à une mise à jour qui n'a pas eu lieu —
+        # le script réinstallerait alors le code déjà en place, à l'identique.
+        echo "⚠️  Installé par copie, sans dépôt git : LE CODE N'EST PAS MIS À JOUR."
+        echo "   Pour le mettre à jour, clone ailleurs et relance depuis le clone :"
+        echo "     git clone $DEPOT ~/edt_stri"
+        echo "     bash ~/edt_stri/deploiement/installer_serveur.sh"
+        echo
+    fi
 elif [ -f "$ICI/src/bot_discord.py" ]; then
     echo "→ Fichiers déposés dans $ICI, installation vers $RACINE"
     sudo mkdir -p "$RACINE"
