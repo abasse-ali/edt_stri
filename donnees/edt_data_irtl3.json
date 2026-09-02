@@ -1,69 +1,5 @@
 [
   {
-    "date": "2026-08-26",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Présentation de la formaion",
-    "room": "U3-amphi",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-08-26",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-08-26",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Présentation UPSSITECH",
-    "room": "U3-amphi",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "13h30",
-    "end": "17h30",
-    "titre": "Activités UPSSITECH",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-08-31",
     "start": "07h45",
     "end": "09h45",
@@ -139,7 +75,7 @@
     "date": "2026-09-03",
     "start": "13h30",
     "end": "17h45",
-    "titre": "Activités UPSSITECH /Examen de Mise à Niveau pour les 3A",
+    "titre": "Activités UPSSITECH / Examen de Mise à Niveau pour les 3A",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -177,14 +113,6 @@
   },
   {
     "date": "2026-09-07",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-07",
     "start": "15h45",
     "end": "17h45",
     "titre": "Informatique (André AOUN)",
@@ -197,14 +125,6 @@
     "end": "09h45",
     "titre": "O de mod info - TD",
     "room": "U3-04",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-08",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) - C Tech. de trans. (EG)",
-    "room": "U3-110 U3-04",
     "prof": "Inconnu"
   },
   {
@@ -224,6 +144,14 @@
     "prof": "Abdelmalek BENZEKRI"
   },
   {
+    "date": "2026-09-09",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
     "date": "2026-09-10",
     "start": "10h00",
     "end": "12h00",
@@ -238,14 +166,6 @@
     "titre": "Activités / Conférences UPSSITECH",
     "room": "Non attribuée",
     "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-11",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (SLA)",
-    "room": "U3-amphi U3-110",
-    "prof": "SLA"
   },
   {
     "date": "2026-09-14",
@@ -270,6 +190,14 @@
     "titre": "Informatique (Olfa MECHI)",
     "room": "U3-306",
     "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-09-14",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Informatique (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-15",
@@ -313,14 +241,6 @@
   },
   {
     "date": "2026-09-18",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (SLA)",
-    "room": "U3-amphi",
-    "prof": "SLA"
-  },
-  {
-    "date": "2026-09-18",
     "start": "13h30",
     "end": "17h45",
     "titre": "Activités / Conférences UPSSITECH",
@@ -355,17 +275,9 @@
     "date": "2026-09-21",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Outils Maths - TD (KINX5AA2)",
-    "room": "- U3-110",
-    "prof": "KINX5AA2"
-  },
-  {
-    "date": "2026-09-21",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPB (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
+    "titre": "Outils Maths - TD (KINX5AA2) - CG",
+    "room": "U3-110",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-09-22",
@@ -377,27 +289,11 @@
   },
   {
     "date": "2026-09-22",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
-    "room": "U2-114 U3-04",
-    "prof": "KUPT5BB3"
-  },
-  {
-    "date": "2026-09-22",
     "start": "13h30",
     "end": "15h30",
     "titre": "Anglais (Gérard ROUZIES)",
     "room": "4A-K02",
     "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-09-22",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPC (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
   },
   {
     "date": "2026-09-23",

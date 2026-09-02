@@ -1,69 +1,5 @@
 [
   {
-    "date": "2026-08-26",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Présentation de la formaion",
-    "room": "U3-amphi",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-08-26",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-08-26",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-08-27",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Présentation UPSSITECH",
-    "room": "U3-amphi",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-08-28",
-    "start": "13h30",
-    "end": "17h30",
-    "titre": "Activités UPSSITECH",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-08-31",
     "start": "07h45",
     "end": "09h45",
@@ -147,7 +83,7 @@
     "date": "2026-09-03",
     "start": "13h30",
     "end": "17h45",
-    "titre": "Activités UPSSITECH /Examen de Mise à Niveau pour les 3A",
+    "titre": "Activités UPSSITECH / Examen de Mise à Niveau pour les 3A",
     "room": "Non attribuée",
     "prof": "Inconnu"
   },
@@ -211,7 +147,7 @@
     "date": "2026-09-08",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Ode mod info - TD",
+    "titre": "O de mod info - TD",
     "room": "U3-04",
     "prof": "Inconnu"
   },
@@ -288,6 +224,14 @@
     "prof": "Gérard ROUZIES"
   },
   {
+    "date": "2026-09-14",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Informatique (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
     "date": "2026-09-15",
     "start": "07h45",
     "end": "09h45",
@@ -307,7 +251,7 @@
     "date": "2026-09-15",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Ode mod info - TD",
+    "titre": "O de mod info - TD",
     "room": "U3-04",
     "prof": "Inconnu"
   },
@@ -419,7 +363,7 @@
     "date": "2026-09-22",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Ode mod info - TD (KINX5AB1)",
+    "titre": "O de mod info - TD (KINX5AB1)",
     "room": "U3-04",
     "prof": "KINX5AB1"
   },
@@ -438,14 +382,6 @@
     "titre": "Tech. de trans. (Eric GONNEAU)",
     "room": "U3-04",
     "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-09-23",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPA (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
   },
   {
     "date": "2026-09-24",
