@@ -152,8 +152,26 @@ ceux-là vivent dans les calendriers Moodle. Il y en a **deux**, décrits dans
 
 | Source | Variable | Périmètre imposé | Ce qui est retenu |
 |---|---|---|---|
-| eFormation STRI | `MOODLE_ICS_URL` | `all` | tout ce qui relève d'un cours |
+| eFormation STRI (M1) | `MOODLE_ICS_URL` | `all` | tout ce qui relève d'un cours |
+| eFormation STRI (Ingé2) | `MOODLE_INGE2_ICS_URL` | `all` | idem |
 | Moodle inetdoc | `MOODLE_INETDOC_ICS_URL` | `courses` | les échéances seulement |
+
+Ces sources alimentent **deux agendas**, chacun avec son propre export
+eFormation et le même calendrier inetdoc — les validations de TP et les quiz y
+concernent les deux promotions :
+
+| Agenda | Sources |
+|---|---|
+| **Rendu M1** | eFormation STRI (M1) + inetdoc |
+| **Rendu Ingé2** | eFormation STRI (Ingé2) + inetdoc |
+
+Chacun a son fichier d'état, ses comparaisons et ses notifications : un
+incident sur l'un ne touche pas l'autre.
+
+⚠️ L'export Ingé2 vient d'un **autre compte** que celui qui fait tourner le
+bot. Le rejet des événements sans cours rattaché n'y est donc plus une
+précaution théorique : sans lui, les rendez-vous privés de cette personne
+partiraient dans un agenda partagé avec toute sa promotion.
 
 Le STRI reste sur `all` faute de mieux : mesuré, `courses` y rend **zéro**
 événement — le devoir n'y est pas rattaché à un cours où l'on est inscrit.
@@ -250,7 +268,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | [src/google_agenda.py](src/google_agenda.py) | Écriture dans Google Agenda (API Calendar v3) |
 | [test_local.py](test_local.py) | Lanceur local : reproduit les 4 passes de la CI |
 | [tests/verif_edt.py](tests/verif_edt.py) | Vérifie le résultat **réel** du jour (une centaine de contrôles) |
-| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (110 tests, sans réseau) |
+| [tests/test_edt.py](tests/test_edt.py) | Vérifie la **logique** du code (111 tests, sans réseau) |
 | [src/alerte_ci.py](src/alerte_ci.py) | Prévient sur Discord quand la CI échoue |
 
 ### Les données
@@ -260,7 +278,7 @@ Trois détails que Moodle impose et que le bot corrige au passage :
 | `src/professeurs.txt` | Initiales → nom complet des enseignants |
 | `donnees/edt_m1.pdf`, `donnees/edt_l3.pdf` | Derniers PDF publiés, commités pour détecter les changements |
 | `donnees/edt_data_*.json` | État précédent de chaque agenda, base de la comparaison |
-| `donnees/rendus_data.json` | État précédent des rendus Moodle, même rôle |
+| `donnees/rendus_data*.json` | État précédent de chaque agenda de rendus |
 | `donnees/edt_*.ics` | Export standard, non versionné |
 | `donnees/journal.csv` | Une ligne par exécution : nombre de cours, état |
 | `donnees/inscriptions.txt` | Demandes de partage. **Non versionné** : adresses de tiers |
@@ -380,7 +398,8 @@ Propres aux rendus Moodle :
 | `MOODLE_ICS_URL` | — | Adresse d'export du Moodle du STRI. **Secret.** |
 | `MOODLE_INETDOC_ICS_URL` | — | Adresse d'export du Moodle inetdoc. **Secret.** Sans aucune des deux, `rendus.py` ne fait rien |
 | `MOODLE_FILTRE` | — | Expression régulière : ne garder que les événements correspondants |
-| `MOODLE_AGENDA` | `Rendu M1` | Nom de l'agenda Google des rendus |
+| `MOODLE_AGENDA` | `Rendu M1` | Nom de l'agenda des rendus M1 |
+| `MOODLE_AGENDA_INGE2` | `Rendu Ingé2` | Nom de celui des Ingé2 |
 | `MOODLE_COULEUR` | `mangue` | Couleur de fond de cet agenda |
 | `MOODLE_COULEUR_EVENEMENTS` | `mandarine` | Couleur de ses événements |
 | `MOODLE_JSON` | `rendus_data.json` | État précédent des rendus |
@@ -457,8 +476,8 @@ les aurait figés la plupart du temps.
 Toute étape en échec déclenche `alerte_ci.py` et un message Discord.
 
 **Secrets à définir** dans le dépôt : `GDRIVE_TOKEN` (le `token.json` encodé en
-base64), `DISCORD_WEBHOOK_URL`, et `MOODLE_ICS_URL` /
-`MOODLE_INETDOC_ICS_URL` pour les rendus.
+base64), `DISCORD_WEBHOOK_URL`, et `MOODLE_ICS_URL`,
+`MOODLE_INGE2_ICS_URL`, `MOODLE_INETDOC_ICS_URL` pour les rendus.
 
 ⚠️ GitHub désactive les workflows planifiés après **60 jours sans activité** sur
 le dépôt. Le bot commitant à chaque changement de PDF, le cas ne se présente

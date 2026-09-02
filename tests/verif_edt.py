@@ -674,7 +674,13 @@ def controler_rendus(rap):
     calendrier Moodle mal formé pourrait produire — une échéance de durée
     nulle, une date aberrante, deux rendus impossibles à distinguer.
     """
-    chemin = Path(rendus.FICHIER_JSON)
+    for agenda in rendus.AGENDAS:
+        _controler_un_agenda(rap, agenda)
+
+
+def _controler_un_agenda(rap, agenda):
+    """Contrôle les rendus publiés pour UN agenda."""
+    chemin = rendus.fichier_etat(agenda)
     if not chemin.exists():
         return
 

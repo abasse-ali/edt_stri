@@ -32,13 +32,24 @@ from telechargement import variable_env
 
 SCOPE = "https://www.googleapis.com/auth/calendar"
 
-# Identité de l'agenda des rendus Moodle. Elle vit ICI plutôt que dans
-# `rendus.py` pour une raison très concrète : `partager.py` doit pouvoir le
-# proposer sans importer toute la chaîne de traitement des PDF. Le bot Discord
-# n'a alors besoin ni d'OpenCV, ni de NumPy, ni de pdfplumber — trois cents
-# mégaoctets de moins à installer sur la machine qui l'héberge.
-NOM_RENDUS = variable_env("MOODLE_AGENDA", "Rendu M1")
-CLE_RENDUS = "MOODLE-RENDUS"
+# Identité des agendas de rendus : nom affiché, et marqueur qui permet de les
+# retrouver après un renommage. Elle vit ICI plutôt que dans `rendus.py` pour
+# une raison très concrète : `partager.py` doit pouvoir les proposer sans
+# importer toute la chaîne de traitement des PDF. Le bot Discord n'a alors
+# besoin ni d'OpenCV, ni de NumPy, ni de pdfplumber — trois cents mégaoctets de
+# moins à installer sur la machine qui l'héberge.
+#
+# Les marqueurs ne changent JAMAIS : ils étiquettent des agendas existants, que
+# renommer ne doit pas faire perdre. Celui du M1 garde donc son nom historique,
+# sans suffixe.
+RENDUS = {
+    "RENDU": (variable_env("MOODLE_AGENDA", "Rendu M1"), "MOODLE-RENDUS"),
+    "RENDU_INGE2": (variable_env("MOODLE_AGENDA_INGE2", "Rendu Ingé2"),
+                    "MOODLE-RENDUS-INGE2"),
+}
+
+# L'agenda historique, pour les appels qui n'en connaissent qu'un.
+NOM_RENDUS, CLE_RENDUS = RENDUS["RENDU"]
 
 
 def obtenir_identifiants(scopes=None, interactif=None):

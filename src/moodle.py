@@ -68,6 +68,17 @@ SOURCES = {
         "echeances_seulement": False,
         "sans_personnels": True,
     },
+    "STRI_INGE2": {
+        "variable": "MOODLE_INGE2_ICS_URL",
+        "nom": "eFormation STRI (Ingé2)",
+        "preset_what": "all",
+        "echeances_seulement": False,
+        # Cet export vient d'un AUTRE compte que celui qui fait tourner le bot.
+        # Le filtre n'est plus une précaution théorique : sans lui, les
+        # rendez-vous privés de cette personne partiraient dans un agenda
+        # partagé avec toute sa promotion.
+        "sans_personnels": True,
+    },
     "INETDOC": {
         "variable": "MOODLE_INETDOC_ICS_URL",
         "nom": "Moodle inetdoc",
@@ -440,14 +451,19 @@ def recuperer(url=None, filtre=None, echeances_seulement=False,
     return analyser(texte, filtre, echeances_seulement, sans_personnels)
 
 
-def sources_configurees():
-    """Les sources de SOURCES dont l'adresse est renseignée."""
+def sources_configurees(sources=None):
+    """Les sources dont l'adresse est renseignée, éventuellement restreintes."""
     return [(cle, config) for cle, config in SOURCES.items()
-            if variable_env(config["variable"])]
+            if variable_env(config["variable"])
+            and (sources is None or cle in sources)]
 
 
-def recuperer_tout(filtre=None):
-    """Lit toutes les sources configurées. Rend (événements, bilan) ou None.
+def recuperer_tout(filtre=None, sources=None):
+    """Lit les sources demandées. Rend (événements, bilan) ou None.
+
+    `sources` restreint aux clés indiquées ; sans elle, toutes celles qui sont
+    configurées. C'est ce qui permet à deux agendas de rendus de puiser dans
+    des exports différents tout en partageant celui d'inetdoc.
 
     C'est TOUT ou RIEN : si une seule source est illisible, la fonction rend
     None et rien n'est publié. La synchronisation étant un rapprochement
@@ -457,6 +473,8 @@ def recuperer_tout(filtre=None):
     """
     tous, bilan = [], []
     for cle, config in sources_configurees():
+        if sources is not None and cle not in sources:
+            continue
         adresse = imposer_preset(variable_env(config["variable"]),
                                  config.get("preset_what"))
         liste = recuperer(adresse, filtre,

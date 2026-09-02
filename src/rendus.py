@@ -40,8 +40,18 @@ for _flux in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):
         pass
 
-# Définis dans google_agenda, pour que partager.py puisse proposer cet agenda
-# sans importer toute la chaîne de traitement des PDF.
+# Quel agenda puise dans quelles sources. Deux promotions suivent des cours en
+# partie communs : chacune a son propre export eFormation, et toutes deux
+# partagent celui d'inetdoc, où vivent les validations de TP et les quiz.
+#
+# Un agenda dont AUCUNE source n'est configurée est simplement sauté.
+AGENDAS = {
+    "RENDU": {"sources": ["STRI", "INETDOC"], "json": "rendus_data.json"},
+    "RENDU_INGE2": {"sources": ["STRI_INGE2", "INETDOC"],
+                    "json": "rendus_data_inge2.json"},
+}
+
+# L'agenda historique, pour les appels et les tests qui n'en connaissent qu'un.
 NOM_AGENDA = google_agenda.NOM_RENDUS
 CLE_AGENDA = google_agenda.CLE_RENDUS
 
@@ -118,7 +128,7 @@ def _quand(evenement):
     return f"{jour} à {evenement['start']}" if evenement.get('start') else jour
 
 
-def prevenir_discord(modifications):
+def prevenir_discord(modifications, nom=None):
     """Annonce les rendus ajoutés, déplacés ou retirés.
 
     Le vocabulaire est celui des échéances, pas celui des cours : un rendu qui
@@ -128,7 +138,8 @@ def prevenir_discord(modifications):
     if not modifications:
         return
 
-    lignes = [f"**{NOM_AGENDA}** — {len(modifications)} changement(s) :\n"]
+    nom = nom or NOM_AGENDA
+    lignes = [f"**{nom}** — {len(modifications)} changement(s) :\n"]
     for modif in modifications:
         titre = modif.get('titre', 'Rendu inconnu')
         if modif['type'] == 'ajout':
@@ -144,12 +155,23 @@ def prevenir_discord(modifications):
                               f"~~{valeurs['ancien']}~~ ➔ **{valeurs['nouveau']}**")
         lignes.append("")
 
-    edt_stri._envoyer_embed(f"📌 {NOM_AGENDA} — mise à jour", "\n".join(lignes), 0xE67E22)
+    edt_stri._envoyer_embed(f"📌 {nom} — mise à jour", "\n".join(lignes), 0xE67E22)
 
 
-def charger_anciens():
+def fichier_etat(agenda):
+    """Où vit l'état précédent d'un agenda donné.
+
+    Le M1 garde `MOODLE_JSON` : ce réglage existait avant qu'il y ait plusieurs
+    agendas, et le fichier est déjà commité sous ce nom.
+    """
+    if agenda == "RENDU":
+        return Path(FICHIER_JSON)
+    return chemins.donnee(AGENDAS[agenda]["json"])
+
+
+def charger_anciens(chemin=None):
     """Rendus de l'exécution précédente. Liste vide si le fichier manque."""
-    chemin = Path(FICHIER_JSON)
+    chemin = Path(chemin or FICHIER_JSON)
     if not chemin.exists():
         return []
     try:
@@ -170,17 +192,18 @@ def effondrement(nouveaux, anciens):
             f"fois — une chute de {chute:.0f} %, au-delà du seuil de {CHUTE_MAX} %.")
 
 
-def synchroniser_agenda(evenements, creds):
+def synchroniser_agenda(evenements, creds, nom=None, cle=None):
     """Écrit les rendus dans l'agenda Google. Rend son identifiant, ou None."""
     if creds is None:
         return None
-    print("📅 Synchronisation de l'agenda des rendus...")
+    nom, cle = nom or NOM_AGENDA, cle or CLE_AGENDA
+    print(f"📅 Synchronisation de « {nom} »...")
     try:
         from googleapiclient.discovery import build
         service = build('calendar', 'v3', credentials=creds)
 
         agenda_id = google_agenda.trouver_ou_creer_agenda(
-            service, nom=NOM_AGENDA, cle=CLE_AGENDA,
+            service, nom=nom, cle=cle,
             description="Rendus et dates limites Moodle, mis à jour "
                         "automatiquement.")
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
@@ -194,27 +217,92 @@ def synchroniser_agenda(evenements, creds):
             service, evenements, identifiant_agenda=agenda_id,
             couleur_cours=google_agenda.couleur_evenement(COULEUR_EVENEMENTS),
             depuis=date.today().isoformat(), rappel_minutes=RAPPEL_MINUTES)
-        edt_stri._rapporter("Rendus", bilan)
+        edt_stri._rapporter(nom, bilan)
         return agenda_id
     except Exception as e:
-        print(f"❌ Erreur de synchronisation de l'agenda des rendus : {e}")
+        print(f"❌ Erreur de synchronisation de « {nom} » : {e}")
         edt_stri.envoyer_alerte_discord(
-            f"**{NOM_AGENDA} — échec de synchronisation.**\n`{str(e)[:600]}`")
+            f"**{nom} — échec de synchronisation.**\n`{str(e)[:600]}`")
         return None
 
 
-def principale():
-    """Récupère le calendrier Moodle et l'aligne sur l'agenda Google.
+def traiter(agenda, creds):
+    """Publie UN agenda de rendus. Rend 0 si tout a abouti, 1 sinon.
 
-    Rend 0 si tout a abouti, 1 sinon. Comme pour l'emploi du temps, ce code
-    conditionne la sauvegarde en CI : un échec laisse le JSON précédent en
-    place, et l'exécution suivante réessaie.
+    Chaque agenda a ses propres sources, son propre état, ses propres
+    notifications : un incident sur l'un ne doit rien changer à l'autre.
     """
+    nom, cle = google_agenda.RENDUS[agenda]
+    sources = AGENDAS[agenda]["sources"]
+    etat = fichier_etat(agenda)
+
+    print()
     print("=" * 60)
-    print(f"📌 Rendus Moodle → « {NOM_AGENDA} »")
+    print(f"📌 Rendus Moodle → « {nom} »")
     print("=" * 60)
 
-    if not moodle.sources_configurees():
+    resultat = moodle.recuperer_tout(sources=sources)
+    if resultat is None:
+        edt_stri.envoyer_alerte_discord(
+            f"**{nom} — calendrier Moodle illisible.** "
+            "Adresse d'export absente, expirée ou refusée. Rien n'a été publié.")
+        return 1
+
+    evenements, bilan = resultat
+    for source, nombre in bilan:
+        print(f"   {source} : {nombre} événement(s)")
+    print(f"📚 {len(evenements)} événement(s) retenu(s).")
+    for cours, nombre in moodle.repartition(evenements):
+        print(f"   {nombre:3d}  {cours}")
+
+    anciens = charger_anciens(etat)
+
+    alerte = effondrement(evenements, anciens)
+    if alerte:
+        print(f"⛔ {alerte}")
+        print("   Données précédentes conservées. MOODLE_CHUTE_MAX ou "
+              "EDT_FORCER=1 pour passer outre.")
+        edt_stri.envoyer_alerte_discord(f"**{nom} — publication refusée.**\n{alerte}")
+        edt_stri.journaliser(len(evenements), len(anciens), "effondrement",
+                             promo="MOODLE", moitie="-", agenda=nom)
+        return 1
+
+    modifications = comparer(anciens, evenements)
+    print(f"🔍 {len(modifications)} changement(s) depuis la dernière fois.")
+    prevenir_discord(modifications, nom)
+
+    if synchroniser_agenda(evenements, creds, nom, cle) is None:
+        edt_stri.journaliser(len(evenements), len(anciens), "echec-agenda",
+                             promo="MOODLE", moitie="-", agenda=nom)
+        return 1
+
+    # Le JSON n'est écrit qu'une fois l'agenda à jour : s'il l'était avant, un
+    # échec de synchronisation ferait croire à la prochaine exécution que tout
+    # est déjà publié, et les changements ne partiraient jamais.
+    etat.write_text(json.dumps(evenements, ensure_ascii=False, indent=2),
+                    encoding="utf-8")
+    print(f"💾 {etat.name} enregistré.")
+
+    edt_stri.journaliser(len(evenements), len(anciens), "ok",
+                         promo="MOODLE", moitie="-", agenda=nom)
+    return 0
+
+
+def agendas_actifs():
+    """Les agendas dont au moins une source est configurée."""
+    return [a for a, config in AGENDAS.items()
+            if moodle.sources_configurees(config["sources"])]
+
+
+def principale():
+    """Publie tous les agendas de rendus configurés.
+
+    Rend 0 si tous ont abouti, 1 dès qu'un seul échoue. Comme pour l'emploi du
+    temps, ce code conditionne la sauvegarde en CI : un échec laisse les JSON
+    précédents en place, et l'exécution suivante réessaie.
+    """
+    actifs = agendas_actifs()
+    if not actifs:
         # Fonctionnalité facultative : sans adresse d'export, il n'y a rien à
         # faire, et ce n'est pas une panne. Rendre 1 ferait échouer la CI toutes
         # les heures et alerterait sur Discord pour une absence de réglage.
@@ -224,77 +312,37 @@ def principale():
         print("   Marche à suivre pour les obtenir : voir l'en-tête de moodle.py.")
         return 0
 
-    resultat = moodle.recuperer_tout()
-    if resultat is None:
-        edt_stri.envoyer_alerte_discord(
-            f"**{NOM_AGENDA} — calendrier Moodle illisible.** "
-            "Adresse d'export absente, expirée ou refusée. Rien n'a été publié.")
-        return 1
-
-    evenements, bilan = resultat
-    for nom, nombre in bilan:
-        print(f"   {nom} : {nombre} événement(s)")
-    print(f"📚 {len(evenements)} événement(s) retenu(s).")
-    for nom, nombre in moodle.repartition(evenements):
-        print(f"   {nombre:3d}  {nom}")
-
-    anciens = charger_anciens()
-
-    alerte = effondrement(evenements, anciens)
-    if alerte:
-        print(f"⛔ {alerte}")
-        print("   Données précédentes conservées. MOODLE_CHUTE_MAX ou "
-              "EDT_FORCER=1 pour passer outre.")
-        edt_stri.envoyer_alerte_discord(f"**{NOM_AGENDA} — publication refusée.**\n{alerte}")
-        edt_stri.journaliser(len(evenements), len(anciens), "effondrement",
-                             promo="MOODLE", moitie="-", agenda=NOM_AGENDA)
-        return 1
-
-    modifications = comparer(anciens, evenements)
-    print(f"🔍 {len(modifications)} changement(s) depuis la dernière fois.")
-    prevenir_discord(modifications)
-
+    # L'autorisation est obtenue UNE fois : elle vaut pour tous les agendas, et
+    # la redemander par agenda multiplierait les écritures de token.json.
     creds = edt_stri.obtenir_identifiants()
     if creds is None:
         edt_stri.envoyer_alerte_discord(
-            f"**{NOM_AGENDA} — autorisation Google indisponible.** "
+            "**Rendus Moodle — autorisation Google indisponible.** "
             "Le jeton doit être régénéré.")
-        edt_stri.journaliser(len(evenements), len(anciens), "sans-agenda",
-                             promo="MOODLE", moitie="-", agenda=NOM_AGENDA)
         return 1
 
-    if synchroniser_agenda(evenements, creds) is None:
-        edt_stri.journaliser(len(evenements), len(anciens), "echec-agenda",
-                             promo="MOODLE", moitie="-", agenda=NOM_AGENDA)
+    echecs = [a for a in actifs if traiter(a, creds) != 0]
+    print()
+    if echecs:
+        print(f"❌ Échec sur : {', '.join(google_agenda.RENDUS[a][0] for a in echecs)}")
         return 1
-
-    # Le JSON n'est écrit qu'une fois l'agenda à jour : s'il l'était avant, un
-    # échec de synchronisation ferait croire à la prochaine exécution que tout
-    # est déjà publié, et les changements ne partiraient jamais.
-    Path(FICHIER_JSON).write_text(
-        json.dumps(evenements, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"💾 {FICHIER_JSON} enregistré.")
-
-    edt_stri.journaliser(len(evenements), len(anciens), "ok",
-                         promo="MOODLE", moitie="-", agenda=NOM_AGENDA)
-    print("✅ Terminé.")
+    print(f"✅ Terminé — {len(actifs)} agenda(s) à jour.")
     return 0
 
 
 if __name__ == "__main__":
     if "--lister" in sys.argv:
-        resultat = moodle.recuperer_tout()
-        if resultat is None:
-            sys.exit(1)
-        liste, bilan = resultat
-        for nom, nombre in bilan:
-            print(f"   {nom} : {nombre} événement(s)")
-        print(f"📚 {len(liste)} événement(s) au total :")
-        for nom, nombre in moodle.repartition(liste):
-            print(f"   {nombre:3d}  {nom}")
-        print()
-        for e in liste:
-            quand = e['start'] if e['start'] else "journée"
-            print(f"   {e['date']}  {quand:>8}  {e['titre'][:60]:<60}  {e['provenance']}")
+        for agenda in agendas_actifs():
+            print(f"\n═══ {google_agenda.RENDUS[agenda][0]} ═══")
+            resultat = moodle.recuperer_tout(sources=AGENDAS[agenda]["sources"])
+            if resultat is None:
+                sys.exit(1)
+            liste, bilan = resultat
+            for source, nombre in bilan:
+                print(f"   {source} : {nombre} événement(s)")
+            print(f"📚 {len(liste)} événement(s) :")
+            for e in liste:
+                quand = e['start'] if e['start'] else "journée"
+                print(f"   {e['date']}  {quand:>8}  {e['titre'][:56]:<56}  {e['provenance']}")
         sys.exit(0)
     sys.exit(principale())

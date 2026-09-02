@@ -809,7 +809,8 @@ def moodle_est_tout_ou_rien_sur_plusieurs_sources():
     L'agenda est unique et la synchronisation est un rapprochement complet :
     publier les seules sources lisibles effacerait les rendus des autres.
     """
-    egal(sorted(moodle.SOURCES), ["INETDOC", "STRI"], "les deux Moodle")
+    egal(sorted(moodle.SOURCES), ["INETDOC", "STRI", "STRI_INGE2"],
+         "les trois exports")
     for cle, config in moodle.SOURCES.items():
         assert config["variable"].startswith("MOODLE_"), f"{cle} : variable nommée"
         assert config["nom"], f"{cle} : source nommée"
@@ -1001,11 +1002,12 @@ def _demandes(*lignes):
 
 @test
 def partage_propose_une_cle_par_demi_promo():
-    egal(sorted(partager.CATALOGUE), ["INGE1", "INGE2G1", "IRTL3", "M1G2", "RENDU"])
+    egal(sorted(partager.CATALOGUE),
+         ["INGE1", "INGE2G1", "IRTL3", "M1G2", "RENDU", "RENDU_INGE2"])
     for cle, (intitule, agendas) in partager.CATALOGUE.items():
         noms = [nom for _, nom in agendas]
         egal(noms[0], intitule, f"{cle} : l'agenda principal")
-        if cle == "RENDU":
+        if cle.startswith("RENDU"):
             # Les rendus n'ont pas d'agenda d'examens jumeau, et ne dépendent
             # d'aucune promotion.
             egal(len(agendas), 1, "un seul agenda pour les rendus")
@@ -1090,6 +1092,31 @@ def partage_refuse_une_ligne_douteuse_au_lieu_de_la_sauter():
 
 
 @test
+def chaque_agenda_de_rendus_a_ses_sources_et_son_etat():
+    """Deux promotions, deux exports eFormation, un inetdoc commun.
+
+    Les fichiers d'état doivent être DISTINCTS : un état partagé ferait voir à
+    chaque agenda les événements de l'autre comme des suppressions, et la
+    comparaison annoncerait un chamboulement complet à chaque exécution.
+    """
+    egal(sorted(rendus.AGENDAS), sorted(google_agenda.RENDUS),
+         "chaque agenda déclaré a une identité")
+    etats = [str(rendus.fichier_etat(a)) for a in rendus.AGENDAS]
+    egal(len(set(etats)), len(etats), "un fichier d'état par agenda")
+
+    for agenda, config in rendus.AGENDAS.items():
+        assert config["sources"], f"{agenda} : au moins une source"
+        for source in config["sources"]:
+            assert source in moodle.SOURCES, f"{agenda} : source {source} inconnue"
+
+    # Le marqueur du M1 ne doit JAMAIS changer : il étiquette un agenda qui
+    # existe déjà, et le perdre en créerait un second, vide.
+    egal(google_agenda.RENDUS["RENDU"][1], "MOODLE-RENDUS", "marqueur historique")
+    marqueurs = [m for _, m in google_agenda.RENDUS.values()]
+    egal(len(set(marqueurs)), len(marqueurs), "marqueurs distincts")
+
+
+@test
 def partage_des_rendus_repose_sur_deux_garde_fous():
     """L'agenda des rendus est partageable, mais seulement parce que rien de
     personnel ne peut plus y entrer.
@@ -1099,6 +1126,10 @@ def partage_des_rendus_repose_sur_deux_garde_fous():
     exposerait tout ce qu'il noterait un jour dans son calendrier.
     """
     egal(partager.CATALOGUE["RENDU"][0], rendus.NOM_AGENDA, "les rendus sont proposés")
+    # L'export Ingé2 vient d'un AUTRE compte : le filtre n'y est plus théorique.
+    assert moodle.SOURCES["STRI_INGE2"]["sans_personnels"], (
+        "un export tiers sans ce filtre exposerait les rendez-vous privés "
+        "de son propriétaire à toute sa promotion")
     for cle, config in moodle.SOURCES.items():
         assert config.get("preset_what"), f"{cle} : le périmètre est imposé"
         assert config.get("sans_personnels"), f"{cle} : les notes privées écartées"

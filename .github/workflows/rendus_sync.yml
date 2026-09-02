@@ -39,11 +39,13 @@ jobs:
         id: config
         env:
           MOODLE_ICS_URL: ${{ secrets.MOODLE_ICS_URL }}
+          MOODLE_INGE2_ICS_URL: ${{ secrets.MOODLE_INGE2_ICS_URL }}
           MOODLE_INETDOC_ICS_URL: ${{ secrets.MOODLE_INETDOC_ICS_URL }}
         run: |
-          if [ -z "$MOODLE_ICS_URL" ] && [ -z "$MOODLE_INETDOC_ICS_URL" ]; then
+          if [ -z "$MOODLE_ICS_URL" ] && [ -z "$MOODLE_INGE2_ICS_URL" ]              && [ -z "$MOODLE_INETDOC_ICS_URL" ]; then
             echo "ℹ️ Aucune source Moodle configurée : rien à synchroniser."
-            echo "   Secrets attendus : MOODLE_ICS_URL, MOODLE_INETDOC_ICS_URL"
+            echo "   Secrets : MOODLE_ICS_URL, MOODLE_INGE2_ICS_URL,"
+            echo "             MOODLE_INETDOC_ICS_URL"
             echo "configure=false" >> $GITHUB_OUTPUT
           else
             echo "configure=true" >> $GITHUB_OUTPUT
@@ -93,6 +95,7 @@ jobs:
         if: steps.config.outputs.configure == 'true'
         env:
           MOODLE_ICS_URL: ${{ secrets.MOODLE_ICS_URL }}
+          MOODLE_INGE2_ICS_URL: ${{ secrets.MOODLE_INGE2_ICS_URL }}
           MOODLE_INETDOC_ICS_URL: ${{ secrets.MOODLE_INETDOC_ICS_URL }}
           MOODLE_FILTRE: ${{ vars.MOODLE_FILTRE }}
           MOODLE_AGENDA: ${{ vars.MOODLE_AGENDA }}
@@ -117,7 +120,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
-          git add donnees/rendus_data.json donnees/journal.csv
+          git add donnees/rendus_data*.json donnees/journal.csv
           git commit -m "Mise à jour automatique des rendus Moodle" || echo "Rien à commiter"
           git pull --rebase --autostash origin ${{ github.ref_name }}
           git push

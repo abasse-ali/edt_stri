@@ -88,10 +88,10 @@ def catalogue():
                 (f"{marque}-EXAMENS", f"{nom} — Examens"),
             ])
 
-    # Les rendus n'ont pas d'agenda d'examens jumeau : c'est un agenda unique,
-    # et il ne dépend d'aucune promotion.
-    choix["RENDU"] = (google_agenda.NOM_RENDUS,
-                      [(google_agenda.CLE_RENDUS, google_agenda.NOM_RENDUS)])
+    # Les rendus n'ont pas d'agenda d'examens jumeau : chacun est un agenda
+    # unique, et ne dépend d'aucune demi-promo au sens du PDF.
+    for cle, (nom, marque) in google_agenda.RENDUS.items():
+        choix[cle] = (nom, [(marque, nom)])
     return choix
 
 
