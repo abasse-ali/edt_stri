@@ -15,7 +15,8 @@ tourne en permanence et possède une horloge fiable : elle sert de réveil.
 
     python src/reveil.py            déclenche si nécessaire
     python src/reveil.py --forcer   déclenche sans condition
-    python src/reveil.py --etat     montre les derniers passages, sans rien lancer
+    python src/reveil.py --etat     les derniers passages — le dépôt étant
+                                    public, cette lecture ne demande aucun jeton
 
 ⚠️ Il ne déclenche QUE si aucun passage récent n'a eu lieu. Le dépôt étant
 public, les minutes d'Actions sont illimitées et l'économie n'est plus le sujet
@@ -66,16 +67,22 @@ API = "https://api.github.com"
 
 def _appeler(chemin, corps=None):
     """Appelle l'API GitHub. Rend (code HTTP, données) ; données à None si vide."""
+    entetes = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "edt-stri-reveil",
+    }
+    # Le dépôt est public : LIRE l'historique des exécutions ne demande aucun
+    # jeton. Seul le déclenchement en exige un. Cela permet de diagnostiquer la
+    # cadence avec `--etat` avant même d'avoir créé le jeton.
+    if JETON:
+        entetes["Authorization"] = f"Bearer {JETON}"
+
     requete = urllib.request.Request(
         API + chemin,
         data=json.dumps(corps).encode() if corps is not None else None,
         method="POST" if corps is not None else "GET",
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {JETON}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "edt-stri-reveil",
-        })
+        headers=entetes)
     try:
         with urllib.request.urlopen(requete, timeout=TIMEOUT) as reponse:
             brut = reponse.read()
@@ -132,17 +139,18 @@ def principale():
     honoré sa planification. Rendre un code d'erreur ferait passer le succès
     pour une panne dans les journaux de systemd.
     """
-    if not JETON:
+    etat_seulement = "--etat" in sys.argv
+    if not JETON and not etat_seulement:
         print("ℹ️ GITHUB_TOKEN absent : rien à réveiller.")
         print("   Settings → Developer settings → Fine-grained tokens,")
         print("   permission « Actions : Read and write » sur ce seul dépôt.")
+        print("   « python src/reveil.py --etat » fonctionne sans jeton.")
         return 0
     if not WORKFLOWS:
         print("ℹ️ REVEIL_WORKFLOWS est vide : rien à réveiller.")
         return 0
 
     forcer = "--forcer" in sys.argv
-    etat_seulement = "--etat" in sys.argv
     maintenant = datetime.now(timezone.utc)
 
     for workflow in WORKFLOWS:
