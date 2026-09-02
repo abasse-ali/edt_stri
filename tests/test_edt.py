@@ -1548,6 +1548,59 @@ def reveil_est_installe_avec_le_bot():
         "sans quoi un créneau manqué pendant une coupure est perdu")
 
 
+@test
+def installeur_ne_lit_que_des_modeles_existants():
+    """Chaque fichier d'unité que l'installeur ouvre doit exister.
+
+    Vécu : l'installeur lisait `edt-bot-reveil.service` — le nom de l'unité une
+    fois posée — alors que le modèle du dépôt s'appelle `edt-reveil.service`.
+    `sed` échouait, `set -e` interrompait l'installation juste avant le
+    démarrage du service, et le timer n'était jamais installé. Le message
+    d'erreur, une ligne de sed perdue dans la sortie, n'y ressemblait pas.
+
+    La faute est invisible ici : elle ne se voit qu'en exécutant le script sur
+    une vraie machine. D'où ce test.
+    """
+    import re
+    installeur = (chemins.RACINE / "deploiement" / "installer_serveur.sh").read_text(
+        encoding="utf-8")
+
+    # On résout les variables du script, sans quoi le test ne verrait que
+    # « deploiement/$unite ». C'est ce qui manquait : le bug d'origine passait
+    # justement par une variable intermédiaire.
+    variables = {}
+    for nom, valeur in re.findall(r'^(\w+)="([^"$]*)"', installeur, re.M):
+        variables[nom] = [valeur]
+    for nom, valeurs in re.findall(r'^\s*for (\w+) in ([^;\n]+)', installeur, re.M):
+        variables[nom] = [v.strip('"\'') for v in valeurs.split()]
+
+    def resoudre(texte, profondeur=3):
+        """Remplace les $variables connues, en rendant toutes les combinaisons."""
+        resultats = [texte]
+        for _ in range(profondeur):      # une valeur peut elle-même en contenir
+            elargi = []
+            for courant in resultats:
+                for nom, valeurs in variables.items():
+                    if "$" + nom in courant:
+                        elargi += [courant.replace("$" + nom, v) for v in valeurs]
+                        break
+                else:
+                    elargi.append(courant)
+            resultats = elargi
+        return resultats
+
+    references = set(re.findall(r'deploiement/(\$?[\w.$-]+)', installeur))
+    assert references, "le test ne trouve plus aucun modèle : motif à revoir"
+
+    for reference in references:
+        for nom in resoudre(reference):
+            if "$" in nom:          # une variable qu'on ne sait pas résoudre
+                continue
+            assert (chemins.RACINE / "deploiement" / nom).exists(), (
+                f"l'installeur lit deploiement/{nom}, qui n'existe pas — "
+                "l'installation s'arrêtera là, sur une erreur de sed")
+
+
 # =====================================================================
 # Exécution
 # =====================================================================

@@ -127,12 +127,21 @@ sudo systemctl enable "$SERVICE" >/dev/null
 # Cette machine tourne en permanence : elle sert d'horloge fiable. Le timer ne
 # demarre que si GITHUB_TOKEN est renseigne — sans jeton il n'y a rien a faire,
 # et une unite qui echoue toutes les heures ne ferait que polluer le journal.
-for unite in "$SERVICE-reveil.service" "$SERVICE-reveil.timer"; do
+# Les fichiers du dépôt s'appellent `edt-reveil.*` ; les unités installées
+# portent le préfixe du service, `edt-bot-reveil.*`, pour se ranger à côté de
+# lui dans systemctl. Les confondre faisait échouer sed, et `set -e`
+# interrompait l'installation juste avant le démarrage du service.
+for ext in service timer; do
+    modele="$RACINE/deploiement/edt-reveil.$ext"
+    if [ ! -f "$modele" ]; then
+        echo "⛔ $modele manquant : code trop ancien ? Mets-le à jour."
+        exit 1
+    fi
     sudo sed -e "s|^User=.*|User=$UTILISATEUR|" \
              -e "s|^WorkingDirectory=.*|WorkingDirectory=$RACINE|" \
              -e "s|^ExecStart=.*|ExecStart=$RACINE/venv/bin/python -u $RACINE/src/reveil.py|" \
-             "$RACINE/deploiement/$unite" \
-        | sudo tee "/etc/systemd/system/$unite" >/dev/null
+             "$modele" \
+        | sudo tee "/etc/systemd/system/$SERVICE-reveil.$ext" >/dev/null
 done
 
 # Le jeton GitHub vit dans .env, comme le reste des secrets.
