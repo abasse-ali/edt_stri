@@ -465,12 +465,29 @@ def recuperer_tout(filtre=None, sources=None):
     configurées. C'est ce qui permet à deux agendas de rendus de puiser dans
     des exports différents tout en partageant celui d'inetdoc.
 
-    C'est TOUT ou RIEN : si une seule source est illisible, la fonction rend
-    None et rien n'est publié. La synchronisation étant un rapprochement
-    complet sur un agenda unique, publier les seules sources lisibles
-    effacerait les événements des autres — une panne réseau d'un côté ferait
-    disparaître les rendus de l'autre.
+    C'est TOUT ou RIEN : si une seule source est illisible OU non configurée,
+    la fonction rend None et rien n'est publié. La synchronisation étant un
+    rapprochement complet sur un agenda unique, publier les seules sources
+    lisibles effacerait les événements des autres — une panne réseau d'un côté
+    ferait disparaître les rendus de l'autre.
+
+    Une source ABSENTE compte comme illisible dès lors que l'appelant l'a
+    nommée. Vécu : `MOODLE_INGE2_ICS_URL` manquait des secrets GitHub ; la CI a
+    publié le seul inetdoc et effacé de l'agenda « Rendu Ingé2 » un devoir à
+    rendre quatre jours plus tard. Le garde-fou d'effondrement n'a rien vu — un
+    événement sur dix-neuf reste sous tous les seuils raisonnables. La
+    différence entre « pas de réglage » et « source en panne » n'existe que
+    pour qui lit le code : la conséquence, elle, est identique.
     """
+    if sources is not None:
+        configurees = {cle for cle, _ in sources_configurees()}
+        absentes = [cle for cle in sources if cle not in configurees]
+        if absentes:
+            for cle in absentes:
+                print(f"❌ Source « {SOURCES[cle]['nom']} » non configurée "
+                      f"({SOURCES[cle]['variable']} absent) : rien ne sera publié.")
+            return None
+
     tous, bilan = [], []
     for cle, config in sources_configurees():
         if sources is not None and cle not in sources:

@@ -817,6 +817,37 @@ def moodle_est_tout_ou_rien_sur_plusieurs_sources():
 
 
 @test
+def moodle_refuse_une_source_nommee_mais_non_configuree():
+    """Une source absente vaut une source en panne.
+
+    Vécu le 2 septembre 2026 : `MOODLE_INGE2_ICS_URL` manquait des secrets
+    GitHub. La CI a publié le seul inetdoc et EFFACÉ de l'agenda « Rendu
+    Ingé2 » un devoir à rendre quatre jours plus tard. L'effondrement n'a rien
+    vu — un événement perdu sur dix-neuf reste sous tous les seuils.
+
+    Le refus doit intervenir AVANT tout appel réseau : c'est ce que vérifie
+    l'absence de source lisible ici, aucune requête ne devant partir.
+    """
+    reglages = {"MOODLE_INETDOC_ICS_URL": "https://exemple/ics"}
+    variable_origine, recuperer_origine = moodle.variable_env, moodle.recuperer
+    appels = []
+    try:
+        moodle.variable_env = lambda nom, defaut="": reglages.get(nom, defaut)
+        moodle.recuperer = lambda *a, **k: appels.append(a) or []
+
+        egal(moodle.recuperer_tout(sources=["STRI_INGE2", "INETDOC"]), None,
+             "une source nommée mais non réglée interrompt tout")
+        egal(appels, [], "et rien n'est téléchargé")
+
+        # La source seule et bien configurée, elle, doit passer.
+        assert moodle.recuperer_tout(sources=["INETDOC"]) is not None, (
+            "un agenda dont toutes les sources sont réglées se publie")
+    finally:
+        moodle.variable_env = variable_origine
+        moodle.recuperer = recuperer_origine
+
+
+@test
 def moodle_transmet_le_cours_et_la_description():
     ics = calendrier_moodle([
         "UID:1", "SUMMARY:Rendu TP",

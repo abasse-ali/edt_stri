@@ -115,8 +115,14 @@ jobs:
 
       # rendus_data.json est la référence de la comparaison : sans lui commité,
       # chaque exécution réannoncerait tous les rendus comme des nouveautés.
+      #
+      # On sauvegarde même quand le traitement a échoué, car il y a désormais un
+      # fichier par agenda et chacun n'est écrit qu'APRÈS la mise à jour du sien
+      # (voir rendus.traiter). Un agenda en échec laisse donc son fichier
+      # intact — le commit est alors sans effet — tandis qu'un agenda voisin qui
+      # a abouti verrait sinon son état perdu, et réannoncerait tous ses rendus.
       - name: Sauvegarder les fichiers sur le dépôt
-        if: steps.traitement.outcome == 'success'
+        if: ${{ !cancelled() && steps.config.outputs.configure == 'true' }}
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'action@github.com'
