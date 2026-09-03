@@ -89,10 +89,10 @@
   },
   {
     "date": "2026-09-04",
-    "start": "15h45",
-    "end": "17h45",
+    "start": "13h30",
+    "end": "15h30",
     "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
+    "room": "A venir",
     "prof": "Abdelmalek BENZEKRI"
   },
   {
@@ -125,6 +125,14 @@
     "end": "09h45",
     "titre": "O de mod info - TD",
     "room": "U3-04",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - C Tech. de trans. (EG)",
+    "room": "U3-110 U3-04",
     "prof": "Inconnu"
   },
   {
@@ -166,6 +174,14 @@
     "titre": "Activités / Conférences UPSSITECH",
     "room": "Non attribuée",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-11",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (SLA)",
+    "room": "U3-amphi U3-110",
+    "prof": "SLA"
   },
   {
     "date": "2026-09-14",
@@ -275,7 +291,7 @@
     "date": "2026-09-21",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Outils Maths - TD (KINX5AA2) - CG",
+    "titre": "Outils Maths - TD (KINX5AA2)",
     "room": "U3-110",
     "prof": "Inconnu"
   },
@@ -286,6 +302,14 @@
     "titre": "O de mod info - TD",
     "room": "U3-04",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-22",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
+    "room": "U2-114 U3-04",
+    "prof": "KUPT5BB3"
   },
   {
     "date": "2026-09-22",

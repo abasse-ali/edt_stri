@@ -89,6 +89,14 @@
   },
   {
     "date": "2026-09-04",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "A venir",
+    "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-09-04",
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths (Abdelmalek BENZEKRI)",
@@ -134,14 +142,6 @@
     "titre": "Phy (Réseaux) - C Tech. de trans. (EG)",
     "room": "U3-110 U3-04",
     "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-08",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-04",
-    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-09-08",
