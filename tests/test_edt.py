@@ -1573,11 +1573,12 @@ def reveil_ne_declenche_que_sur_changement():
                 reveil._ecrire_signatures, reveil.WORKFLOWS)
     reveilles, retenues = [], {}
     etat = {"empreinte": "aaa", "depuis": datetime.now(timezone.utc),
-            "en_cours": False}
+            "en_cours": False, "reussi": True}
     try:
         reveil.JETON = "faux-jeton"
         reveil.WORKFLOWS = ["edt_sync.yml"]
-        reveil.dernier_passage = lambda w: (etat["depuis"], etat["en_cours"])
+        reveil.dernier_passage = lambda w: (etat["depuis"], etat["en_cours"],
+                                            etat["reussi"])
         reveil.signature = lambda quoi: etat["empreinte"]
         reveil.reveiller = lambda w, branche="main": reveilles.append(w) or True
         reveil._lire_signatures = lambda: dict(retenues)
@@ -1608,6 +1609,20 @@ def reveil_ne_declenche_que_sur_changement():
         reveil.principale()
         egal(reveilles, ["edt_sync.yml"],
              "sans changement mais passage trop ancien : le filet joue")
+
+        # Un passage qui n'a pas abouti : la signature ayant deja ete retenue,
+        # rien ne le rattraperait avant le filet. C'est le cas vecu du conflit
+        # sur journal.csv, qui faisait echouer la CI toutes les demi-heures.
+        reveilles.clear()
+        etat["reussi"] = False
+        etat["depuis"] = datetime.now(timezone.utc) - reveil.RETENTE - timedelta(minutes=1)
+        reveil.principale()
+        egal(reveilles, ["edt_sync.yml"], "un passage echoue est retente")
+
+        reveilles.clear()
+        etat["depuis"] = datetime.now(timezone.utc) - timedelta(minutes=1)
+        reveil.principale()
+        egal(reveilles, [], "mais pas en boucle : une panne durable a un palier")
     finally:
         (reveil.JETON, reveil.dernier_passage, reveil.signature,
          reveil.reveiller, reveil._lire_signatures,
@@ -1663,6 +1678,42 @@ def reveil_est_installe_avec_le_bot():
         encoding="utf-8")
     assert "Persistent=true" in minuterie, (
         "sans quoi un créneau manqué pendant une coupure est perdu")
+
+
+@test
+def le_journal_se_fusionne_au_lieu_de_bloquer_la_ci():
+    """Deux ajouts concurrents en fin de journal ne doivent jamais conflictuer.
+
+    Vécu : les deux workflows commitent `donnees/journal.csv`. Le dépôt bouge
+    entre le checkout et le push, `git pull --rebase` tombe sur deux ajouts à
+    la même place, personne n'est là pour arbitrer, et la CI échoue en laissant
+    les données non sauvegardées.
+
+    `merge=union` garde les deux côtés. Il ne convient QU'À un fichier en ajout
+    seul : appliqué à un JSON, il produirait un fichier invalide — d'où la
+    seconde moitié du test.
+    """
+    import re
+    attributs = (chemins.RACINE / ".gitattributes").read_text(encoding="utf-8")
+    unions = [ligne.split()[0] for ligne in attributs.splitlines()
+              if "merge=union" in ligne and not ligne.startswith("#")]
+
+    assert "donnees/journal.csv" in unions, (
+        "journal.csv est en ajout seul et écrit par les deux workflows : "
+        "sans merge=union, un rebase concurrent fait échouer la CI")
+    for motif in unions:
+        assert not re.search(r"\.(json|ya?ml|pdf)$", motif), (
+            f"{motif} : une fusion « union » y produirait un fichier invalide")
+
+    # Et les deux workflows doivent réessayer, la course au push subsistant.
+    for nom in ("edt_sync.yml", "rendus_sync.yml"):
+        flux = (chemins.RACINE / ".github" / "workflows" / nom).read_text(
+            encoding="utf-8")
+        if "git push" not in flux:
+            continue
+        assert "essai" in flux, (
+            f"{nom} : le push doit être retenté, le dépôt pouvant bouger "
+            "entre le checkout et la sauvegarde")
 
 
 @test

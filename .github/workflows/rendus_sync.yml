@@ -128,5 +128,17 @@ jobs:
           git config --global user.email 'action@github.com'
           git add donnees/rendus_data*.json donnees/journal.csv
           git commit -m "Mise à jour automatique des rendus Moodle" || echo "Rien à commiter"
-          git pull --rebase --autostash origin ${{ github.ref_name }}
-          git push
+          # Le dépôt peut bouger entre le checkout et le push. journal.csv se
+          # fusionne tout seul (merge=union, voir .gitattributes) ; il reste la
+          # course au push, que l'on retente au lieu d'échouer.
+          for essai in 1 2 3; do
+            if git pull --rebase --autostash origin ${{ github.ref_name }} \
+               && git push; then
+              exit 0
+            fi
+            echo "Tentative $essai : le dépôt a bougé, on recommence."
+            git rebase --abort 2>/dev/null || true
+            sleep $((essai * 5))
+          done
+          echo "::error::Sauvegarde impossible après 3 tentatives."
+          exit 1

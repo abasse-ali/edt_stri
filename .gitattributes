@@ -9,6 +9,16 @@
 *.yml       text eol=lf
 Dockerfile  text eol=lf
 
+# journal.csv est un journal en AJOUT SEUL, ecrit par les deux workflows. Deux
+# ajouts en fin de fichier se marchent dessus a chaque fois que le depot bouge
+# entre le checkout et le push : le rebase declare un conflit, personne n'est la
+# pour l'arbitrer, et la CI echoue en laissant les donnees non sauvegardees.
+#
+# `merge=union` garde les deux cotes au lieu de choisir. C'est exactement le cas
+# d'usage prevu, et il ne convient QU'A ce genre de fichier : applique a un
+# JSON, il produirait un fichier syntaxiquement invalide.
+donnees/journal.csv merge=union
+
 # Remplace par le commit reel au moment du `git archive` : le bot annonce
 # ainsi au demarrage la version exactement deployee, et une archive perimee
 # renvoyee par megarde se voit tout de suite.

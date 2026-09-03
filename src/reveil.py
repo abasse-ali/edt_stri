@@ -79,6 +79,13 @@ SURVEILLE = {
 # l'avertissement de l'en-tête : ce n'est pas une précaution décorative.
 FILET = timedelta(hours=int(variable_env("REVEIL_FILET_H", "6")))
 
+# Délai avant de retenter après un passage qui n'a pas abouti. Il existe parce
+# que la signature est retenue dès le déclenchement : sans lui, un échec
+# renverrait le changement au filet, six heures plus tard. Il ne descend pas
+# sous une demi-heure — une panne durable ne doit pas déclencher en boucle,
+# d'autant qu'un échec alerte déjà sur Discord.
+RETENTE = timedelta(minutes=max(30, int(variable_env("REVEIL_RETENTE_MIN", "60"))))
+
 # Les signatures observées la dernière fois. Leur perte est sans gravité : elle
 # provoque un déclenchement de plus, pas un oubli.
 FICHIER_SIGNATURES = chemins.donnee("reveil_signatures.json")
@@ -123,10 +130,12 @@ def _appeler(chemin, corps=None):
 
 
 def dernier_passage(workflow):
-    """Rend (départ du dernier passage, s'il est encore en cours).
+    """Rend (départ du dernier passage, encore en cours ?, a-t-il abouti ?).
 
     On regarde le DÉBUT et non la fin : un passage en cours compte, sinon on en
-    lancerait un second par-dessus.
+    lancerait un second par-dessus. Et on regarde sa conclusion, car la
+    signature est retenue dès le déclenchement : un passage échoué ou annulé
+    laisserait sinon le changement de côté jusqu'au filet.
     """
     code, donnees = _appeler(
         f"/repos/{DEPOT}/actions/workflows/{workflow}/runs?per_page=1")
@@ -136,16 +145,20 @@ def dernier_passage(workflow):
         elif code in (401, 403):
             print(f"   ⚠️ Jeton refusé ({code}) : vérifie la permission "
                   "« Actions » en écriture.")
-        return None, False
+        return None, False, True
     passages = donnees.get("workflow_runs") or []
     if not passages:
-        return None, False
+        return None, False, True
     try:
         depart = datetime.fromisoformat(
             passages[0]["created_at"].replace("Z", "+00:00"))
     except (KeyError, ValueError):
-        return None, False
-    return depart, passages[0].get("status") != "completed"
+        return None, False, True
+    en_cours = passages[0].get("status") != "completed"
+    # Un passage en cours n'a pas encore de conclusion : le déclarer en échec
+    # ferait redéclencher par-dessus lui, ce que la branche `en_cours` évite.
+    reussi = en_cours or passages[0].get("conclusion") == "success"
+    return depart, en_cours, reussi
 
 
 def reveiller(workflow, branche="main"):
@@ -276,7 +289,7 @@ def principale():
     a_enregistrer = dict(connues)
 
     for workflow in WORKFLOWS:
-        depuis, en_cours = dernier_passage(workflow)
+        depuis, en_cours, reussi = dernier_passage(workflow)
         age = _age(depuis, maintenant)
 
         quoi = SURVEILLE.get(workflow)
@@ -289,7 +302,8 @@ def principale():
             else:
                 source = "source CHANGÉE" if change else "source inchangée"
             print(f"   {workflow:<20} dernier passage {age:<16} {source}"
-                  + ("  (en cours)" if en_cours else ""))
+                  + ("  (en cours)" if en_cours else "")
+                  + ("" if reussi else "  ⚠️ sans succès"))
             continue
 
         if forcer:
@@ -302,6 +316,8 @@ def principale():
             continue
         elif change:
             raison = "source modifiée"
+        elif not reussi and depuis is not None and maintenant - depuis > RETENTE:
+            raison = f"dernier passage sans succès, {age}"
         elif depuis is None or maintenant - depuis > FILET:
             raison = f"filet de sécurité, dernier passage {age}"
         else:
