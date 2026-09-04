@@ -24,7 +24,7 @@ PROFS = {
     "EG Sécurité": "Etienne GÉRAIN", "EL": "Emmanuel LAVINAL", "FM": "Frédéric MOUTIER",
     "GB": "Guillaume BARANGER", "GR": "Gérard ROUZIES", "JGT": "Jean-Guy TARTARIN",
     "JS": "Jérôme SOKOLOFF", "KB": "Ketty BRAVO", "KPS": "Karen PINEL-SAUVAGNAT",
-    "LC": "Louisa COT", "MCL": "Marie-Christine LAGASQUIÉ", "MM": "MUSTAPHA MOJAHID",
+    "LC": "Louisa COT", "MA": "Manuel ARDOUIN", "MCL": "Marie-Christine LAGASQUIÉ", "MM": "MUSTAPHA MOJAHID",
     "MS": "Michelle SIBILLA", "OA": "Omar ALLAOUI", "OC": "Olivier CRIVELLARO",
     "OM": "Olfa MECHI", "PA": "Philippe ARGUEL", "PIL": "Pierre LOTTE",
     "PL": "Philippe LATU", "PM": "Philippe MURILLO", "PP": "Philippe PALANQUE",
