@@ -403,6 +403,42 @@ def deduplicer_conserve_les_cours_distincts():
 
 
 @test
+def deux_seances_qui_se_suivent_restent_deux_cours():
+    """Même titre, même professeur, même salle, deux créneaux consécutifs.
+
+    Relevé le 04/09 en L3 : « Outils Maths » avec A. BENZEKRI en U3-03, de
+    13h30 à 15h30 PUIS de 15h45 à 17h45. Rien ne les distingue que l'heure.
+    Trois mécanismes pourraient les confondre — on les vérifie tous les trois,
+    car il suffit qu'un seul cède pour qu'une séance disparaisse de l'agenda.
+    """
+    import google_agenda
+    premier = cours(titre="Outils Maths (Abdelmalek BENZEKRI)",
+                    start="13h30", end="15h30", room="U3-03")
+    second = cours(titre="Outils Maths (Abdelmalek BENZEKRI)",
+                   start="15h45", end="17h45", room="U3-03")
+
+    # 1. La déduplication n'écarte que les créneaux qui SE RECOUVRENT.
+    egal(len(edt_stri.deduplicer([premier, second])), 2,
+         "deux séances consécutives ne sont pas un doublon")
+
+    # 2. La clé de comparaison, qui pilote les annonces Discord.
+    assert edt_stri._cle_cours(premier) != edt_stri._cle_cours(second), (
+        "une clé sans l'heure ferait passer la seconde séance pour la première")
+
+    # 3. L'identifiant Google, qui décide si l'on crée ou si l'on écrase.
+    assert (google_agenda._identifiant(premier)
+            != google_agenda._identifiant(second)), (
+        "des identifiants égaux feraient écraser une séance par l'autre, "
+        "et une seule apparaîtrait dans l'agenda")
+
+    # Et le cas voisin : deux séances qui se touchent bord à bord.
+    colle = cours(titre="Outils Maths (Abdelmalek BENZEKRI)",
+                  start="15h30", end="17h30", room="U3-03")
+    egal(len(edt_stri.deduplicer([premier, colle])), 2,
+         "une séance qui commence quand l'autre finit reste distincte")
+
+
+@test
 def comparer_detecte_ajout_suppression_et_modification():
     avant = [cours(), cours(titre="Interco", start="10h00", end="12h00")]
     apres = [cours(room="U3-215"), cours(titre="Réseaux", start="14h00", end="16h00")]
