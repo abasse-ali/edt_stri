@@ -891,76 +891,81 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         _exporter_debug_journee(image_page, cellules, grille, date_str_fmt)
 
     for cellule in cellules:
-        block = lecture_pdf.lire_cellule(grille, cellule['x0'], cellule['x1'],
-                                         cellule['position'], mots, vers_heure)
-        if block is None:
-            continue
+        # Une case pleine hauteur peut porter DEUX cours, un par
+        # demi-promotion : la lecture en rend donc une liste.
+        for block in lecture_pdf.lire_cellule(
+                grille, cellule['x0'], cellule['x1'],
+                cellule['position'], mots, vers_heure):
+            # La géométrie des bordures fait autorité sur les horaires.
+            block['start'], block['end'] = cellule['start'], cellule['end']
 
-        # La géométrie des bordures fait autorité sur les horaires.
-        block['start'], block['end'] = cellule['start'], cellule['end']
+            col_txt = (block.get('color') or 'BLANC').upper()
 
-        col_txt = (block.get('color') or 'BLANC').upper()
+            # Un fond ORANGE désigne un cours des Ingé — pas un cours annulé, comme
+            # on l'a longtemps cru en les écartant tous. Ils étaient donc absents
+            # des agendas Ingé, à qui ils étaient précisément destinés : 4 cours du
+            # M1 et 18 de la L3, dont tout l'anglais, la physique et les SHS.
+            #
+            # La couleur fait autorité sur la position : les 22 cases orange
+            # mesurées sont toutes en moitié haute, mais si l'une passait un jour
+            # en pleine hauteur, elle resterait un cours d'Ingé.
+            if 'ORANGE' in col_txt:
+                if MOITIE_RETENUE != "HAUT":
+                    continue
 
-        # Un fond ORANGE désigne un cours des Ingé — pas un cours annulé, comme
-        # on l'a longtemps cru en les écartant tous. Ils étaient donc absents
-        # des agendas Ingé, à qui ils étaient précisément destinés : 4 cours du
-        # M1 et 18 de la L3, dont tout l'anglais, la physique et les SHS.
-        #
-        # La couleur fait autorité sur la position : les 22 cases orange
-        # mesurées sont toutes en moitié haute, mais si l'une passait un jour
-        # en pleine hauteur, elle resterait un cours d'Ingé.
-        if 'ORANGE' in col_txt:
-            if MOITIE_RETENUE != "HAUT":
+            # Le vert olive de la L3 est le symétrique de l'orange : il marque
+            # l'autre demi-promo. Les dix cases mesurées sont toutes en moitié
+            # basse, la position suffirait — mais la couleur est plus explicite que
+            # la géométrie, et le PDF a déjà changé de mise en page par le passé.
+            elif 'OLIVE' in col_txt:
+                if MOITIE_RETENUE != "BAS":
+                    continue
+
+            # Une cellule de la moitié opposée appartient à l'autre demi-promo,
+            # qu'un cours occupe ou non la moitié retenue (voir EDT_MOITIE). Les
+            # cellules pleine hauteur, elles, passent toujours.
+            #
+            # Les examens ne font PAS exception : ils sont dessinés en moitié haute
+            # ou basse comme les cours, et cette position désigne le groupe
+            # concerné. Le TOEIC du 02/09 est en haut, donc pour les Ingés ; les
+            # épreuves d'Adm. Linux du 18/09 sont réparties entre les deux. Les
+            # publier partout mélangeait les deux promos.
+            #
+            # On lit la position du COURS et non celle de la case : une case
+            # pleine hauteur portant deux cours empilés en rend un par moitié,
+            # et c'est cette position-là qui dit à qui chacun s'adresse. Prendre
+            # celle de la case aurait envoyé les deux aux deux promotions.
+            elif block['position'] == POSITION_ECARTEE:
                 continue
 
-        # Le vert olive de la L3 est le symétrique de l'orange : il marque
-        # l'autre demi-promo. Les dix cases mesurées sont toutes en moitié
-        # basse, la position suffirait — mais la couleur est plus explicite que
-        # la géométrie, et le PDF a déjà changé de mise en page par le passé.
-        elif 'OLIVE' in col_txt:
-            if MOITIE_RETENUE != "BAS":
+            c_txt = (block.get('course') or "Cours").strip()
+            if len(c_txt) < 2 or c_txt.lower() in ("inconnu", "cours inconnu", "cours"):
                 continue
 
-        # Une cellule de la moitié opposée appartient à l'autre demi-promo,
-        # qu'un cours occupe ou non la moitié retenue (voir EDT_MOITIE). Les
-        # cellules pleine hauteur, elles, passent toujours.
-        #
-        # Les examens ne font PAS exception : ils sont dessinés en moitié haute
-        # ou basse comme les cours, et cette position désigne le groupe
-        # concerné. Le TOEIC du 02/09 est en haut, donc pour les Ingés ; les
-        # épreuves d'Adm. Linux du 18/09 sont réparties entre les deux. Les
-        # publier partout mélangeait les deux promos.
-        elif cellule['position'] == POSITION_ECARTEE:
-            continue
+            p_full = (block.get('prof') or "").strip()
+            grp = (block.get('group') or '')
+            grp_str = f"[{grp}]" if grp else ""
 
-        c_txt = (block.get('course') or "Cours").strip()
-        if len(c_txt) < 2 or c_txt.lower() in ("inconnu", "cours inconnu", "cours"):
-            continue
+            if p_full and p_full not in c_txt:
+                titre = f"{grp_str} {c_txt} ({p_full})".strip()
+            else:
+                titre = f"{grp_str} {c_txt}".strip()
 
-        p_full = (block.get('prof') or "").strip()
-        grp = (block.get('group') or '')
-        grp_str = f"[{grp}]" if grp else ""
+            titre = titre.replace("[] ", "")
+            if 'JAUNE' in col_txt:
+                titre = f"{google_agenda.MARQUEUR_EXAMEN} {titre}"
 
-        if p_full and p_full not in c_txt:
-            titre = f"{grp_str} {c_txt} ({p_full})".strip()
-        else:
-            titre = f"{grp_str} {c_txt}".strip()
+            salle = block.get('room') or "Non attribuée"
+            print(f"    [+] {titre} ({cellule['start']}-{cellule['end']}) en {salle}")
 
-        titre = titre.replace("[] ", "")
-        if 'JAUNE' in col_txt:
-            titre = f"{google_agenda.MARQUEUR_EXAMEN} {titre}"
-
-        salle = block.get('room') or "Non attribuée"
-        print(f"    [+] {titre} ({cellule['start']}-{cellule['end']}) en {salle}")
-
-        liste_cours_json.append({
-            "date": date_str_fmt,
-            "start": cellule["start"],
-            "end": cellule["end"],
-            "titre": titre,
-            "room": salle,
-            "prof": p_full or "Inconnu",
-        })
+            liste_cours_json.append({
+                "date": date_str_fmt,
+                "start": cellule["start"],
+                "end": cellule["end"],
+                "titre": titre,
+                "room": salle,
+                "prof": p_full or "Inconnu",
+            })
 
     return True
 

@@ -247,6 +247,55 @@ def couleurs_de_fond_sont_distinguees():
 
 
 @test
+def une_case_pleine_hauteur_peut_porter_deux_cours():
+    """Deux cours empilés sans barre médiane doivent rester deux cours.
+
+    Vécu sur la L3 : le PDF ne dessine pas toujours la séparation. Les deux
+    cours se retrouvaient collés en un seul événement attribué à la moitié
+    haute — « Phy (Réseaux) - C Tech. de trans. (EG) » en salle « U3-110
+    U3-04 » le 08/09 — et l'IRT L3 perdait le sien. Trois cours manquaient.
+
+    Tout tient à la ligne du BAS : un professeur signe une vraie case pleine
+    hauteur, un intitulé signe deux cours. Les quatre cas ci-dessous sont
+    relevés dans le PDF réel.
+    """
+    class GrilleFactice:
+        haut, milieu, bas = 200.0, 220.9, 242.0
+
+        def est_salle(self, mot, y0, y1):
+            return mot["text"].startswith("U3-") or mot["text"].startswith("U2-")
+
+    def mot(texte, haut):
+        return {"text": texte, "top": haut, "x0": 280.0, "x1": 300.0,
+                "fontname": "OpenSans"}
+
+    def ligne(textes, haut):
+        return [mot(t, haut) for t in textes.split()]
+
+    grille = GrilleFactice()
+
+    # Deux cours : le bas porte un intitulé.
+    deux = ligne("Phy (Réseaux) - C", 213.4) + ligne("Tech. de trans. (EG)", 224.0)
+    egal(lecture_pdf._porte_deux_cours(grille, deux), True,
+         "un intitulé sous un intitulé, ce sont deux cours")
+
+    # Cas réel du 11/09, où le bas ressemble à des initiales sans en être.
+    shs = ligne("Econo/Gestion - C (SLA)", 213.4) + ligne("SHS (AA)", 224.0)
+    egal(lecture_pdf._porte_deux_cours(grille, shs), True,
+         "« SHS (AA) » est un cours, pas une ligne de professeur")
+
+    # Vraie case pleine hauteur : le bas porte les initiales du professeur.
+    prof = ligne("Outils Maths", 213.4) + ligne("AB", 224.0)
+    egal(lecture_pdf._porte_deux_cours(grille, prof), False,
+         "des initiales seules désignent le professeur")
+
+    # Un titre qui tient sur une seule ligne ne se coupe jamais.
+    seul = ligne("Informatique", 213.4)
+    egal(lecture_pdf._porte_deux_cours(grille, seul), False,
+         "une seule ligne reste un seul cours")
+
+
+@test
 def olive_ne_se_confond_pas_avec_le_vert_des_salles():
     """Une confusion ferait passer les titres de cours pour des salles."""
     egal(lecture_pdf.est_vert((0.573, 0.816, 0.314)), False, "olive pris pour du vert")

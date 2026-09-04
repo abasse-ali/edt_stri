@@ -169,16 +169,22 @@ def relire_pdf(chemin):
 
             trouvees = grille.cellules(mots)
             for cel in trouvees:
-                bloc = lecture_pdf.lire_cellule(
+                # Une case pleine hauteur peut porter deux cours empilés : la
+                # lecture en rend une liste. On garde une entrée par cours, avec
+                # SA position — c'est elle qui dit à quelle demi-promotion il
+                # s'adresse, et non celle de la case qui les contient.
+                blocs = lecture_pdf.lire_cellule(
                     grille, cel["x0"], cel["x1"], cel["position"], mots, vers_heure)
-                cellules.append({
-                    "date": zone["date"].strftime("%Y-%m-%d"),
-                    "position": cel["position"],
-                    "debut": vers_heure(cel["x0"]),
-                    "fin": vers_heure(cel["x1"]),
-                    "bloc": bloc,
-                    "couleur": ((bloc.get("color") or "BLANC").upper() if bloc else None),
-                })
+                for bloc in (blocs or [None]):
+                    cellules.append({
+                        "date": zone["date"].strftime("%Y-%m-%d"),
+                        "position": (bloc or cel)["position"],
+                        "debut": vers_heure(cel["x0"]),
+                        "fin": vers_heure(cel["x1"]),
+                        "bloc": bloc,
+                        "couleur": ((bloc.get("color") or "BLANC").upper()
+                                    if bloc else None),
+                    })
 
             jour = zone["date"].strftime("%Y-%m-%d")
             orphelins["mots"] += _mots_orphelins(grille, trouvees, mots, jour)

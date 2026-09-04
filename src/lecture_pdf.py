@@ -388,11 +388,49 @@ def mots_de_la_bande(page, zone, x_min_pdf):
             if m['top'] > zone['top'] + 1.0 and m['x0'] >= x_min_pdf - 2]
 
 
+def _porte_deux_cours(grille, mots):
+    """Vrai si une case pleine hauteur contient en fait DEUX cours empilés.
+
+    Le PDF ne dessine pas toujours la barre médiane : la case paraît alors
+    pleine hauteur alors qu'elle porte un cours par demi-promotion. Sans cette
+    distinction, les deux se retrouvaient collés en un seul événement, attribué
+    à la seule moitié haute — « Phy (Réseaux) - C Tech. de trans. (EG) » en
+    salle « U3-110 U3-04 » le 08/09 — et la moitié basse perdait son cours.
+
+    Ce qui sépare les deux situations est la ligne du BAS :
+
+        Outils Maths          ← vraie case pleine : le bas porte le professeur
+        AB
+
+        Phy (Réseaux) - C     ← deux cours : le bas porte un intitulé
+        Tech. de trans. (EG)
+
+    `_est_ligne_prof` fait déjà cette lecture ; on s'appuie sur elle plutôt que
+    d'inventer un second critère qui divergerait du premier.
+    """
+    titre_mots = [m for m in mots
+                  if not grille.est_salle(m, grille.haut, grille.bas)]
+    lignes = _lignes(titre_mots)
+    if len(lignes) < 2:
+        return False
+
+    def au_dessus(ligne):
+        return sum(m['top'] for m in ligne) / len(ligne) < grille.milieu
+
+    hautes = [l for l in lignes if au_dessus(l)]
+    basses = [l for l in lignes if not au_dessus(l)]
+    return bool(hautes) and bool(basses) and not _est_ligne_prof(basses[0])
+
+
 def lire_cellule(grille, gauche, droite, position, mots_bande, vers_heure):
-    """Contenu d'une cellule dont les bords sont déjà connus.
+    """Cours d'une cellule dont les bords sont déjà connus. Rend une LISTE.
 
     Utilisé avec les cases repérées par OpenCV : la géométrie vient de l'image
     (détection validée), le contenu de la couche texte du PDF (exact, sans OCR).
+
+    La liste compte deux cours quand une case pleine hauteur en porte deux — un
+    par demi-promotion. Chacun garde sa `position`, dont l'appelant se sert pour
+    l'attribuer à la bonne promotion.
     """
     if position == "TOP":
         y0, y1 = grille.haut, grille.milieu
@@ -412,15 +450,29 @@ def lire_cellule(grille, gauche, droite, position, mots_bande, vers_heure):
               and (m['x1'] <= droite + 4
                    or (m['x0'] < droite and grille.est_salle(m, y0, y1)))]
     if not dedans:
-        return None
+        return []
+
+    # Deux cours empilés sans barre médiane : on relit chaque moitié séparément
+    # plutôt que d'inventer un découpage — la machinerie existante sait déjà
+    # rattacher à chacune ses mots et sa salle.
+    if position == "FULL" and _porte_deux_cours(grille, dedans):
+        moities = [bloc
+                   for demi in ("TOP", "BOTTOM")
+                   for bloc in lire_cellule(grille, gauche, droite, demi,
+                                            mots_bande, vers_heure)]
+        # Deux cours seulement si les deux se lisent vraiment : sinon on
+        # retomberait sur une lecture pleine hauteur, qui reste la plus sûre.
+        if len(moities) == 2:
+            return moities
 
     # Une case qui coupe un titre en plein milieu n'est pas une vraie cellule :
     # c'est une case englobante mal détectée. Elle produisait des cours tronqués
     # (« Tel. Mobiles » sans son professeur, sur un créneau faux).
     if _coupe_un_titre(dedans, dans_moitie, gauche, droite, grille, y0, y1):
-        return None
+        return []
 
-    return _construire(grille, gauche, droite, position, y0, y1, dedans, vers_heure)
+    bloc = _construire(grille, gauche, droite, position, y0, y1, dedans, vers_heure)
+    return [bloc] if bloc else []
 
 
 def _coupe_un_titre(dedans, dans_moitie, gauche, droite, grille, y0, y1, colle=5.0):

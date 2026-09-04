@@ -89,18 +89,10 @@
   },
   {
     "date": "2026-09-04",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-03",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
-    "date": "2026-09-04",
     "start": "15h45",
     "end": "17h45",
     "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-03",
+    "room": "U3-amphi",
     "prof": "Abdelmalek BENZEKRI"
   },
   {
@@ -139,9 +131,9 @@
     "date": "2026-09-08",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Phy (Réseaux) - C Tech. de trans. (EG)",
-    "room": "U3-110 U3-04",
-    "prof": "Inconnu"
+    "titre": "Tech. de trans. (Eric GONNEAU)",
+    "room": "U3-04",
+    "prof": "Eric GONNEAU"
   },
   {
     "date": "2026-09-08",
@@ -150,6 +142,14 @@
     "titre": "Anglais (Gérard ROUZIES)",
     "room": "4A-K02",
     "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-08",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "U3-103",
+    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-09-09",
@@ -179,9 +179,9 @@
     "date": "2026-09-11",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Econo/Gestion - C (SLA)",
-    "room": "U3-amphi U3-110",
-    "prof": "SLA"
+    "titre": "SHS (André AOUN)",
+    "room": "U3-110",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-14",
@@ -291,7 +291,7 @@
     "date": "2026-09-21",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Outils Maths - TD (KINX5AA2)",
+    "titre": "Outils Maths - TD (KINX5AA2) - CG",
     "room": "U3-110",
     "prof": "Inconnu"
   },
@@ -307,9 +307,9 @@
     "date": "2026-09-22",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Phy (Réseaux) - C (KUPT5BB3)",
-    "room": "U2-114 U3-04",
-    "prof": "KUPT5BB3"
+    "titre": "Tech. de trans. (Eric GONNEAU)",
+    "room": "U3-04",
+    "prof": "Eric GONNEAU"
   },
   {
     "date": "2026-09-22",
