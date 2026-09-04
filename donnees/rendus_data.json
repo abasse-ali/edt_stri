@@ -84,6 +84,18 @@
     "provenance": "Moodle inetdoc"
   },
   {
+    "date": "2026-09-13",
+    "start": "23h59",
+    "end": "23h59",
+    "uid": "157@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Compte rendu de TP1 doit être rendu",
+    "room": "",
+    "prof": "STRI2A/M1 - Administration des systèmes Windows en réseau",
+    "description": "Cours : STRI2A/M1 - Administration des systèmes Windows en réseau\n- La date limite de remise du devoir est fixée au dimanche 13 septembre 2026.\n- Le nom du fichier à déposer sera de la forme CR_TP1_Nom_Prénom.pdf (à respecter impérativement)\n- Chacun des membres rend le TP à son nom.",
+    "provenance": "eFormation STRI"
+  },
+  {
     "date": "2026-09-15",
     "start": "15h00",
     "end": "15h00",
