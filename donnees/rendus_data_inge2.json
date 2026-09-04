@@ -250,5 +250,17 @@
     "prof": "IntroGNU/Linux-26",
     "description": "Cours : IntroGNU/Linux-26\nCe test comprend 17 questions à traiter en huit minutes.",
     "provenance": "Moodle inetdoc"
+  },
+  {
+    "date": "2027-09-04",
+    "start": "13h45",
+    "end": "13h45",
+    "uid": "3977@moodle.inetdoc.net",
+    "echeance": true,
+    "titre": "Quiz contenu cours 2 closes",
+    "room": "",
+    "prof": "IntroGNU/Linux-26",
+    "description": "Cours : IntroGNU/Linux-26\nCe test comprend 17 questions à traiter en huit minutes.",
+    "provenance": "Moodle inetdoc"
   }
 ]
