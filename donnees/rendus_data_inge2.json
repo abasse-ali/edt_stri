@@ -1,17 +1,5 @@
 [
   {
-    "date": "2026-09-01",
-    "start": "08h00",
-    "end": "08h00",
-    "uid": "3595@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "Quiz Cours3 se termine",
-    "room": "",
-    "prof": "Admin Sys & Réseaux",
-    "description": "Cours : Admin Sys & Réseaux\n11 questions en 5 minutes sur le contenu du cours 2.",
-    "provenance": "Moodle inetdoc"
-  },
-  {
     "date": "2026-09-06",
     "start": "22h00",
     "end": "22h00",
