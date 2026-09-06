@@ -51,12 +51,12 @@
     "date": "2026-09-12",
     "start": "15h00",
     "end": "15h00",
-    "uid": "4045@moodle.inetdoc.net",
+    "uid": "4090@moodle.inetdoc.net",
     "echeance": true,
-    "titre": "Validations TP3 LDAP should be completed",
+    "titre": "Validations TP3 LDAP doit être achevée",
     "room": "",
     "prof": "Admin Sys & Réseaux",
-    "description": "Cours : Admin Sys & Réseaux\nDépôt des preuve de validation : Canal Mattermost [1]\nLinks:\n------\n[1] https://mattermost.inetdoc.net/cohorte24-27/channels/adminsysreseau-tp3-ldap",
+    "description": "Cours : Admin Sys & Réseaux\nDépôt des preuve de validation : Canal Zulip [1]\nLinks:\n------\n[1] https://zulip.inetdoc.net/#narrow/channel/4-2025-2028/topic/M1.20ASR.20-.20TP3.20LDAP/with/7682",
     "provenance": "Moodle inetdoc"
   },
   {
