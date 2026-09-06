@@ -163,7 +163,7 @@
     "date": "2026-09-10",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Informatique (André AOUN)",
+    "titre": "Réseaux d'entreprise (André AOUN)",
     "room": "U3-amphi",
     "prof": "André AOUN"
   },
@@ -251,8 +251,8 @@
     "date": "2026-09-16",
     "start": "15h45",
     "end": "17h45",
-    "titre": "BE (André AOUN)",
-    "room": "Non attribuée",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-04",
     "prof": "André AOUN"
   },
   {
@@ -339,16 +339,8 @@
     "date": "2026-09-23",
     "start": "15h45",
     "end": "17h45",
-    "titre": "BE - TD (KINR5AE1)",
-    "room": "Non attribuée",
-    "prof": "KINR5AE1"
-  },
-  {
-    "date": "2026-09-25",
-    "start": "10h00",
-    "end": "12h00",
     "titre": "SHS (André AOUN)",
-    "room": "U3-110",
+    "room": "U3-04",
     "prof": "André AOUN"
   },
   {
