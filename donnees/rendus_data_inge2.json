@@ -61,6 +61,18 @@
   },
   {
     "date": "2026-09-13",
+    "start": "22h00",
+    "end": "22h00",
+    "uid": "260@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "DM_Session doit être rendu",
+    "room": "",
+    "prof": "Déploiement de services et interopérabilité",
+    "description": "Cours : Déploiement de services et interopérabilité\nDEVOIR MAISON (DM) À RENDRE :\n- avant le dimanche 13/9 à 22h\n- sous forme manuscrite (écrit à la main)\n- fichier format PDF (scan ou photo de bonne qualité)\n- nom du fichier de la forme DM_Session_Nom_Prénom.pdf (à respecter impérativement)\n- comptabilisation possible sous forme d'un bonus dans le contrôle écrit de la matière\nMême si vous n'avez pas tout fait, respectez la date de remise.",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2026-09-13",
     "start": "23h59",
     "end": "23h59",
     "uid": "157@www.stri.fr/eformation",
