@@ -1,109 +1,5 @@
 [
   {
-    "date": "2026-08-31",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-08-31",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-307",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-31",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Informatique (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-01",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
-    "date": "2026-09-01",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Réunion Sport",
-    "room": "U3-amphi",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-02",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-amphi",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-09-02",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
-    "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-09-02",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
-    "date": "2026-09-03",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-03",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Informatique (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-03",
-    "start": "13h30",
-    "end": "17h45",
-    "titre": "Activités UPSSITECH / Examen de Mise à Niveau pour les 3A",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-04",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-03",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
-    "date": "2026-09-04",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-03",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
     "date": "2026-09-07",
     "start": "07h45",
     "end": "09h45",
@@ -185,17 +81,9 @@
   },
   {
     "date": "2026-09-11",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "SHS - C (KUPX5BA4)",
-    "room": "Non attribuée",
-    "prof": "KUPX5BA4"
-  },
-  {
-    "date": "2026-09-11",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Econo/Gestion - C (SLA)",
+    "titre": "Econo/Gestion (SLA)",
     "room": "U3-amphi",
     "prof": "SLA"
   },
@@ -299,7 +187,7 @@
     "date": "2026-09-18",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Econo/Gestion - C (SLA)",
+    "titre": "Econo/Gestion (SLA)",
     "room": "U3-amphi",
     "prof": "SLA"
   },
@@ -446,5 +334,133 @@
     "titre": "Outils Maths (Abdelmalek BENZEKRI)",
     "room": "U3-amphi",
     "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-09-28",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils de modélisation info (KINX5AB1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-09-28",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-09-28",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-09-28",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths - TD- AB",
+    "room": "U1-Mathis",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-29",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-09-29",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "U3-04",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-09-29",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "O de mod info - TD",
+    "room": "U3-04",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-09-30",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. - C (KINX5AC1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AC1"
+  },
+  {
+    "date": "2026-09-30",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-amphi",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-09-30",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPA (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-10-01",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD (SLA)",
+    "room": "U3-04",
+    "prof": "SLA"
+  },
+  {
+    "date": "2026-10-01",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "U3-04",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-10-01",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-02",
+    "start": "08h30",
+    "end": "09h45",
+    "titre": "[EXAMEN] SHS (KUPX5BA",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-02",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (FHE)",
+    "room": "U3-amphi",
+    "prof": "FHE"
+  },
+  {
+    "date": "2026-10-02",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Outils Maths (Christine GALY)",
+    "room": "U3-amphi",
+    "prof": "Christine GALY"
   }
 ]
