@@ -1,133 +1,5 @@
 [
   {
-    "date": "2026-08-31",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Rés. Mobiles (Thierry GAYRAUD)",
-    "room": "U3-4",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-08-31",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interco (Thierry DESPRATS)",
-    "room": "U3-Amphi",
-    "prof": "Thierry DESPRATS"
-  },
-  {
-    "date": "2026-08-31",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interopérabilité (André AOUN)",
-    "room": "U3-Amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-08-31",
-    "start": "16h15",
-    "end": "18h15",
-    "titre": "Adm. Windows (Cédric CHAMBAULT)",
-    "room": "U3-307/308",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-09-01",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Adm. Linux (Philippe LATU)",
-    "room": "U3-04",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-09-01",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-04",
-    "prof": "Karen PINEL-SAUVAGNAT"
-  },
-  {
-    "date": "2026-09-01",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interco (Thierry DESPRATS)",
-    "room": "U3-04",
-    "prof": "Thierry DESPRATS"
-  },
-  {
-    "date": "2026-09-01",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Adm. Linux (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-09-02",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Interop (Patrice TORGUET)",
-    "room": "U3-215/216",
-    "prof": "Patrice TORGUET"
-  },
-  {
-    "date": "2026-09-02",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interop (André AOUN)",
-    "room": "U3-04",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-02",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-215/216",
-    "prof": "Karen PINEL-SAUVAGNAT"
-  },
-  {
-    "date": "2026-09-03",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Interco (Thierry DESPRATS)",
-    "room": "U3-110",
-    "prof": "Thierry DESPRATS"
-  },
-  {
-    "date": "2026-09-03",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-215/216",
-    "prof": "Karen PINEL-SAUVAGNAT"
-  },
-  {
-    "date": "2026-09-04",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "BD (Karen PINEL-SAUVAGNAT)",
-    "room": "U3-4",
-    "prof": "Karen PINEL-SAUVAGNAT"
-  },
-  {
-    "date": "2026-09-04",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Rés. Mobiles (Thierry GAYRAUD)",
-    "room": "U3-4",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-09-04",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Tél. Spatiales (Manuel ARDOUIN)",
-    "room": "U3-Amphi",
-    "prof": "Manuel ARDOUIN"
-  },
-  {
     "date": "2026-09-07",
     "start": "07h45",
     "end": "09h45",
@@ -283,9 +155,9 @@
     "date": "2026-09-15",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Tel. Mobiles (Yannick PTAK)",
+    "titre": "Interopérabilité (André AOUN)",
     "room": "U3-Amphi",
-    "prof": "Yannick PTAK"
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-15",
@@ -321,8 +193,8 @@
   },
   {
     "date": "2026-09-16",
-    "start": "15h45",
-    "end": "17h45",
+    "start": "13h30",
+    "end": "15h30",
     "titre": "Interop (André AOUN)",
     "room": "U3-Amphi",
     "prof": "André AOUN"
