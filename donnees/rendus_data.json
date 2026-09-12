@@ -286,5 +286,17 @@
     "prof": "IntroGNU/Linux-26",
     "description": "Cours : IntroGNU/Linux-26\nCe test comprend 17 questions à traiter en huit minutes.",
     "provenance": "Moodle inetdoc"
+  },
+  {
+    "date": "2027-09-12",
+    "start": "23h30",
+    "end": "23h30",
+    "uid": "3969@moodle.inetdoc.net",
+    "echeance": true,
+    "titre": "Validations TP1 should be completed",
+    "room": "",
+    "prof": "IntroGNU/Linux-26",
+    "description": "Cours : IntroGNU/Linux-26\nPoster le compte rendu dans le canal Mattermost [1] dédié.\nLe compte rendu doit être rédigé dans un seul post Mattermost au format Markdown.\nLinks:\n------\n[1] https://mattermost.inetdoc.net/cohorte25-28/channels/tp1-linux-sysadm",
+    "provenance": "Moodle inetdoc"
   }
 ]
