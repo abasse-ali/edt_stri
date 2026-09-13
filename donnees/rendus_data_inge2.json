@@ -298,5 +298,17 @@
     "prof": "IntroGNU/Linux-26",
     "description": "Cours : IntroGNU/Linux-26\nPoster le compte rendu dans le canal Mattermost [1] dédié.\nLe compte rendu doit être rédigé dans un seul post Mattermost au format Markdown.\nLinks:\n------\n[1] https://mattermost.inetdoc.net/cohorte25-28/channels/tp1-linux-sysadm",
     "provenance": "Moodle inetdoc"
+  },
+  {
+    "date": "2027-09-13",
+    "start": "13h30",
+    "end": "13h30",
+    "uid": "3963@moodle.inetdoc.net",
+    "echeance": true,
+    "titre": "Quiz début séance TP2 opens",
+    "room": "",
+    "prof": "IntroGNU/Linux-26",
+    "description": "Cours : IntroGNU/Linux-26\n10 questions sur le contenu de la séance TP1 en cinq minutes.",
+    "provenance": "Moodle inetdoc"
   }
 ]
