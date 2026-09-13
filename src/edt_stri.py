@@ -318,9 +318,11 @@ def synchroniser_agenda(cours_list, creds):
         agenda_id = google_agenda.trouver_ou_creer_agenda(
             service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=CLE_AGENDA)
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
+        # `garder_termines` : l'école retire du PDF les semaines écoulées. Sans
+        # lui, leurs cours étaient effacés de l'agenda à chaque décalage.
         _rapporter("Cours", google_agenda.synchroniser(
             service, ordinaires, identifiant_agenda=agenda_id,
-            couleur_cours=couleur_cours))
+            couleur_cours=couleur_cours, garder_termines=True))
 
         # Le nom suit celui de l'agenda principal, y compris après un
         # renommage : « STRI M1 G2 » donne « STRI M1 G2 — Examens ».
@@ -330,7 +332,8 @@ def synchroniser_agenda(cours_list, creds):
             cle=f"{CLE_AGENDA}-EXAMENS")
         google_agenda.appliquer_couleur(service, agenda_examens, COULEUR_AGENDA_EXAMENS)
         _rapporter("Examens", google_agenda.synchroniser(
-            service, examens, identifiant_agenda=agenda_examens))
+            service, examens, identifiant_agenda=agenda_examens,
+            garder_termines=True))
 
         return agenda_id
     except Exception as e:
@@ -1006,17 +1009,26 @@ def _cle_cours(cours):
     return f"{cours['date']}_{cours['start']}_{cours.get('titre', '')}"
 
 
-def comparer_emplois_du_temps(anciennes_donnees, nouvelles_donnees):
+def comparer_emplois_du_temps(anciennes_donnees, nouvelles_donnees, instant=None):
     """Différence entre deux emplois du temps, pour l'annonce Discord.
 
     Rend une liste de {type: ajout|suppression|modification}. La clé inclut
     le titre et la salle : deux cours empilés au même créneau ne se
     distinguent que par là, et une clé plus grossière signalait des
     modifications fantômes.
+
+    Les cours déjà TERMINÉS sont écartés des deux côtés. L'école retire du PDF
+    les semaines écoulées : chacun de leurs cours était annoncé « ANNULATION »
+    — 16 d'un coup pour le M1 G2 le 11/09, environ 80 depuis fin août toutes
+    promotions confondues. Un cours fini n'appelle d'ailleurs aucune annonce,
+    qu'il apparaisse, change ou disparaisse.
     """
+    instant = instant or google_agenda.maintenant()
     modifications = []
-    anciens = {_cle_cours(c): c for c in anciennes_donnees}
-    nouveaux = {_cle_cours(c): c for c in nouvelles_donnees}
+    anciens = {_cle_cours(c): c for c in anciennes_donnees
+               if not google_agenda.cours_termine(c, instant)}
+    nouveaux = {_cle_cours(c): c for c in nouvelles_donnees
+                if not google_agenda.cours_termine(c, instant)}
 
     for cle, nouveau in nouveaux.items():
         if cle not in anciens:
@@ -1143,13 +1155,22 @@ def journaliser(nb_cours, nb_avant, etat, promo=None, moitie=None, agenda=None):
         print(f"   ⚠️ Journal non écrit ({e}).")
 
 
-def effondrement(nouvelles, anciennes):
+def effondrement(nouvelles, anciennes, instant=None):
     """Le nombre de cours s'est-il effondre au point d'etre suspect ?
 
     Rend None si tout va bien, sinon le message a afficher. Un emploi du temps
     se vide legitimement en fin de semestre : le seuil vise la panne
     d'extraction, pas la decrue normale.
+
+    On ne compte que les cours A VENIR. Le PDF perd chaque semaine celle qui
+    vient de s'ecouler : 72 cours puis 56 pour le M1 G2 le 11/09, une chute de
+    22 % qui n'etait qu'un decalage de calendrier. Deux semaines passees d'un
+    coup, apres une interruption, auraient franchi le seuil et bloque la
+    publication a tort.
     """
+    instant = instant or google_agenda.maintenant()
+    anciennes = [c for c in anciennes if not google_agenda.cours_termine(c, instant)]
+    nouvelles = [c for c in nouvelles if not google_agenda.cours_termine(c, instant)]
     if len(anciennes) < 10 or not nouvelles:
         return None
     chute = 100 * (len(anciennes) - len(nouvelles)) / len(anciennes)

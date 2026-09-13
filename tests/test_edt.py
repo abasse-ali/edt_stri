@@ -19,6 +19,7 @@ Aucune dépendance de test : la bibliothèque standard suffit.
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 _RACINE = Path(__file__).resolve().parent.parent
@@ -94,6 +95,12 @@ def cours(date="2026-09-08", start="08h00", end="10h00", titre="BD",
           room="U3-04", prof="Karen PINEL-SAUVAGNAT"):
     return {"date": date, "start": start, "end": end, "titre": titre,
             "room": room, "prof": prof}
+
+
+# Un instant ANTÉRIEUR aux cours d'exemple ci-dessus. La comparaison écarte
+# désormais les cours terminés : sans instant figé, ces tests changeraient de
+# verdict le jour où la date d'exemple serait dépassée — c'est arrivé le 13/09.
+AVANT_LES_COURS = datetime(2026, 9, 1, 8, 0, tzinfo=ZoneInfo("Europe/Paris"))
 
 
 # =====================================================================
@@ -296,6 +303,38 @@ def une_case_pleine_hauteur_peut_porter_deux_cours():
 
 
 @test
+def un_fond_d_examen_en_deux_demi_bandes_reste_un_examen():
+    """Mesures réelles du PDF de L3 du 13/09, examen du 28/09 à 07h45.
+
+    Le fond jaune est dessiné en deux bandes empilées, une par ligne de texte.
+    Chacune couvre 48 % de la case, sous le seuil de 50 % : l'examen sortait en
+    cours ordinaire, et la vérification bloquait la CI.
+    """
+    JAUNE = (1.0, 1.0, 0.0)
+    grille = object.__new__(lecture_pdf.GrilleJour)
+    # Case pleine hauteur 07h45-09h45 : x 128.2 → 272, y 308.9 → 329.6.
+    x0, x1, y0, y1 = 128.2, 272.0, 308.9, 329.6
+    bande_titre = {"x0": 128.2, "x1": 244.9, "top": 309.6, "bottom": 319.6,
+                   "non_stroking_color": JAUNE}
+    bande_prof = {"x0": 128.2, "x1": 211.0, "top": 319.5, "bottom": 329.4,
+                  "non_stroking_color": JAUNE}
+
+    grille.fonds = [bande_titre, bande_prof]
+    egal(grille.couleur(x0, x1, y0, y1), "JAUNE",
+         "deux demi-bandes couvrant la case forment un fond d'examen")
+
+    # Le garde-fou d'origine tient toujours : UNE seule bande, celle d'un cours
+    # du haut, ne colore pas une case pleine hauteur.
+    grille.fonds = [bande_titre]
+    egal(grille.couleur(x0, x1, y0, y1), "BLANC",
+         "une seule demi-bande reste un simple contact")
+
+    # Et deux bandes qui se recouvrent ne comptent pas double.
+    egal(lecture_pdf._longueur_union([(0, 10), (5, 12), (20, 25)]), 17.0,
+         "chevauchement compté une fois")
+
+
+@test
 def olive_ne_se_confond_pas_avec_le_vert_des_salles():
     """Une confusion ferait passer les titres de cours pour des salles."""
     egal(lecture_pdf.est_vert((0.573, 0.816, 0.314)), False, "olive pris pour du vert")
@@ -442,14 +481,134 @@ def deux_seances_qui_se_suivent_restent_deux_cours():
 def comparer_detecte_ajout_suppression_et_modification():
     avant = [cours(), cours(titre="Interco", start="10h00", end="12h00")]
     apres = [cours(room="U3-215"), cours(titre="Réseaux", start="14h00", end="16h00")]
-    types = sorted(m["type"] for m in edt_stri.comparer_emplois_du_temps(avant, apres))
+    types = sorted(m["type"] for m in edt_stri.comparer_emplois_du_temps(
+        avant, apres, instant=AVANT_LES_COURS))
     egal(types, ["ajout", "modification", "suppression"])
 
 
 @test
 def comparer_ne_signale_rien_quand_rien_ne_bouge():
     liste = [cours(), cours(titre="Interco", start="10h00", end="12h00")]
-    egal(edt_stri.comparer_emplois_du_temps(liste, list(liste)), [], "fausse alerte")
+    egal(edt_stri.comparer_emplois_du_temps(liste, list(liste),
+                                            instant=AVANT_LES_COURS),
+         [], "fausse alerte")
+
+
+@test
+def un_cours_passe_qui_sort_du_pdf_n_est_pas_annule():
+    """L'école retire du PDF les semaines écoulées.
+
+    Vécu le 11/09 : la semaine du 31/08 est sortie du PDF du M1, et ses 16
+    cours ont été annoncés « ANNULATION » sur Discord — environ 80 fausses
+    annulations depuis fin août, toutes promotions confondues.
+    """
+    semaine_passee = [cours(date="2026-08-31"),
+                      cours(date="2026-09-01", titre="Interco")]
+    a_venir = cours(date="2026-09-15", titre="Réseaux")
+    le_11 = datetime(2026, 9, 11, 12, 0, tzinfo=ZoneInfo("Europe/Paris"))
+
+    modifs = edt_stri.comparer_emplois_du_temps(semaine_passee + [a_venir],
+                                                [a_venir], instant=le_11)
+    egal(modifs, [], "une semaine écoulée qui sort du PDF n'annonce rien")
+
+    # Une VRAIE annulation, elle, doit toujours partir.
+    modifs = edt_stri.comparer_emplois_du_temps([a_venir], [], instant=le_11)
+    egal([m["type"] for m in modifs], ["suppression"],
+         "un cours à venir qui disparaît reste une annulation")
+
+
+@test
+def synchroniser_n_efface_jamais_un_cours_termine():
+    """La moitié destructrice du problème : l'agenda, pas seulement Discord.
+
+    Sans `garder_termines`, chaque semaine écoulée qui sortait du PDF était
+    effacée de l'agenda des personnes abonnées, qui perdaient l'historique de
+    leurs propres cours. Un cours À VENIR absent du PDF, lui, doit toujours
+    partir : c'est une vraie annulation.
+    """
+    import google_agenda
+    paris = ZoneInfo("Europe/Paris")
+    supprimes = []
+
+    class Requete:
+        def __init__(self, action):
+            self.action = action
+
+        def execute(self):
+            return self.action()
+
+    class Evenements:
+        def delete(self, calendarId, eventId):
+            return Requete(lambda: supprimes.append(eventId))
+
+        def insert(self, calendarId, body):
+            return Requete(lambda: None)
+
+        def update(self, calendarId, eventId, body):
+            return Requete(lambda: None)
+
+    class Service:
+        def events(self):
+            return Evenements()
+
+    def evenement(ident, jour):
+        return {"id": ident,
+                "start": {"dateTime": f"2026-09-{jour}T08:00:00+02:00"},
+                "end": {"dateTime": f"2026-09-{jour}T10:00:00+02:00"}}
+
+    existants = {"passe": evenement("passe", "01"),
+                 "futur": evenement("futur", "30")}
+    origines = (google_agenda.trouver_ou_creer_agenda,
+                google_agenda._evenements_existants, google_agenda.maintenant)
+    try:
+        google_agenda.trouver_ou_creer_agenda = lambda *a, **k: "agenda"
+        google_agenda._evenements_existants = lambda s, a: dict(existants)
+        google_agenda.maintenant = lambda: datetime(2026, 9, 13, 12, 0, tzinfo=paris)
+
+        bilan = google_agenda.synchroniser(Service(), [], garder_termines=True)
+        egal(supprimes, ["futur"], "seul le cours à venir est retiré")
+        egal(bilan, (0, 0, 1), "et le bilan ne compte pas l'historique conservé")
+
+        # Sans l'option, rien ne change pour les appelants qui ne la passent pas.
+        supprimes.clear()
+        google_agenda.synchroniser(Service(), [])
+        egal(sorted(supprimes), ["futur", "passe"], "comportement inchangé par défaut")
+    finally:
+        (google_agenda.trouver_ou_creer_agenda,
+         google_agenda._evenements_existants, google_agenda.maintenant) = origines
+
+
+@test
+def un_cours_est_termine_a_sa_fin_et_pas_a_sa_date():
+    """Un cours du matin disparu l'après-midi a eu lieu ; celui du soir non."""
+    import google_agenda
+    paris = ZoneInfo("Europe/Paris")
+    matin = cours(date="2026-09-11", start="08h00", end="10h00")
+    soir = cours(date="2026-09-11", start="15h45", end="17h45")
+    midi = datetime(2026, 9, 11, 12, 0, tzinfo=paris)
+
+    egal(google_agenda.cours_termine(matin, midi), True, "fini à 10h")
+    egal(google_agenda.cours_termine(soir, midi), False, "pas encore commencé")
+    egal(google_agenda.cours_termine(
+        cours(date="2026-09-11", end="12h00"), midi), True,
+        "fini à la minute même")
+
+    # Côté API Google : un événement horodaté, et une journée entière dont la
+    # date de fin est EXCLUSIVE.
+    egal(google_agenda._evenement_termine(
+        {"end": {"dateTime": "2026-09-11T10:00:00+02:00"}}, midi), True,
+        "événement horodaté fini")
+    egal(google_agenda._evenement_termine(
+        {"end": {"dateTime": "2026-09-11T17:45:00+02:00"}}, midi), False,
+        "événement horodaté à venir")
+    egal(google_agenda._evenement_termine({"end": {"date": "2026-09-12"}}, midi),
+         False, "la journée du 11 n'est pas finie à midi")
+    egal(google_agenda._evenement_termine({"end": {"date": "2026-09-11"}}, midi),
+         True, "une journée qui finit (exclusivement) le 11 est celle du 10")
+
+    # Illisible : prudence, on le traite comme à venir.
+    egal(google_agenda.cours_termine({"date": "n'importe quoi"}, midi), False,
+         "une date illisible ne passe pas pour terminée")
 
 
 @test
@@ -458,7 +617,7 @@ def comparer_distingue_deux_cours_empiles():
     Une clé trop grossière signalait une modification fantôme."""
     avant = [cours(titre="[GB] Réseaux", room="U3-1"), cours(titre="[GC] Systèmes", room="U3-2")]
     apres = [cours(titre="[GB] Réseaux", room="U3-1"), cours(titre="[GC] Systèmes", room="U4-9")]
-    mods = edt_stri.comparer_emplois_du_temps(avant, apres)
+    mods = edt_stri.comparer_emplois_du_temps(avant, apres, instant=AVANT_LES_COURS)
     egal(len(mods), 1, "une seule modification attendue")
     egal(mods[0]["changements"]["room"]["nouveau"], "U4-9")
 
@@ -485,6 +644,27 @@ def effondrement_se_tait_faute_de_reference():
     juger : bloquer là serait un faux positif garanti."""
     assert edt_stri.effondrement([0] * 1, [0] * 5) is None, "historique trop court"
     assert edt_stri.effondrement([], [0] * 86) is None, "aucun cours lu : autre garde-fou"
+
+
+@test
+def effondrement_ne_compte_pas_les_semaines_ecoulees():
+    """Deux semaines passées qui sortent du PDF ne sont pas une panne.
+
+    Après une interruption de quelques jours, le PDF peut avoir perdu deux
+    semaines d'un coup : 60 % des cours « disparus » alors que rien n'est cassé.
+    """
+    le_14 = datetime(2026, 9, 14, 8, 0, tzinfo=ZoneInfo("Europe/Paris"))
+    passes = [cours(date="2026-09-0%d" % j, titre=f"C{j}{h}")
+              for j in range(1, 7) for h in range(5)]            # 30 passés
+    futurs = [cours(date="2026-09-%d" % j, titre=f"F{j}{h}")
+              for j in range(15, 19) for h in range(5)]           # 20 à venir
+
+    assert edt_stri.effondrement(futurs, passes + futurs, instant=le_14) is None, (
+        "50 → 20 n'est qu'un décalage de calendrier : les 20 à venir sont intacts")
+
+    # Mais une vraie chute des cours À VENIR doit toujours bloquer.
+    assert edt_stri.effondrement(futurs[:3], passes + futurs, instant=le_14), (
+        "20 → 3 cours à venir reste une panne d'extraction")
 
 
 # =====================================================================

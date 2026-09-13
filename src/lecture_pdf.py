@@ -100,6 +100,19 @@ def _nom_complet(initiales):
     return initiales
 
 
+def _longueur_union(intervalles):
+    """Longueur couverte par des intervalles [a, b], chevauchements comptés une fois."""
+    total, fin = 0.0, None
+    for debut, bout in sorted(intervalles):
+        if fin is None or debut > fin:
+            total += bout - debut
+            fin = bout
+        elif bout > fin:
+            total += bout - fin
+            fin = bout
+    return total
+
+
 # --- Découpage géométrique ---------------------------------------------------
 
 class GrilleJour:
@@ -275,22 +288,36 @@ class GrilleJour:
 
         Un fond qui commence exactement au bord gauche de la cellule lui
         appartient : c'est ce qui le distingue d'une pastille posée au milieu.
+
+        Le recouvrement vertical se mesure sur l'UNION des bandes d'une même
+        couleur. Le PDF de L3 du 13/09 dessine le fond d'un examen en deux
+        demi-bandes empilées, une par ligne de texte : chacune couvre 48 % de
+        la case (10,0 pt sur 20,7), sous le seuil, alors qu'ensemble elles la
+        couvrent entièrement. Les deux examens du 28/09 et du 05/10 sortaient en
+        cours ordinaires, et la vérification bloquait la CI.
         """
         largeur = max(x1 - x0, 1.0)
         hauteur = max(y1 - y0, 1.0)
+        bandes = {}
         for r in self.fonds:
             part = (min(r['x1'], x1) - max(r['x0'], x0)) / largeur
             commence_au_bord = abs(r['x0'] - x0) <= 3
             if part < (0.35 if commence_au_bord else 0.6):
                 continue
-            # Le fond d'un cours du haut effleure la moitié basse : il faut un
-            # vrai recouvrement vertical, pas un contact.
-            if (min(r['bottom'], y1) - max(r['top'], y0)) / hauteur < 0.5:
+            haut, bas = max(r['top'], y0), min(r['bottom'], y1)
+            if bas <= haut:
                 continue
             couleur = r['non_stroking_color']
-            if est_jaune(couleur):
-                return "JAUNE"
-            return "ORANGE" if est_orange(couleur) else "OLIVE"
+            nom = ("JAUNE" if est_jaune(couleur)
+                   else "ORANGE" if est_orange(couleur) else "OLIVE")
+            bandes.setdefault(nom, []).append((haut, bas))
+
+        # Le jaune d'abord : un examen manqué est la pire des erreurs possibles.
+        for nom in ("JAUNE", "ORANGE", "OLIVE"):
+            # Le fond d'un cours du haut effleure la moitié basse : il faut un
+            # vrai recouvrement vertical, pas un contact.
+            if _longueur_union(bandes.get(nom, [])) / hauteur >= 0.5:
+                return nom
         return "BLANC"
 
     def est_salle(self, mot, y0, y1):

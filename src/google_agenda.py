@@ -15,12 +15,15 @@ abonnement, aucune URL, aucun réglage SSL.
 
 La synchronisation est un rapprochement complet : chaque cours porte un
 identifiant déterministe, donc un cours déplacé est modifié sur place et un
-cours supprimé du PDF disparaît de l'agenda.
+cours supprimé du PDF disparaît de l'agenda — s'il n'a pas encore eu lieu.
+Un cours terminé qui sort du PDF n'est pas annulé : l'école retire simplement
+les semaines écoulées du document (voir `cours_termine`).
 """
 
 import hashlib
 import sys
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -462,19 +465,69 @@ def _debut(evenement):
     return (borne.get("dateTime") or borne.get("date") or "")[:10]
 
 
+def maintenant():
+    """L'instant présent à l'heure de Paris, celle des cours."""
+    return datetime.now(ZoneInfo(FUSEAU))
+
+
+def cours_termine(cours, instant=None):
+    """Vrai si le cours est déjà fini à `instant` (maintenant par défaut).
+
+    Le PDF ne couvre que quelques semaines glissantes : l'école en retire les
+    semaines écoulées. Mesuré le 11/09 : la semaine du 31/08 est sortie du PDF
+    du M1, et ses 16 cours ont été annoncés comme annulés sur Discord, puis
+    effacés de l'agenda. Un cours qui disparaît APRÈS avoir eu lieu n'est pas
+    annulé — il est seulement sorti du document.
+
+    On compare la FIN du cours et non sa date : un cours du matin disparu
+    l'après-midi a bien eu lieu. Une journée entière (Moodle) finit à minuit.
+    """
+    instant = instant or maintenant()
+    try:
+        jour = datetime.strptime(cours["date"], "%Y-%m-%d")
+        heure = cours.get("end") or "23h59"
+        heures, minutes = map(int, heure.split("h"))
+        fin = jour.replace(hour=heures, minute=minutes, tzinfo=ZoneInfo(FUSEAU))
+    except (KeyError, ValueError, TypeError, AttributeError):
+        # Illisible : on ne peut rien affirmer. Le traiter comme à venir garde
+        # le comportement prudent d'avant, où toute disparition compte.
+        return False
+    return fin <= instant
+
+
+def _evenement_termine(evenement, instant):
+    """Vrai si un événement de l'API est déjà fini à `instant`."""
+    fin = evenement.get("end", {})
+    try:
+        if fin.get("dateTime"):
+            return datetime.fromisoformat(
+                fin["dateTime"].replace("Z", "+00:00")) <= instant
+        if fin.get("date"):
+            # Journée entière : Google donne une date de fin EXCLUSIVE.
+            return fin["date"] <= instant.date().isoformat()
+    except ValueError:
+        pass
+    return False
+
+
 def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
-                 couleur_cours=None, depuis=None, rappel_minutes=None):
+                 couleur_cours=None, depuis=None, rappel_minutes=None,
+                 garder_termines=False):
     """Aligne l'agenda sur la liste de cours. Renvoie (ajouts, modifs, retraits).
 
     `rappel_minutes` pose une notification tant de minutes avant l'événement.
     Laissé à None, le champ n'est pas envoyé du tout et les rappels existants
     ne sont pas touchés.
 
-    `depuis` limite les SUPPRESSIONS aux événements à partir de cette date. Le
-    PDF de l'emploi du temps couvre toute l'année et n'en a pas besoin ; le
-    calendrier Moodle, lui, s'exporte sur une fenêtre glissante, et sans cette
-    borne chaque exécution effacerait les échéances passées puis les
-    signalerait comme des annulations.
+    `depuis` limite les SUPPRESSIONS aux événements à partir de cette date :
+    le calendrier Moodle s'exporte sur une fenêtre glissante, et sans cette
+    borne chaque exécution effacerait les échéances passées.
+
+    `garder_termines` fait de même pour tout événement déjà FINI, à la minute
+    près. On a longtemps cru que le PDF de l'emploi du temps couvrait l'année
+    et n'en avait pas besoin : il ne couvre que quelques semaines glissantes, et
+    chaque semaine écoulée qui en sortait était effacée de l'agenda — l'élève
+    perdait l'historique de ses propres cours.
     """
     agenda_id = trouver_ou_creer_agenda(service, nom, identifiant_agenda)
 
@@ -507,11 +560,14 @@ def synchroniser(service, cours_list, nom=NOM_AGENDA, identifiant_agenda=None,
             service.events().update(calendarId=agenda_id, eventId=cle, body=evt).execute()
             modifs += 1
 
+    instant = maintenant()
     for cle, evt in existants.items():
         if cle in voulus:
             continue
         if depuis and _debut(evt) < depuis:
             continue  # hors de la fenêtre couverte par la source
+        if garder_termines and _evenement_termine(evt, instant):
+            continue  # sorti du document après avoir eu lieu : pas une annulation
         service.events().delete(calendarId=agenda_id, eventId=cle).execute()
         retraits += 1
 
