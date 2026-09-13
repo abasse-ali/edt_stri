@@ -1,85 +1,5 @@
 [
   {
-    "date": "2026-09-07",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-07",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
-    "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-09-07",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Informatique (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-08",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "O de mod info - TD",
-    "room": "U3-04",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-08",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Eric GONNEAU)",
-    "room": "U3-04",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-09-08",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-09-09",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-10",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-10",
-    "start": "13h30",
-    "end": "17h45",
-    "titre": "Activités / Conférences UPSSITECH",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-11",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "SHS (André AOUN)",
-    "room": "U3-110",
-    "prof": "André AOUN"
-  },
-  {
     "date": "2026-09-14",
     "start": "07h45",
     "end": "09h45",
@@ -104,20 +24,12 @@
     "prof": "Olfa MECHI"
   },
   {
-    "date": "2026-09-14",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Informatique (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
-  },
-  {
     "date": "2026-09-15",
     "start": "07h45",
     "end": "09h45",
-    "titre": "O de mod info - TD",
+    "titre": "O de mod info (FB)",
     "room": "U3-04",
-    "prof": "Inconnu"
+    "prof": "FB"
   },
   {
     "date": "2026-09-15",
@@ -163,9 +75,9 @@
     "date": "2026-09-21",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "titre": "Outils de modélisation info (FB)",
     "room": "U3-amphi",
-    "prof": "KINX5AB1"
+    "prof": "FB"
   },
   {
     "date": "2026-09-21",
@@ -174,14 +86,6 @@
     "titre": "Outils Maths - C (KINX5AA2)",
     "room": "U3-amphi",
     "prof": "KINX5AA2"
-  },
-  {
-    "date": "2026-09-21",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
   },
   {
     "date": "2026-09-21",
@@ -195,9 +99,9 @@
     "date": "2026-09-22",
     "start": "07h45",
     "end": "09h45",
-    "titre": "O de mod info - TD",
+    "titre": "O de mod info - TD (FB)",
     "room": "U3-04",
-    "prof": "Inconnu"
+    "prof": "FB"
   },
   {
     "date": "2026-09-22",
@@ -219,7 +123,7 @@
     "date": "2026-09-23",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils Maths - C (Abdelmalek BENZEKRI)",
+    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
     "room": "U3-amphi",
     "prof": "Abdelmalek BENZEKRI"
   },
@@ -240,10 +144,26 @@
     "prof": "André AOUN"
   },
   {
+    "date": "2026-09-24",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-25",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
     "date": "2026-09-25",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Outils Maths -TD (Jérôme SOKOLOFF)",
+    "titre": "Outils Maths - TD (Jérôme SOKOLOFF)",
     "room": "U3-04",
     "prof": "Jérôme SOKOLOFF"
   },
@@ -259,25 +179,25 @@
     "date": "2026-09-28",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils de modélisation info (KINX5AB1)",
+    "titre": "[EXAMEN] Outils de modélisation info (FB)",
     "room": "U3-amphi",
-    "prof": "KINX5AB1"
+    "prof": "FB"
   },
   {
     "date": "2026-09-28",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "titre": "Outils de modélisation info (Andréi ANDRÉI)",
     "room": "U3-amphi",
-    "prof": "KINX5AB1"
+    "prof": "Andréi ANDRÉI"
   },
   {
     "date": "2026-09-28",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Informatique (Olfa MECHI)",
+    "titre": "Gestion/PPP (André AOUN)",
     "room": "U3-306",
-    "prof": "Olfa MECHI"
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-28",
@@ -288,20 +208,20 @@
     "prof": "Christine GALY"
   },
   {
-    "date": "2026-09-28",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPB (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
-  },
-  {
     "date": "2026-09-29",
     "start": "07h45",
     "end": "09h45",
-    "titre": "O de mod info - TD",
+    "titre": "O de mod info (FB)",
     "room": "U3-04",
-    "prof": "Inconnu"
+    "prof": "FB"
+  },
+  {
+    "date": "2026-09-29",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-29",
@@ -313,19 +233,19 @@
   },
   {
     "date": "2026-09-29",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPC (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-30",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Tech. de trans. - C (KINX5AC1)",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
     "room": "U3-amphi",
-    "prof": "KINX5AC1"
+    "prof": "Frédéric MOUTIER"
   },
   {
     "date": "2026-09-30",
@@ -342,5 +262,85 @@
     "titre": "Adm Windows (Cédric CHAMBAULT)",
     "room": "U3-amphi",
     "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-10-05",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Outils de modélisation info (FB)",
+    "room": "U3-amphi",
+    "prof": "FB"
+  },
+  {
+    "date": "2026-10-05",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "[EXAMEN] Outils Maths (KINX5AA2)",
+    "room": "U3-amphi",
+    "prof": "KINX5AA2"
+  },
+  {
+    "date": "2026-10-05",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (ME)",
+    "room": "U3-306",
+    "prof": "ME"
+  },
+  {
+    "date": "2026-10-05",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Outils Maths (Christine GALY)",
+    "room": "U3-04",
+    "prof": "Christine GALY"
+  },
+  {
+    "date": "2026-10-06",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info - TD (FB)",
+    "room": "U3-04",
+    "prof": "FB"
+  },
+  {
+    "date": "2026-10-06",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
+    "room": "U3-110",
+    "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-10-06",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-10-06",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-10-07",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Gestion/PPP (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-08",
+    "start": "15h45",
+    "end": "18h00",
+    "titre": "JOURNEE UT - FESTIVAL FUTURS PROCHES",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   }
 ]
