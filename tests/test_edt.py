@@ -518,67 +518,6 @@ def un_cours_passe_qui_sort_du_pdf_n_est_pas_annule():
 
 
 @test
-def synchroniser_n_efface_jamais_un_cours_termine():
-    """La moitié destructrice du problème : l'agenda, pas seulement Discord.
-
-    Sans `garder_termines`, chaque semaine écoulée qui sortait du PDF était
-    effacée de l'agenda des personnes abonnées, qui perdaient l'historique de
-    leurs propres cours. Un cours À VENIR absent du PDF, lui, doit toujours
-    partir : c'est une vraie annulation.
-    """
-    import google_agenda
-    paris = ZoneInfo("Europe/Paris")
-    supprimes = []
-
-    class Requete:
-        def __init__(self, action):
-            self.action = action
-
-        def execute(self):
-            return self.action()
-
-    class Evenements:
-        def delete(self, calendarId, eventId):
-            return Requete(lambda: supprimes.append(eventId))
-
-        def insert(self, calendarId, body):
-            return Requete(lambda: None)
-
-        def update(self, calendarId, eventId, body):
-            return Requete(lambda: None)
-
-    class Service:
-        def events(self):
-            return Evenements()
-
-    def evenement(ident, jour):
-        return {"id": ident,
-                "start": {"dateTime": f"2026-09-{jour}T08:00:00+02:00"},
-                "end": {"dateTime": f"2026-09-{jour}T10:00:00+02:00"}}
-
-    existants = {"passe": evenement("passe", "01"),
-                 "futur": evenement("futur", "30")}
-    origines = (google_agenda.trouver_ou_creer_agenda,
-                google_agenda._evenements_existants, google_agenda.maintenant)
-    try:
-        google_agenda.trouver_ou_creer_agenda = lambda *a, **k: "agenda"
-        google_agenda._evenements_existants = lambda s, a: dict(existants)
-        google_agenda.maintenant = lambda: datetime(2026, 9, 13, 12, 0, tzinfo=paris)
-
-        bilan = google_agenda.synchroniser(Service(), [], garder_termines=True)
-        egal(supprimes, ["futur"], "seul le cours à venir est retiré")
-        egal(bilan, (0, 0, 1), "et le bilan ne compte pas l'historique conservé")
-
-        # Sans l'option, rien ne change pour les appelants qui ne la passent pas.
-        supprimes.clear()
-        google_agenda.synchroniser(Service(), [])
-        egal(sorted(supprimes), ["futur", "passe"], "comportement inchangé par défaut")
-    finally:
-        (google_agenda.trouver_ou_creer_agenda,
-         google_agenda._evenements_existants, google_agenda.maintenant) = origines
-
-
-@test
 def un_cours_est_termine_a_sa_fin_et_pas_a_sa_date():
     """Un cours du matin disparu l'après-midi a eu lieu ; celui du soir non."""
     import google_agenda
@@ -592,19 +531,6 @@ def un_cours_est_termine_a_sa_fin_et_pas_a_sa_date():
     egal(google_agenda.cours_termine(
         cours(date="2026-09-11", end="12h00"), midi), True,
         "fini à la minute même")
-
-    # Côté API Google : un événement horodaté, et une journée entière dont la
-    # date de fin est EXCLUSIVE.
-    egal(google_agenda._evenement_termine(
-        {"end": {"dateTime": "2026-09-11T10:00:00+02:00"}}, midi), True,
-        "événement horodaté fini")
-    egal(google_agenda._evenement_termine(
-        {"end": {"dateTime": "2026-09-11T17:45:00+02:00"}}, midi), False,
-        "événement horodaté à venir")
-    egal(google_agenda._evenement_termine({"end": {"date": "2026-09-12"}}, midi),
-         False, "la journée du 11 n'est pas finie à midi")
-    egal(google_agenda._evenement_termine({"end": {"date": "2026-09-11"}}, midi),
-         True, "une journée qui finit (exclusivement) le 11 est celle du 10")
 
     # Illisible : prudence, on le traite comme à venir.
     egal(google_agenda.cours_termine({"date": "n'importe quoi"}, midi), False,

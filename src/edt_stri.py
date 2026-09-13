@@ -318,11 +318,9 @@ def synchroniser_agenda(cours_list, creds):
         agenda_id = google_agenda.trouver_ou_creer_agenda(
             service, nom=NOM_AGENDA, identifiant=CALENDAR_ID, cle=CLE_AGENDA)
         google_agenda.appliquer_couleur(service, agenda_id, COULEUR_AGENDA)
-        # `garder_termines` : l'école retire du PDF les semaines écoulées. Sans
-        # lui, leurs cours étaient effacés de l'agenda à chaque décalage.
         _rapporter("Cours", google_agenda.synchroniser(
             service, ordinaires, identifiant_agenda=agenda_id,
-            couleur_cours=couleur_cours, garder_termines=True))
+            couleur_cours=couleur_cours))
 
         # Le nom suit celui de l'agenda principal, y compris après un
         # renommage : « STRI M1 G2 » donne « STRI M1 G2 — Examens ».
@@ -332,8 +330,7 @@ def synchroniser_agenda(cours_list, creds):
             cle=f"{CLE_AGENDA}-EXAMENS")
         google_agenda.appliquer_couleur(service, agenda_examens, COULEUR_AGENDA_EXAMENS)
         _rapporter("Examens", google_agenda.synchroniser(
-            service, examens, identifiant_agenda=agenda_examens,
-            garder_termines=True))
+            service, examens, identifiant_agenda=agenda_examens))
 
         return agenda_id
     except Exception as e:

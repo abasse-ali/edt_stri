@@ -580,25 +580,10 @@ def controler_agendas(rap, promo, moitie, cours):
 
     ordinaires = [c for c in cours
                   if not c["titre"].startswith(google_agenda.MARQUEUR_EXAMEN)]
-
-    # L'agenda garde les cours terminés que le PDF a retirés : c'est voulu,
-    # l'école ôte chaque semaine écoulée du document. L'égalité stricte entre
-    # agenda et PDF n'a donc plus de sens. Ce qui doit tenir : tout événement
-    # que le PDF ne connaît pas est TERMINÉ. Un événement à venir en trop, lui,
-    # serait un cours annulé resté affiché.
-    attendus = {google_agenda._identifiant(c) for c in ordinaires}
-    instant = google_agenda.maintenant()
-    en_plus = [e for i, e in evenements.items() if i not in attendus]
-    historique = [e for e in en_plus if google_agenda._evenement_termine(e, instant)]
-    intrus = [e for e in en_plus if not google_agenda._evenement_termine(e, instant)]
-    rap.verifier(not intrus,
-                 f"« {agenda['summary']} » sans cours annulé resté affiché",
-                 f"{len(evenements)} événements, dont {len(historique)} "
-                 "passés conservés",
-                 f"{len(intrus)} événement(s) à venir absent(s) du PDF : "
-                 + " | ".join(f"{(e.get('start') or {}).get('dateTime', '')[:16]} "
-                              f"{(e.get('summary') or '')[:20]}"
-                              for e in intrus[:3]))
+    rap.verifier(len(evenements) == len(ordinaires),
+                 f"« {agenda['summary']} » complet",
+                 f"{len(evenements)} événements",
+                 f"{len(evenements)} dans l'agenda, {len(ordinaires)} attendus")
 
     # Chaque cours doit être présent, à la bonne heure et dans la bonne salle.
     ecarts = []
