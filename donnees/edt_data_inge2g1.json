@@ -272,6 +272,14 @@
     "prof": "Philippe LATU"
   },
   {
+    "date": "2026-09-29",
+    "start": "16h15",
+    "end": "18h15",
+    "titre": "Adm. Windows (Cédric CHAMBAULT)",
+    "room": "U3-306/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
     "date": "2026-09-30",
     "start": "07h45",
     "end": "09h45",
@@ -294,14 +302,6 @@
     "titre": "Rés. Mobiles (Thierry GAYRAUD)",
     "room": "U3-4",
     "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "16h15",
-    "end": "18h15",
-    "titre": "Adm. Windows (Cédric CHAMBAULT)",
-    "room": "U3-307/308",
-    "prof": "Cédric CHAMBAULT"
   },
   {
     "date": "2026-10-01",
