@@ -68,19 +68,19 @@
     "titre": "Quiz Cours 2 s’ouvre",
     "room": "",
     "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\n11 questions sur le contenu du cours 1 en 5 minutes",
+    "description": "Cours : IntercoLANWAN\n11 questions sur le contenu du cours 1 en 6 minutes",
     "provenance": "Moodle inetdoc"
   },
   {
     "date": "2026-09-15",
-    "start": "10h10",
-    "end": "10h10",
+    "start": "10h15",
+    "end": "10h15",
     "uid": "3643@moodle.inetdoc.net",
     "echeance": true,
     "titre": "Quiz Cours 2 se termine",
     "room": "",
     "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\n11 questions sur le contenu du cours 1 en 5 minutes",
+    "description": "Cours : IntercoLANWAN\n11 questions sur le contenu du cours 1 en 6 minutes",
     "provenance": "Moodle inetdoc"
   },
   {
