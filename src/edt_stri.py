@@ -84,6 +84,12 @@ _PROMO = PROMOS[PROMO]
 # Position à écarter : l'opposée de celle qu'on garde.
 POSITION_ECARTEE = "TOP" if MOITIE_RETENUE == "BAS" else "BOTTOM"
 
+# À quelle combinaison promotion × moitié s'adresse un cours dont le titre
+# nomme sa promotion (voir MENTIONS_PROMO dans lecture_pdf). « M1 RT » désigne
+# le M1 Réseaux & Télécoms, c'est-à-dire la moitié basse du PDF du M1 : le
+# cours n'est alors PAS pour les Ingé2, même dessiné en pleine hauteur.
+DESTINATAIRES = {"M1 RT": ("M1", "BAS")}
+
 # Suffixe des sorties, pour que les jeux coexistent sans s'écraser.
 SUFFIXE = _PROMO["suffixes"][MOITIE_RETENUE]
 
@@ -825,6 +831,21 @@ def _exporter_debug_journee(image_page, cellules, grille, date_str):
     _sauver_debug(vue, date_str, "overview_debug.jpg")
 
 
+def destine_a_cette_promo(block, promo=None, moitie=None):
+    """Ce cours s'adresse-t-il à la combinaison promotion × moitié traitée ?
+
+    Un cours dont le titre ne nomme aucune promotion s'adresse à qui la
+    géométrie et les couleurs désignent : on ne tranche pas ici. Mais quand le
+    PDF écrit « Gestion (M1 RT) », il dit explicitement pour qui est le cours,
+    et cela prime sur tout — y compris sur une case pleine hauteur, qui sinon
+    le donnerait aussi aux Ingé2.
+    """
+    mention = block.get('promo')
+    if not mention:
+        return True
+    return DESTINATAIRES.get(mention) == (promo or PROMO, moitie or MOITIE_RETENUE)
+
+
 def _horaires_cellules(grille, cellules, mots, vers_heure):
     """Ajoute horaires et bord droit d'export à chaque cellule."""
     marge_pdf = MARGE_DROITE * 72 / DPI
@@ -900,6 +921,14 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
             block['start'], block['end'] = cellule['start'], cellule['end']
 
             col_txt = (block.get('color') or 'BLANC').upper()
+
+            # Le PDF nomme parfois la promotion visée : « Gestion (M1 RT) ».
+            # C'est le seul signal ÉCRIT sur le public d'un cours, et il prime
+            # sur tout le reste — y compris sur une case pleine hauteur, qui
+            # sinon donnerait le cours aux deux demi-promotions. Trois « Gestion
+            # (M1 RT) » se retrouvaient ainsi dans l'agenda des Ingé2.
+            if not destine_a_cette_promo(block):
+                continue
 
             # Un fond ORANGE désigne un cours des Ingé — pas un cours annulé, comme
             # on l'a longtemps cru en les écartant tous. Ils étaient donc absents

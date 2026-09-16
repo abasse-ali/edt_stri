@@ -86,6 +86,21 @@ PROFS = charger_profs()
 REGEX_PROF = re.compile(r'\(([^()]{1,40})\)+\s*$')
 REGEX_GROUPE = re.compile(r'/\s*(G[ABC])\b', re.IGNORECASE)
 
+# Mention de promotion dans le titre : « Gestion (M1 RT) ». Elle occupe la
+# place habituelle du professeur, et « M1 RT » se retrouvait donc publié comme
+# nom d'enseignant. Elle dit en réalité À QUI s'adresse le cours : c'est le seul
+# signal explicite du PDF sur ce point, et il prime sur la géométrie comme sur
+# les couleurs (voir DESTINATAIRES dans edt_stri.py).
+MENTIONS_PROMO = {"M1 RT": re.compile(r'\bM1\s*-?\s*RT\b', re.I)}
+
+
+def mention_promo(texte):
+    """La promotion nommée dans ce texte, ou None."""
+    for nom, motif in MENTIONS_PROMO.items():
+        if motif.search(texte):
+            return nom
+    return None
+
 
 def _nom_complet(initiales):
     """« CC » -> « Cédric CHAMBAULT ». Gère « MA & FM » et laisse tel quel si inconnu."""
@@ -388,13 +403,17 @@ def _est_ligne_prof(mots):
 
 
 def _analyser_texte(mots_titre):
-    """« TCP/IP /GB (CT) » -> (titre, groupe, prof)."""
+    """« TCP/IP /GB (CT) » -> (titre, groupe, prof, promotion visée)."""
     texte = " ".join(m['text'] for m in mots_titre).strip()
     texte = re.sub(r'\s+', ' ', texte)
 
+    promo = mention_promo(texte)
+
     prof = ""
     trouve = REGEX_PROF.search(texte)
-    if trouve:
+    # « Gestion (M1 RT) » : la parenthèse nomme la promotion, pas l'enseignant.
+    # On la laisse dans le titre, où elle reste une indication utile.
+    if trouve and not mention_promo(trouve.group(1)):
         prof = _nom_complet(trouve.group(1))
         texte = texte[:trouve.start()].strip()
 
@@ -404,7 +423,7 @@ def _analyser_texte(mots_titre):
         groupe = trouve_g.group(1).upper()
         texte = REGEX_GROUPE.sub("", texte).strip()
 
-    return re.sub(r'\s+', ' ', texte).strip(" -/"), groupe, prof
+    return re.sub(r'\s+', ' ', texte).strip(" -/"), groupe, prof, promo
 
 
 def mots_de_la_bande(page, zone, x_min_pdf):
@@ -535,7 +554,7 @@ def _construire(grille, gauche, droite, position, y0, y1, mots, vers_heure):
         return None
 
     lignes = _lignes(titre_mots)
-    titre, groupe, prof = _analyser_texte(lignes[0])
+    titre, groupe, prof, promo = _analyser_texte(lignes[0])
 
     # Cellule pleine hauteur : le professeur est écrit en italique sous le titre.
     if position == "FULL" and len(lignes) > 1 and not prof:
@@ -557,6 +576,8 @@ def _construire(grille, gauche, droite, position, y0, y1, mots, vers_heure):
         "position": position,
         "color": grille.couleur(gauche, droite, y0, y1),
         "course": titre,
+        # Promotion nommée dans le titre, quand le PDF le précise.
+        "promo": promo,
         "prof": prof or None,
         "group": groupe,
         "room": salle or None,

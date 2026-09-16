@@ -386,14 +386,74 @@ def regex_prof_accepte_la_parenthese_doublee():
 def analyser_texte_separe_titre_professeur_et_groupe():
     def mot(texte, x=0):
         return {"text": texte, "x0": x, "x1": x + 10, "top": 0, "fontname": "Helvetica"}
-    titre, groupe, prof = lecture_pdf._analyser_texte(
+    titre, groupe, prof, promo = lecture_pdf._analyser_texte(
         [mot("Adm.", 0), mot("Windows", 10), mot("(CC)", 20)])
     egal(titre, "Adm. Windows", "titre")
     egal(prof, "Cédric CHAMBAULT", "professeur développé")
-    titre, groupe, prof = lecture_pdf._analyser_texte(
+    egal(promo, None, "aucune promotion nommée")
+    titre, groupe, prof, promo = lecture_pdf._analyser_texte(
         [mot("TCP/IP", 0), mot("/GB", 10)])
     egal(groupe, "GB", "groupe extrait")
     assert "/GB" not in titre, "le groupe doit quitter le titre"
+
+
+@test
+def une_mention_de_promotion_n_est_pas_un_professeur():
+    """« Gestion (M1 RT) » : la parenthèse nomme la promotion, pas l'enseignant.
+
+    Relevé dans le PDF du M1. « M1 RT » était publié comme nom de professeur,
+    et surtout masquait la ligne du dessous, où se trouve le vrai enseignant.
+    """
+    def mot(texte, x=0):
+        return {"text": texte, "x0": x, "x1": x + 10, "top": 0, "fontname": "Helvetica"}
+
+    titre, groupe, prof, promo = lecture_pdf._analyser_texte(
+        [mot("Gestion", 0), mot("(M1", 10), mot("RT)", 20)])
+    egal(promo, "M1 RT", "promotion reconnue")
+    egal(prof, "", "et surtout pas prise pour un professeur")
+    egal(titre, "Gestion (M1 RT)",
+         "la mention reste dans le titre, où elle renseigne le lecteur")
+
+    egal(lecture_pdf.mention_promo("Gestion (M1RT)"), "M1 RT", "sans espace")
+    egal(lecture_pdf.mention_promo("Gestion (M1-RT)"), "M1 RT", "avec tiret")
+    egal(lecture_pdf.mention_promo("Interco (PL)"), None, "un vrai professeur")
+
+
+@test
+def un_cours_marque_m1_rt_n_est_que_pour_le_m1():
+    """« M1 RT » prime sur la géométrie, case pleine hauteur comprise.
+
+    Les trois « Gestion (M1 RT) » du PDF sont dessinés en pleine hauteur, donc
+    partaient dans les DEUX agendas : le M1 G2 et les Ingé2 G1. Or la mention
+    dit à qui s'adresse le cours, et ce n'est pas aux Ingé2.
+    """
+    marque = {"promo": "M1 RT", "position": "FULL", "course": "Gestion"}
+    ordinaire = {"promo": None, "position": "FULL", "course": "Interco"}
+
+    egal(edt_stri.destine_a_cette_promo(marque, "M1", "BAS"), True,
+         "le M1 RT, c'est la moitié basse du PDF du M1")
+    egal(edt_stri.destine_a_cette_promo(marque, "M1", "HAUT"), False,
+         "pas pour les Ingé2, même en pleine hauteur")
+    egal(edt_stri.destine_a_cette_promo(marque, "L3", "BAS"), False,
+         "ni pour la L3")
+    egal(edt_stri.destine_a_cette_promo(marque, "L3", "HAUT"), False,
+         "ni pour les Ingé1")
+
+    # Sans mention, la règle ne tranche pas : la géométrie et les couleurs
+    # gardent la main, comme avant.
+    for promo in ("M1", "L3"):
+        for moitie in ("BAS", "HAUT"):
+            egal(edt_stri.destine_a_cette_promo(ordinaire, promo, moitie), True,
+                 f"aucune mention : {promo} {moitie} n'est pas concerné par la règle")
+
+    # La table doit désigner une combinaison qui existe vraiment, sans quoi le
+    # cours disparaîtrait de partout sans que personne ne le remarque.
+    for mention, (promo, moitie) in edt_stri.DESTINATAIRES.items():
+        assert promo in edt_stri.PROMOS, f"{mention} vise une promotion inconnue"
+        assert moitie in edt_stri.PROMOS[promo]["agendas"], (
+            f"{mention} vise une moitié inconnue")
+        assert mention in lecture_pdf.MENTIONS_PROMO, (
+            f"{mention} n'est jamais détectée dans un titre")
 
 
 @test
