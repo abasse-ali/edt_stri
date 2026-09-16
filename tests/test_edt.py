@@ -239,6 +239,28 @@ def destinataires_la_couleur_prime_sur_la_position():
     egal(d({"position": "BOTTOM", "couleur": "ORANGE"}), {"HAUT"}, "orange contredit la position")
 
 
+@test
+def destinataires_une_promotion_nommee_prime_sur_tout():
+    """« Gestion (M1 RT) » : écrit noir sur blanc, donc plus fort que le reste.
+
+    La vérification redéduit le placement de son côté ; sans cette règle elle
+    réclamait ces trois cours chez les Ingé2 et faisait échouer la CI.
+    """
+    d = verif_edt.destinataires
+    marquee = {"position": "FULL", "couleur": "BLANC", "bloc": {"promo": "M1 RT"}}
+    egal(d(marquee, "M1"), {"BAS"}, "pleine hauteur, mais réservé au M1")
+    egal(d(marquee, "L3"), set(), "et absent du PDF de la L3")
+    egal(d({"position": "FULL", "couleur": "ORANGE", "bloc": {"promo": "M1 RT"}}, "M1"),
+         {"BAS"}, "la mention prime même sur l'orange des Ingé")
+    egal(d({"position": "FULL", "couleur": "BLANC", "bloc": {"promo": None}}, "M1"),
+         {"BAS", "HAUT"}, "sans mention, la géométrie garde la main")
+
+    # Les deux tables, celle du code et celle de la vérification, doivent
+    # désigner la même chose : c'est tout l'intérêt de les écrire deux fois.
+    egal(verif_edt.PROMO_NOMMEE, edt_stri.DESTINATAIRES,
+         "les deux règles de placement ont divergé")
+
+
 # =====================================================================
 # Couleurs du PDF
 # =====================================================================

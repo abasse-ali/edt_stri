@@ -175,6 +175,16 @@ def relire_pdf(chemin):
                 # s'adresse, et non celle de la case qui les contient.
                 blocs = lecture_pdf.lire_cellule(
                     grille, cel["x0"], cel["x1"], cel["position"], mots, vers_heure)
+                # Une case qui n'encadre QU'un libellé de salle ne porte aucun
+                # cours : le PDF dessine parfois la salle hors de la case du
+                # cours, dans son propre encadré (05/10 15h00, « U3-4 »). Sans
+                # cette distinction, elle passerait pour une cellule illisible.
+                y0, y1 = grille.bornes_verticales(cel["position"])
+                dedans = [m for m in mots
+                          if cel["x0"] - 2 <= m["x0"] and m["x1"] <= cel["x1"] + 4
+                          and y0 - 0.5 <= m["top"] < y1 + 1.5]
+                salle_seule = bool(dedans) and all(grille.est_salle(m, y0, y1)
+                                                   for m in dedans)
                 for bloc in (blocs or [None]):
                     cellules.append({
                         "date": zone["date"].strftime("%Y-%m-%d"),
@@ -182,6 +192,7 @@ def relire_pdf(chemin):
                         "debut": vers_heure(cel["x0"]),
                         "fin": vers_heure(cel["x1"]),
                         "bloc": bloc,
+                        "salle_seule": salle_seule,
                         "couleur": ((bloc.get("color") or "BLANC").upper()
                                     if bloc else None),
                     })
@@ -234,12 +245,28 @@ def _salles_orphelines(grille, cellules, jour):
     return perdues
 
 
-def destinataires(cellule):
+# Promotion nommée dans un titre -> (promotion du PDF, moitié qui la reçoit).
+# Table écrite ici exprès, sans importer celle d'edt_stri : deux tables qui
+# divergent sont précisément ce que cette vérification doit révéler.
+PROMO_NOMMEE = {"M1 RT": ("M1", "BAS")}
+
+
+def destinataires(cellule, promo="M1"):
     """Les demi-promos qui doivent recevoir cette cellule.
 
     Réécriture délibérée de la règle de `traiter_journee` : si les deux
     divergent un jour, c'est exactement ce qu'on veut voir apparaître.
     """
+    # Une promotion nommée dans le titre — « Gestion (M1 RT) » — prime sur la
+    # position comme sur la couleur : le cours n'est que pour elle, même si la
+    # case occupe toute la hauteur.
+    mention = (cellule.get("bloc") or {}).get("promo")
+    if mention:
+        vise = PROMO_NOMMEE.get(mention)
+        if vise is None or vise[0] != promo:
+            return set()
+        return {vise[1]}
+
     couleur = cellule["couleur"]
     if couleur == "ORANGE":
         return {"HAUT"}          # cours réservé aux Ingé
@@ -306,7 +333,10 @@ def controler_pdf(rap, promo, zones, cellules, fonds):
 
     rap.verifier(bool(cellules), "cellules repérées", f"{len(cellules)} cases")
 
-    illisibles = [c for c in cellules if c["bloc"] is None]
+    # Un encadré ne contenant qu'une salle n'est pas une cellule illisible :
+    # c'est le cartouche de salle d'un cours voisin, hors de sa case.
+    illisibles = [c for c in cellules
+                  if c["bloc"] is None and not c.get("salle_seule")]
     rap.verifier(not illisibles, "toute cellule repérée est lue",
                  f"{len(cellules)}/{len(cellules)}",
                  f"{len(illisibles)} encadrée(s) sans contenu : "
@@ -409,7 +439,7 @@ def controler_plausibilite(rap, cellules, donnees):
                      "incomplète")
 
 
-def controler_routage(rap, cellules, donnees):
+def controler_routage(rap, promo, cellules, donnees):
     """Chaque cours est-il dans la bonne demi-promo, et seulement celle-là ?"""
     rap.bloc("Placement dans les demi-promos")
 
@@ -425,7 +455,7 @@ def controler_routage(rap, cellules, donnees):
         if len(titre) < 2:
             continue
         creneau = (cel["date"], cel["debut"], cel["fin"])
-        attendu = destinataires(cel)
+        attendu = destinataires(cel, promo)
         for moitie in MOITIES:
             if moitie in attendu and creneau not in publies[moitie]:
                 manques[moitie].append(f"{cel['date']} {cel['debut']} {titre[:22]}")
@@ -435,7 +465,7 @@ def controler_routage(rap, cellules, donnees):
     for cel in cellules:
         if cel["bloc"] is None or not cel["debut"] or not cel["fin"]:
             continue
-        for moitie in destinataires(cel):
+        for moitie in destinataires(cel, promo):
             attendus[moitie].add((cel["date"], cel["debut"], cel["fin"]))
     for moitie in MOITIES:
         intrus[moitie] = sorted(publies[moitie] - attendus[moitie])
@@ -841,7 +871,7 @@ def principale():
             continue
 
         controler_plausibilite(rap, cellules, donnees)
-        controler_routage(rap, cellules, donnees)
+        controler_routage(rap, promo, cellules, donnees)
 
         for moitie in MOITIES:
             suffixe = PROMOS[promo]["suffixes"][moitie]
