@@ -203,9 +203,9 @@
     "date": "2026-09-25",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Gestion (M1 RT)",
+    "titre": "Gestion (M1 RT) (André AOUN)",
     "room": "U3-4",
-    "prof": "M1 RT"
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-25",
@@ -331,9 +331,9 @@
     "date": "2026-10-02",
     "start": "15h15",
     "end": "17h15",
-    "titre": "Gestion (M1 RT)",
+    "titre": "Gestion (M1 RT) (André AOUN)",
     "room": "U3-4",
-    "prof": "M1 RT"
+    "prof": "André AOUN"
   },
   {
     "date": "2026-10-05",
@@ -411,8 +411,8 @@
     "date": "2026-10-09",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Gestion (M1 RT)",
+    "titre": "Gestion (M1 RT) (André AOUN)",
     "room": "U3-4",
-    "prof": "M1 RT"
+    "prof": "André AOUN"
   }
 ]

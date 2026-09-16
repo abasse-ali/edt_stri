@@ -209,14 +209,6 @@
   },
   {
     "date": "2026-09-25",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Gestion (M1 RT)",
-    "room": "U3-4",
-    "prof": "M1 RT"
-  },
-  {
-    "date": "2026-09-25",
     "start": "10h00",
     "end": "12h00",
     "titre": "Tel. Mobiles (Yannick PTAK)",
@@ -344,14 +336,6 @@
     "prof": "Yannick PTAK"
   },
   {
-    "date": "2026-10-02",
-    "start": "15h15",
-    "end": "17h15",
-    "titre": "Gestion (M1 RT)",
-    "room": "U3-4",
-    "prof": "M1 RT"
-  },
-  {
     "date": "2026-10-05",
     "start": "07h45",
     "end": "09h45",
@@ -366,6 +350,14 @@
     "titre": "Tel. Mobiles (Yannick PTAK)",
     "room": "U3-4",
     "prof": "Yannick PTAK"
+  },
+  {
+    "date": "2026-10-05",
+    "start": "13h30",
+    "end": "15h00",
+    "titre": "Réunion Mobilité semestre 9",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-05",
@@ -446,13 +438,5 @@
     "titre": "TER (Philippe PALANQUE)",
     "room": "U3-4",
     "prof": "Philippe PALANQUE"
-  },
-  {
-    "date": "2026-10-09",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Gestion (M1 RT)",
-    "room": "U3-4",
-    "prof": "M1 RT"
   }
 ]
