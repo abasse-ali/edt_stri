@@ -180,6 +180,18 @@
     "provenance": "Moodle inetdoc"
   },
   {
+    "date": "2026-11-11",
+    "start": "23h00",
+    "end": "23h00",
+    "uid": "2323@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "DEPOT DOSSIERS BE INTERCO. doit être rendu",
+    "room": "",
+    "prof": "Interconnexion et routage dynamique (T. Desprats)",
+    "description": "Cours : Interconnexion et routage dynamique (T. Desprats)",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
     "date": "2026-11-15",
     "start": "09h30",
     "end": "09h30",
