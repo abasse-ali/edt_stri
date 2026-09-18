@@ -60,30 +60,6 @@
     "provenance": "Moodle inetdoc"
   },
   {
-    "date": "2026-09-18",
-    "start": "07h45",
-    "end": "07h45",
-    "uid": "4041@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "Questionnaire de cours s’ouvre",
-    "room": "",
-    "prof": "Admin Sys & Réseaux",
-    "description": "Cours : Admin Sys & Réseaux",
-    "provenance": "Moodle inetdoc"
-  },
-  {
-    "date": "2026-09-18",
-    "start": "17h45",
-    "end": "17h45",
-    "uid": "4087@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "Questionnaire de cours se termine",
-    "room": "",
-    "prof": "Admin Sys & Réseaux",
-    "description": "Cours : Admin Sys & Réseaux",
-    "provenance": "Moodle inetdoc"
-  },
-  {
     "date": "2026-09-20",
     "start": "22h00",
     "end": "22h00",
