@@ -1,99 +1,11 @@
 [
   {
-    "date": "2026-09-14",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-14",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
-    "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-09-14",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-09-15",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "O de mod info (FB)",
-    "room": "U3-04",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-15",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-15",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-09-16",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-amphi",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-09-16",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "SHS (André AOUN)",
-    "room": "U3-04",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-18",
-    "start": "13h30",
-    "end": "17h45",
-    "titre": "Activités / Conférences UPSSITECH",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-09-21",
     "start": "07h45",
     "end": "09h45",
     "titre": "Outils de modélisation info (FB)",
     "room": "U3-amphi",
     "prof": "FB"
-  },
-  {
-    "date": "2026-09-21",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths - C (KINX5AA2)",
-    "room": "U3-amphi",
-    "prof": "KINX5AA2"
-  },
-  {
-    "date": "2026-09-21",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Outils Maths - TD (KINX5AA2)",
-    "room": "- U3-110",
-    "prof": "KINX5AA2"
   },
   {
     "date": "2026-09-22",
@@ -200,14 +112,6 @@
     "prof": "André AOUN"
   },
   {
-    "date": "2026-09-28",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Outils Maths (Christine GALY)",
-    "room": "U3-04",
-    "prof": "Christine GALY"
-  },
-  {
     "date": "2026-09-29",
     "start": "07h45",
     "end": "09h45",
@@ -288,14 +192,6 @@
     "prof": "ME"
   },
   {
-    "date": "2026-10-05",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Outils Maths (Christine GALY)",
-    "room": "U3-04",
-    "prof": "Christine GALY"
-  },
-  {
     "date": "2026-10-06",
     "start": "07h45",
     "end": "09h45",
@@ -342,5 +238,173 @@
     "titre": "JOURNEE UT - FESTIVAL FUTURS PROCHES",
     "room": "Non attribuée",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (ME)",
+    "room": "U3-306",
+    "prof": "ME"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
+    "room": "U3-04",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPB (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info - TD (FB)",
+    "room": "U3-04",
+    "prof": "FB"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Outils Maths (KINX5AA2)",
+    "room": "U3-amphi",
+    "prof": "KINX5AA2"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. - C (KINX5AC1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AC1"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Gestion/PPP (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPC (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Outils de modélisation info (KINX5AB1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (ME)",
+    "room": "U3-306",
+    "prof": "ME"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
+    "room": "U3-amphi",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPB (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "U3-04",
+    "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
+    "room": "U3-110",
+    "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Gestion/PPP (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPC (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
   }
 ]

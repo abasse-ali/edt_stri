@@ -1,107 +1,11 @@
 [
   {
-    "date": "2026-09-14",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-14",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
-    "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-09-14",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-09-15",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-09-15",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U3-110",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-09-15",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "O de mod info (IB)",
-    "room": "U3-04",
-    "prof": "IB"
-  },
-  {
-    "date": "2026-09-16",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-amphi",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-09-17",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-17",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-18",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion (SLA)",
-    "room": "U3-amphi",
-    "prof": "SLA"
-  },
-  {
-    "date": "2026-09-18",
-    "start": "13h30",
-    "end": "17h45",
-    "titre": "Activités / Conférences UPSSITECH",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-09-21",
     "start": "07h45",
     "end": "09h45",
     "titre": "Outils de modélisation info (FB)",
     "room": "U3-amphi",
     "prof": "FB"
-  },
-  {
-    "date": "2026-09-21",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths - C (KINX5AA2)",
-    "room": "U3-amphi",
-    "prof": "KINX5AA2"
   },
   {
     "date": "2026-09-21",
@@ -206,14 +110,6 @@
     "titre": "Econo/Gestion - C (KBR)",
     "room": "Non attribuée",
     "prof": "KBR"
-  },
-  {
-    "date": "2026-09-25",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Christine GALY)",
-    "room": "Non attribuée",
-    "prof": "Christine GALY"
   },
   {
     "date": "2026-09-25",
@@ -336,14 +232,6 @@
     "prof": "FHE"
   },
   {
-    "date": "2026-10-02",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Christine GALY)",
-    "room": "U3-amphi",
-    "prof": "Christine GALY"
-  },
-  {
     "date": "2026-10-05",
     "start": "07h45",
     "end": "09h45",
@@ -374,14 +262,6 @@
     "titre": "Informatique (Olfa MECHI)",
     "room": "U3-306",
     "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-10-06",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils Maths (Christine GALY)",
-    "room": "U3-04",
-    "prof": "Christine GALY"
   },
   {
     "date": "2026-10-06",
@@ -446,5 +326,213 @@
     "titre": "Econo/Gestion - C (KBR)",
     "room": "U3-amphi",
     "prof": "KBR"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-10-12",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
+    "room": "U3-04",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "O de mod info - TD (IB)",
+    "room": "U3-04",
+    "prof": "IB"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPA (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Outils Maths (KINX5AA2)",
+    "room": "U3-amphi",
+    "prof": "KINX5AA2"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. - C (KINX5AC1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AC1"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-10-15",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD (SLA)",
+    "room": "U3-amphi",
+    "prof": "SLA"
+  },
+  {
+    "date": "2026-10-15",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "U3-04",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-10-15",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-16",
+    "start": "07h45",
+    "end": "09h30",
+    "titre": "[EXAMEN] Maths (MàN) (KUPX5AB",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-16",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (RAB)",
+    "room": "U3-amphi",
+    "prof": "RAB"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Outils de modélisation info (KINX5AB1)",
+    "room": "U3-amphi",
+    "prof": "KINX5AB1"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
+    "room": "U3-amphi",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "18h00",
+    "end": "19h45",
+    "titre": "Réseaux - TPA (KINX5AC2)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC2"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
+    "room": "U3-110",
+    "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-10-22",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD + CC1 (SLA",
+    "room": "U3-04",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-22",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "U3-04",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-10-22",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (KBR)",
+    "room": "U3-amphi",
+    "prof": "KBR"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "U3-04",
+    "prof": "Andréi ANDRÉI"
   }
 ]
