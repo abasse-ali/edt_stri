@@ -9,6 +9,14 @@
   },
   {
     "date": "2026-09-21",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "U3-amphi",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-09-21",
     "start": "13h30",
     "end": "15h30",
     "titre": "Anglais (Gérard ROUZIES)",
@@ -22,14 +30,6 @@
     "titre": "Outils Maths (Jérôme SOKOLOFF)",
     "room": "U3-04",
     "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-09-22",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U2-114",
-    "prof": "Rahim KACIMI"
   },
   {
     "date": "2026-09-22",
