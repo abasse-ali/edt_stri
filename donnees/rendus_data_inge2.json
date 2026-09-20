@@ -1,18 +1,6 @@
 [
   {
     "date": "2026-09-15",
-    "start": "10h00",
-    "end": "10h00",
-    "uid": "3642@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "Quiz Cours 2 s’ouvre",
-    "room": "",
-    "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\n11 questions sur le contenu du cours 1 en 6 minutes",
-    "provenance": "Moodle inetdoc"
-  },
-  {
-    "date": "2026-09-15",
     "start": "10h15",
     "end": "10h15",
     "uid": "3643@moodle.inetdoc.net",
