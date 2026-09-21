@@ -357,6 +357,57 @@ def un_fond_d_examen_en_deux_demi_bandes_reste_un_examen():
 
 
 @test
+def une_case_tracee_en_courbes_garde_ses_bords():
+    """Mesures réelles du PDF du M1, « Interop (AA) » du 22/09.
+
+    Chaque bord vertical de la case est dessiné en trois morceaux de courbe —
+    oblique, droit, oblique — au lieu d'un rectangle noir. Invisible pour la
+    lecture, la case s'étendait jusqu'au bout de la grille : 15h30-19h30 au
+    lieu de 15h45-17h45.
+    """
+    NOIR = (0.0, 0.0, 0.0)
+
+    def morceau(x0, x1, haut, bas, couleur=NOIR):
+        return {"x0": x0, "x1": x1, "top": haut, "bottom": bas,
+                "stroking_color": couleur}
+
+    class Page:
+        lines = []
+        curves = [
+            # bord gauche, trois morceaux presque jointifs
+            morceau(581.8, 582.7, 161.9, 162.8), morceau(581.8, 582.7, 163.6, 167.9),
+            morceau(581.8, 582.7, 168.7, 170.4),
+            # bord droit
+            morceau(726.3, 727.2, 161.9, 162.8), morceau(726.3, 727.2, 163.6, 167.9),
+            morceau(726.3, 727.2, 168.7, 170.4),
+            # un morceau du bord HAUT : horizontal, il ne doit rien produire
+            morceau(583.5, 591.2, 159.4, 161.1),
+            # le doublon « couleur 0 » que le PDF ajoute à chaque tracé
+            morceau(581.8, 582.7, 163.6, 167.9, couleur=0),
+        ]
+
+    traits = sorted(lecture_pdf._verticales_en_courbes(Page()),
+                    key=lambda t: t["x0"])
+    egal(len(traits), 2, "deux bords verticaux, ni plus ni moins")
+    for trait, x in zip(traits, (581.8, 726.3)):
+        egal(round(trait["x0"], 1), x, "à la bonne abscisse")
+        egal(round(trait["top"], 1), 161.9, "recollé depuis le premier morceau")
+        egal(round(trait["bottom"], 1), 170.4, "jusqu'au dernier")
+        # 8,5 pt sur une demi-bande de 11,5 : au-dessus des 60 % exigés d'une
+        # bordure, là où chaque morceau seul restait en dessous.
+        assert trait["height"] / 11.5 >= 0.6, "assez haut pour compter comme bordure"
+
+    # Deux morceaux trop éloignés ne forment PAS un trait : une coche ou un
+    # soulignement isolé ne doit pas inventer une bordure.
+    class PageEparse:
+        lines = []
+        curves = [morceau(400.0, 400.9, 150.0, 152.0), morceau(400.0, 400.9, 160.0, 162.0)]
+
+    egal(len(lecture_pdf._verticales_en_courbes(PageEparse())), 2,
+         "deux morceaux distants restent deux petits traits")
+
+
+@test
 def olive_ne_se_confond_pas_avec_le_vert_des_salles():
     """Une confusion ferait passer les titres de cours pour des salles."""
     egal(lecture_pdf.est_vert((0.573, 0.816, 0.314)), False, "olive pris pour du vert")

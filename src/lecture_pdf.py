@@ -128,6 +128,54 @@ def _longueur_union(intervalles):
     return total
 
 
+def _est_trait_noir(objet):
+    """Un tracé noir, que le PDF le déclare en contour ou en remplissage."""
+    return (est_noir(objet.get('stroking_color'))
+            or est_noir(objet.get('non_stroking_color')))
+
+
+def _verticales_en_courbes(page, colle=2.0, alignement=1.5):
+    """Bordures verticales dessinées en COURBES plutôt qu'en rectangles.
+
+    Presque toutes les cases sont des rectangles noirs, mais pas toutes. Celle
+    d'« Interop (AA) » le 22/09 (M1) est tracée à la main : chaque bord est une
+    suite de petits morceaux de courbe — oblique, droit, oblique pour un bord
+    vertical de 8,5 pt. Ne cherchant que des rectangles, la lecture ne lui
+    voyait aucun bord gauche ni droit : la case s'étendait de la bordure
+    précédente jusqu'au bout de la grille, et le cours passait de 15h45-17h45
+    à 15h30-19h30.
+
+    On recolle les morceaux noirs, quasi verticaux, alignés sur la même
+    abscisse et presque jointifs, et chaque trait obtenu est rendu sous la
+    forme d'un rectangle : il passe ensuite par exactement les mêmes filtres
+    que les bordures ordinaires, hauteur minimale comprise.
+    """
+    morceaux = sorted(
+        (c for c in page.curves + page.lines
+         if _est_trait_noir(c) and c['x1'] - c['x0'] < 3),
+        key=lambda c: ((c['x0'] + c['x1']) / 2, c['top']))
+
+    traits = []
+    for m in morceaux:
+        centre = (m['x0'] + m['x1']) / 2
+        trait = next((t for t in reversed(traits)
+                      if abs(t['centre'] - centre) <= alignement
+                      and m['top'] - t['bottom'] <= colle), None)
+        if trait is None:
+            traits.append({'centre': centre, 'x0': m['x0'], 'x1': m['x1'],
+                           'top': m['top'], 'bottom': m['bottom']})
+        else:
+            trait['x0'] = min(trait['x0'], m['x0'])
+            trait['x1'] = max(trait['x1'], m['x1'])
+            trait['top'] = min(trait['top'], m['top'])
+            trait['bottom'] = max(trait['bottom'], m['bottom'])
+
+    return [{'x0': t['x0'], 'x1': t['x1'], 'top': t['top'], 'bottom': t['bottom'],
+             'width': t['x1'] - t['x0'], 'height': t['bottom'] - t['top'],
+             'non_stroking_color': (0.0, 0.0, 0.0)}
+            for t in traits]
+
+
 # --- Découpage géométrique ---------------------------------------------------
 
 class GrilleJour:
@@ -194,7 +242,7 @@ class GrilleJour:
         # Filtrées sur `top`, elles disparaissaient toutes — d'où la détection
         # morphologique de secours, qui prenait les zones vides de la grille
         # pour des cours (« 12h00-19h15 » le 26/08, cours dupliqués le 01/10).
-        self.verticales = [r for r in page.rects
+        self.verticales = [r for r in page.rects + _verticales_en_courbes(page)
                            if est_noir(r['non_stroking_color'])
                            and r['width'] < 3 and r['height'] > 3
                            and r['top'] < self.bas - 1 and r['bottom'] > self.haut + 1
