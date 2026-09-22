@@ -88,6 +88,13 @@ POSITION_RETENUE = "BOTTOM" if MOITIE_RETENUE == "BAS" else "TOP"
 # Journée où les alternants sont en entreprise : le PDF grise la date.
 TITRE_ENTREPRISE = variable_env("EDT_TITRE_ENTREPRISE", "Alternant en entreprise")
 
+# Quelle demi-promotion compte des alternants, promotion par promotion. Les
+# Ingé n'en ont pas : ni les Ingé1 de la L3, ni les Ingé2 du M1. Sans cette
+# table, la règle reposait sur « la demi-promo qui n'a pas cours ce jour-là »,
+# qui donne le bon résultat aujourd'hui mais pour la mauvaise raison — un
+# jeudi sans cours pour les Ingé leur aurait attribué l'alternance.
+MOITIE_ALTERNANTS = {"M1": "BAS", "L3": "BAS"}
+
 # À quelle combinaison promotion × moitié s'adresse un cours dont le titre
 # nomme sa promotion (voir MENTIONS_PROMO dans lecture_pdf). « M1 RT » désigne
 # le M1 Réseaux & Télécoms, c'est-à-dire la moitié basse du PDF du M1 : le
@@ -1009,12 +1016,14 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
     # dans sa légende, et le gris porte sur la colonne des dates, donc sur la
     # journée entière — pas sur un créneau.
     #
-    # On ne le publie que pour la demi-promotion SANS cours à elle ce jour-là :
-    # sur les huit journées grisées mesurées, la moitié haute a cours pendant
-    # que la basse est en entreprise. Une case pleine hauteur, qui s'adresse à
-    # tout le monde, ne compte pas comme un cours à soi — la « JOURNÉE UT » du
-    # 08/10 en est une, et elle n'empêche pas l'alternance.
-    if not propres and lecture_pdf.jour_en_entreprise(page_pdf, zone, x_min_pdf):
+    # Deux conditions, et la première est la plus importante : seule la
+    # demi-promotion qui COMPTE des alternants est concernée. La seconde écarte
+    # le cas contradictoire d'une journée grisée où elle aurait cours malgré
+    # tout. Une case pleine hauteur, qui s'adresse à tout le monde, ne compte
+    # pas comme un cours à soi — la « JOURNÉE UT » du 08/10 en est une, et elle
+    # n'empêche pas l'alternance.
+    if (MOITIE_ALTERNANTS.get(PROMO) == MOITIE_RETENUE and not propres
+            and lecture_pdf.jour_en_entreprise(page_pdf, zone, x_min_pdf)):
         print(f"    [+] {TITRE_ENTREPRISE} (journée entière)")
         liste_cours_json.append({
             "date": date_str_fmt,

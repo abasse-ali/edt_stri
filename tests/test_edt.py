@@ -285,6 +285,32 @@ def une_date_grisee_signale_une_journee_en_entreprise():
 
 
 @test
+def seules_les_promos_avec_alternants_vont_en_entreprise():
+    """Les Ingé n'ont pas d'alternants : ni les Ingé1, ni les Ingé2.
+
+    La règle reposait d'abord sur « la demi-promo qui n'a pas cours ce
+    jour-là ». Elle donnait le bon résultat, mais pour la mauvaise raison : un
+    jeudi sans cours pour les Ingé leur aurait attribué l'alternance.
+    """
+    egal(edt_stri.MOITIE_ALTERNANTS, {"M1": "BAS", "L3": "BAS"},
+         "le M1 G2 et l'IRT L3 ont des alternants, pas les Ingé")
+
+    for promo, moitie in edt_stri.MOITIE_ALTERNANTS.items():
+        assert promo in edt_stri.PROMOS, f"{promo} n'existe pas"
+        assert moitie in edt_stri.PROMOS[promo]["agendas"], f"{moitie} inconnue"
+        autre = "HAUT" if moitie == "BAS" else "BAS"
+        assert "Ingé" in edt_stri.PROMOS[promo]["agendas"][autre], (
+            f"{promo} : la demi-promo écartée devrait être celle des Ingé, "
+            f"or c'est « {edt_stri.PROMOS[promo]['agendas'][autre]} »")
+
+    # La vérification tient la même liste de son côté : si les deux divergent,
+    # c'est exactement ce qu'elle est censée révéler.
+    moities = {m for m in verif_edt.MOITIES_ALTERNANTS}
+    egal(moities, set(edt_stri.MOITIE_ALTERNANTS.values()),
+         "les deux tables d'alternance ont divergé")
+
+
+@test
 def une_journee_entiere_traverse_toute_la_chaine():
     """Un événement sans horaire doit survivre à la déduplication et à l'ICS.
 

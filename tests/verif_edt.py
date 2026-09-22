@@ -64,6 +64,11 @@ MOITIES = ("BAS", "HAUT")
 GRILLE_DEBUT = 7 * 60 + 45
 GRILLE_FIN_MAX = 20 * 60
 
+# Demi-promotions comptant des alternants. Les Ingé n'en ont pas, ni en L3
+# (Ingé1) ni en M1 (Ingé2) : une journée « en entreprise » chez eux serait une
+# erreur d'attribution.
+MOITIES_ALTERNANTS = ("BAS",)
+
 
 # =====================================================================
 # RAPPORT
@@ -539,6 +544,17 @@ def controler_donnees(rap, moitie, cours, chemin_ics):
     rap.verifier(not chevauchements, "aucun chevauchement horaire",
                  f"{len(cours)} cours sur {len(par_jour)} journées",
                  f"{len(chevauchements)} : " + ", ".join(chevauchements[:4]))
+
+    # Une journée entière ne peut être qu'une journée d'alternance, et les Ingé
+    # n'ont pas d'alternants. Table écrite ici exprès, sans importer celle
+    # d'edt_stri : deux règles qui divergent sont ce qu'on cherche à voir.
+    journees = [c for c in cours if not c["start"]]
+    rap.verifier(not journees or moitie in MOITIES_ALTERNANTS,
+                 "journées entières réservées aux alternants",
+                 f"{len(journees)} journée(s) en entreprise",
+                 f"{len(journees)} journée(s) entière(s) en moitié {moitie}, "
+                 "qui ne compte pas d'alternants : "
+                 + ", ".join(c["date"] for c in journees[:3]))
 
     doublons = [k for k, n in Counter(
         (c["date"], c["start"], c["titre"]) for c in cours).items() if n > 1]
