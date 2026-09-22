@@ -83,7 +83,6 @@ _PROMO = PROMOS[PROMO]
 
 # Position à écarter : l'opposée de celle qu'on garde.
 POSITION_ECARTEE = "TOP" if MOITIE_RETENUE == "BAS" else "BOTTOM"
-POSITION_RETENUE = "BOTTOM" if MOITIE_RETENUE == "BAS" else "TOP"
 
 # Journée où les alternants sont en entreprise : le PDF grise la date.
 TITRE_ENTREPRISE = variable_env("EDT_TITRE_ENTREPRISE", "Alternant en entreprise")
@@ -922,9 +921,6 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         image_page = cv2.cvtColor(np.array(images_pdf[page_idx]), cv2.COLOR_RGB2BGR)
         _exporter_debug_journee(image_page, cellules, grille, date_str_fmt)
 
-    # Cours appartenant en propre à la demi-promotion traitée, cases pleine
-    # hauteur exclues : c'est ce qui dit si elle a réellement cours ce jour-là.
-    propres = 0
     for cellule in cellules:
         # Une case pleine hauteur peut porter DEUX cours, un par
         # demi-promotion : la lecture en rend donc une liste.
@@ -1009,20 +1005,19 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
                 "room": salle,
                 "prof": p_full or "Inconnu",
             })
-            if block['position'] == POSITION_RETENUE:
-                propres += 1
 
     # Date grisée : les alternants sont en entreprise ce jour-là. Le PDF le dit
     # dans sa légende, et le gris porte sur la colonne des dates, donc sur la
     # journée entière — pas sur un créneau.
     #
-    # Deux conditions, et la première est la plus importante : seule la
-    # demi-promotion qui COMPTE des alternants est concernée. La seconde écarte
-    # le cas contradictoire d'une journée grisée où elle aurait cours malgré
-    # tout. Une case pleine hauteur, qui s'adresse à tout le monde, ne compte
-    # pas comme un cours à soi — la « JOURNÉE UT » du 08/10 en est une, et elle
-    # n'empêche pas l'alternance.
-    if (MOITIE_ALTERNANTS.get(PROMO) == MOITIE_RETENUE and not propres
+    # Une seule condition : que la demi-promotion COMPTE des alternants. Avoir
+    # exigé en plus qu'elle n'ait aucun cours ce jour-là était une erreur — la
+    # semaine du 12 au 16/10 est grisée pour le M1 alors que des cours y sont
+    # dessinés, et trois journées sur cinq disparaissaient. Le PDF ne dit pas
+    # que personne n'a cours : il dit que les alternants sont en entreprise.
+    # Les deux coexistent, l'un pour ceux qui ont signé, l'autre pour les
+    # autres, et c'est à l'élève de savoir où il en est.
+    if (MOITIE_ALTERNANTS.get(PROMO) == MOITIE_RETENUE
             and lecture_pdf.jour_en_entreprise(page_pdf, zone, x_min_pdf)):
         print(f"    [+] {TITRE_ENTREPRISE} (journée entière)")
         liste_cours_json.append({

@@ -263,10 +263,23 @@ def une_date_grisee_signale_une_journee_en_entreprise():
     egal(lecture_pdf.jour_en_entreprise(Page(etiquette), zone, X_MIN), True,
          "la date grisée marque toute la journée")
 
-    # La légende et le bandeau des jours traversent la page : pas des dates.
-    legende = [rect(87.3, 789.6, 247.3, 268.0)]
+    # Seconde mise en page : une semaine entière grisée d'un seul rectangle,
+    # large de toute la page (L3, 26 au 30/10). Avoir borné la largeur à droite
+    # la rejetait, et cinq journées manquaient.
+    semaine = [rect(61.0, 819.0, 240.0, 350.0)]
+    egal(lecture_pdf.jour_en_entreprise(Page(semaine), zone, X_MIN), True,
+         "une semaine grisée d'un bloc compte aussi")
+
+    # La légende est grise et large elle aussi, mais haute de 10 pt : elle ne
+    # couvre jamais l'essentiel d'une journée, qui en fait une vingtaine.
+    legende = [rect(87.3, 789.6, 247.3, 257.3)]
     egal(lecture_pdf.jour_en_entreprise(Page(legende), zone, X_MIN), False,
-         "un gris qui déborde dans la grille n'est pas une étiquette de date")
+         "la légende ne grise pas la journée qu'elle surplombe")
+
+    # Un gris qui commence DANS la grille ne concerne pas la date.
+    dans_la_grille = [rect(200.0, 400.0, 247.3, 268.0)]
+    egal(lecture_pdf.jour_en_entreprise(Page(dans_la_grille), zone, X_MIN), False,
+         "un fond de case n'est pas une journée d'alternance")
 
     # Un simple filet gris en haut de la bande ne suffit pas.
     filet = [rect(87.3, 128.3, 248.0, 251.0)]

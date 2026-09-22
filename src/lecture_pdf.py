@@ -148,22 +148,28 @@ def _longueur_union(intervalles):
 def jour_en_entreprise(page, zone, x_min_pdf, part=0.8):
     """La date de cette journée est-elle grisée ?
 
-    Le gris est posé sur la COLONNE DES DATES, à gauche de la grille, et non
-    sur les cases de cours : c'est la journée entière qui est marquée, pas un
-    créneau. On exige qu'il couvre l'essentiel de la bande, pour ne pas prendre
-    un simple filet gris pour une journée d'alternance.
+    Le gris part de la COLONNE DES DATES, à gauche de la grille, et non d'une
+    case de cours : c'est la journée entière qui est marquée, pas un créneau.
+    Deux mises en page coexistent, et toutes deux comptent :
 
-    Deux autres gris existent dans le document et doivent rester dehors : la
-    légende (« … sont en entreprise les jours grisés ») et le bandeau des jours
-    de la semaine, tous deux larges de 702 pt. D'où la borne à droite : un
-    rectangle qui déborde dans la grille n'est pas une étiquette de date.
+      - un jour isolé : le gris ne couvre que sa date (M1, 12 au 16/10) ;
+      - une semaine entière : un seul rectangle large couvre les cinq bandes
+        d'un coup (L3, 26 au 30/10).
+
+    D'où le seul critère retenu : commencer à gauche de la grille — donc
+    englober la date — et couvrir l'essentiel de la hauteur du jour. Borner la
+    largeur à droite, comme on l'a d'abord fait, rejetait la semaine entière.
+
+    La légende (« … sont en entreprise les jours grisés ») est elle aussi grise
+    et large, mais haute de 10 pt seulement : elle ne couvre jamais 80 % d'une
+    journée, qui en fait une vingtaine.
     """
     haut, bas = zone['top'], zone['bottom']
     hauteur = max(bas - haut, 1.0)
     etiquettes = [(max(r['top'], haut), min(r['bottom'], bas))
                   for r in page.rects
                   if est_gris(r['non_stroking_color'])
-                  and r['x0'] < x_min_pdf - 2 and r['x1'] < x_min_pdf + 6
+                  and r['x0'] < x_min_pdf - 2
                   and r['bottom'] > haut + 1 and r['top'] < bas - 1]
     return _longueur_union(etiquettes) / hauteur >= part
 
