@@ -459,7 +459,10 @@ def controler_routage(rap, promo, cellules, donnees):
     """Chaque cours est-il dans la bonne demi-promo, et seulement celle-là ?"""
     rap.bloc("Placement dans les demi-promos")
 
-    publies = {m: {(c["date"], c["start"], c["end"]) for c in donnees[m]}
+    # Les journées entières ne viennent d'aucune case : elles naissent du gris
+    # posé sur la date, pas d'un créneau. Les comparer aux cellules les ferait
+    # passer pour des intrus.
+    publies = {m: {(c["date"], c["start"], c["end"]) for c in donnees[m] if c["start"]}
                for m in MOITIES}
 
     manques = defaultdict(list)
@@ -520,9 +523,13 @@ def controler_donnees(rap, moitie, cours, chemin_ics):
         return int(h[:2]) * 60 + int(h[3:5])
 
     # Un chevauchement dans une même demi-promo = deux cours au même moment.
+    # Les journées entières (alternant en entreprise) en sont exclues : sans
+    # horaire, elles couvrent la journée et recouvrent donc légitimement ce qui
+    # s'y trouve — la « JOURNÉE UT » du 08/10, par exemple.
     par_jour = defaultdict(list)
     for c in cours:
-        par_jour[c["date"]].append(c)
+        if c["start"]:
+            par_jour[c["date"]].append(c)
     chevauchements = []
     for jour, liste in par_jour.items():
         liste.sort(key=lambda c: minutes(c["start"]))

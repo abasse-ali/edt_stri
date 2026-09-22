@@ -83,6 +83,10 @@ _PROMO = PROMOS[PROMO]
 
 # Position à écarter : l'opposée de celle qu'on garde.
 POSITION_ECARTEE = "TOP" if MOITIE_RETENUE == "BAS" else "BOTTOM"
+POSITION_RETENUE = "BOTTOM" if MOITIE_RETENUE == "BAS" else "TOP"
+
+# Journée où les alternants sont en entreprise : le PDF grise la date.
+TITRE_ENTREPRISE = variable_env("EDT_TITRE_ENTREPRISE", "Alternant en entreprise")
 
 # À quelle combinaison promotion × moitié s'adresse un cours dont le titre
 # nomme sa promotion (voir MENTIONS_PROMO dans lecture_pdf). « M1 RT » désigne
@@ -911,6 +915,9 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
         image_page = cv2.cvtColor(np.array(images_pdf[page_idx]), cv2.COLOR_RGB2BGR)
         _exporter_debug_journee(image_page, cellules, grille, date_str_fmt)
 
+    # Cours appartenant en propre à la demi-promotion traitée, cases pleine
+    # hauteur exclues : c'est ce qui dit si elle a réellement cours ce jour-là.
+    propres = 0
     for cellule in cellules:
         # Une case pleine hauteur peut porter DEUX cours, un par
         # demi-promotion : la lecture en rend donc une liste.
@@ -995,6 +1002,29 @@ def traiter_journee(zone, images_pdf, page_pdf, liste_cours_json):
                 "room": salle,
                 "prof": p_full or "Inconnu",
             })
+            if block['position'] == POSITION_RETENUE:
+                propres += 1
+
+    # Date grisée : les alternants sont en entreprise ce jour-là. Le PDF le dit
+    # dans sa légende, et le gris porte sur la colonne des dates, donc sur la
+    # journée entière — pas sur un créneau.
+    #
+    # On ne le publie que pour la demi-promotion SANS cours à elle ce jour-là :
+    # sur les huit journées grisées mesurées, la moitié haute a cours pendant
+    # que la basse est en entreprise. Une case pleine hauteur, qui s'adresse à
+    # tout le monde, ne compte pas comme un cours à soi — la « JOURNÉE UT » du
+    # 08/10 en est une, et elle n'empêche pas l'alternance.
+    if not propres and lecture_pdf.jour_en_entreprise(page_pdf, zone, x_min_pdf):
+        print(f"    [+] {TITRE_ENTREPRISE} (journée entière)")
+        liste_cours_json.append({
+            "date": date_str_fmt,
+            # Sans horaire : Google et l'ICS en font une journée entière.
+            "start": "",
+            "end": "",
+            "titre": TITRE_ENTREPRISE,
+            "room": "",
+            "prof": "",
+        })
 
     return True
 
@@ -1014,10 +1044,17 @@ def deduplicer(cours_list):
     def minutes(h):
         return int(h[:2]) * 60 + int(h[3:5])
 
+    # Une journée entière n'a pas d'horaire : elle ne vient d'aucune case et ne
+    # peut donc pas être la même case lue deux fois. On la garde telle quelle
+    # plutôt que de lui inventer des bornes pour la comparer.
+    def duree(c):
+        return 24 * 60 if not c['start'] else minutes(c['end']) - minutes(c['start'])
+
     gardes = []
-    for c in sorted(cours_list, key=lambda c: minutes(c['end']) - minutes(c['start'])):
-        double = any(
+    for c in sorted(cours_list, key=duree):
+        double = c['start'] and any(
             g['date'] == c['date'] and g['titre'] == c['titre'] and g['room'] == c['room']
+            and g['start']
             and minutes(c['start']) < minutes(g['end']) and minutes(g['start']) < minutes(c['end'])
             for g in gardes
         )
@@ -1105,22 +1142,27 @@ def construire_ics(cours_list, chemin=FICHIER_ICS):
 
     for cours in cours_list:
         try:
-            h_start, m_start = map(int, cours['start'].split('h'))
-            h_end, m_end = map(int, cours['end'].split('h'))
             date_obj = datetime.strptime(cours['date'], '%Y-%m-%d')
-
-            debut = date_obj.replace(hour=h_start, minute=m_start, tzinfo=tz)
-            fin = date_obj.replace(hour=h_end, minute=m_end, tzinfo=tz)
-            if fin <= debut:
-                print(f"⚠️ Horaires incohérents ignorés : {cours['titre']} "
-                      f"({cours['start']}-{cours['end']})")
-                continue
 
             evt = Event()
             evt.summary = cours['titre']
             evt.location = cours.get('room', '')
-            evt.begin = debut
-            evt.end = fin
+
+            if not cours['start']:
+                # Journée entière (alternant en entreprise) : pas d'horaire.
+                evt.begin = date_obj.date()
+                evt.make_all_day()
+            else:
+                h_start, m_start = map(int, cours['start'].split('h'))
+                h_end, m_end = map(int, cours['end'].split('h'))
+                debut = date_obj.replace(hour=h_start, minute=m_start, tzinfo=tz)
+                fin = date_obj.replace(hour=h_end, minute=m_end, tzinfo=tz)
+                if fin <= debut:
+                    print(f"⚠️ Horaires incohérents ignorés : {cours['titre']} "
+                          f"({cours['start']}-{cours['end']})")
+                    continue
+                evt.begin = debut
+                evt.end = fin
             # CORRECTIF #8 : UID stable -> les agendas abonnés mettent à jour
             # l'événement au lieu de le supprimer puis le recréer à chaque run.
             empreinte = f"{cours['date']}|{cours['start']}|{cours['end']}|{cours['titre']}"

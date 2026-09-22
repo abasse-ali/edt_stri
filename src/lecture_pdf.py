@@ -60,6 +60,23 @@ def est_noir(c):
     return _proche(c, (0.0, 0.0, 0.0))
 
 
+def est_gris(c):
+    """Gris neutre : la date d'un jour où les alternants sont en entreprise.
+
+    Le PDF de la L3 l'explique dans sa légende : « À partir de la semaine du
+    28/09, les alternants (ayant signé leurs contrats) sont en entreprise les
+    jours grisés. » Le gris mesuré vaut 0,749 sur les trois canaux.
+
+    Défini par sa NEUTRALITÉ plutôt que par une valeur exacte : le document
+    emploie déjà deux gris (0,749 pour les dates, 0,851 pour la légende), et un
+    troisième ton ne doit pas passer inaperçu. Le blanc et le noir sont exclus,
+    l'un étant le fond des pages et l'autre les bordures.
+    """
+    if not isinstance(c, (tuple, list)) or len(c) != 3:
+        return False
+    return max(c) - min(c) < 0.06 and 0.45 < min(c) < 0.95
+
+
 # --- Table des enseignants ---------------------------------------------------
 
 def charger_profs(chemin=None):
@@ -126,6 +143,29 @@ def _longueur_union(intervalles):
             total += bout - fin
             fin = bout
     return total
+
+
+def jour_en_entreprise(page, zone, x_min_pdf, part=0.8):
+    """La date de cette journée est-elle grisée ?
+
+    Le gris est posé sur la COLONNE DES DATES, à gauche de la grille, et non
+    sur les cases de cours : c'est la journée entière qui est marquée, pas un
+    créneau. On exige qu'il couvre l'essentiel de la bande, pour ne pas prendre
+    un simple filet gris pour une journée d'alternance.
+
+    Deux autres gris existent dans le document et doivent rester dehors : la
+    légende (« … sont en entreprise les jours grisés ») et le bandeau des jours
+    de la semaine, tous deux larges de 702 pt. D'où la borne à droite : un
+    rectangle qui déborde dans la grille n'est pas une étiquette de date.
+    """
+    haut, bas = zone['top'], zone['bottom']
+    hauteur = max(bas - haut, 1.0)
+    etiquettes = [(max(r['top'], haut), min(r['bottom'], bas))
+                  for r in page.rects
+                  if est_gris(r['non_stroking_color'])
+                  and r['x0'] < x_min_pdf - 2 and r['x1'] < x_min_pdf + 6
+                  and r['bottom'] > haut + 1 and r['top'] < bas - 1]
+    return _longueur_union(etiquettes) / hauteur >= part
 
 
 def _est_trait_noir(objet):

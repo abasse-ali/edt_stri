@@ -240,6 +240,81 @@ def destinataires_la_couleur_prime_sur_la_position():
 
 
 @test
+def une_date_grisee_signale_une_journee_en_entreprise():
+    """Mesures réelles du PDF de L3 : le gris est sur la COLONNE DES DATES.
+
+    Sa légende le dit : « les alternants sont en entreprise les jours grisés ».
+    Deux autres gris existent dans le document — la légende elle-même et le
+    bandeau des jours — tous deux larges de 702 pt : ils doivent rester dehors,
+    sinon toutes les journées passeraient pour de l'alternance.
+    """
+    GRIS, X_MIN = (0.74902, 0.74902, 0.74902), 126.4
+    zone = {"top": 247.3, "bottom": 268.0}     # journée du 01/10
+
+    def rect(x0, x1, haut, bas, couleur=GRIS):
+        return {"x0": x0, "x1": x1, "top": haut, "bottom": bas,
+                "non_stroking_color": couleur}
+
+    class Page:
+        def __init__(self, rects):
+            self.rects = rects
+
+    etiquette = [rect(87.3, 128.3, 248.0, 258.0), rect(87.3, 128.3, 257.9, 277.7)]
+    egal(lecture_pdf.jour_en_entreprise(Page(etiquette), zone, X_MIN), True,
+         "la date grisée marque toute la journée")
+
+    # La légende et le bandeau des jours traversent la page : pas des dates.
+    legende = [rect(87.3, 789.6, 247.3, 268.0)]
+    egal(lecture_pdf.jour_en_entreprise(Page(legende), zone, X_MIN), False,
+         "un gris qui déborde dans la grille n'est pas une étiquette de date")
+
+    # Un simple filet gris en haut de la bande ne suffit pas.
+    filet = [rect(87.3, 128.3, 248.0, 251.0)]
+    egal(lecture_pdf.jour_en_entreprise(Page(filet), zone, X_MIN), False,
+         "il faut que le gris couvre l'essentiel de la journée")
+
+    egal(lecture_pdf.jour_en_entreprise(Page([]), zone, X_MIN), False,
+         "une journée sans gris est une journée ordinaire")
+
+    # Le gris se reconnaît à sa neutralité, pas à une valeur exacte.
+    egal(lecture_pdf.est_gris(GRIS), True, "gris des dates")
+    egal(lecture_pdf.est_gris((0.851, 0.851, 0.851)), True, "gris de la légende")
+    egal(lecture_pdf.est_gris((1.0, 1.0, 1.0)), False, "le blanc est le fond")
+    egal(lecture_pdf.est_gris((0.0, 0.0, 0.0)), False, "le noir est une bordure")
+    egal(lecture_pdf.est_gris((0.573, 0.816, 0.314)), False, "l'olive n'est pas gris")
+
+
+@test
+def une_journee_entiere_traverse_toute_la_chaine():
+    """Un événement sans horaire doit survivre à la déduplication et à l'ICS.
+
+    Trois étapes supposaient un horaire « HHhMM » et se seraient arrêtées sur
+    une chaîne vide.
+    """
+    import google_agenda
+    entreprise = {"date": "2026-10-01", "start": "", "end": "",
+                  "titre": edt_stri.TITRE_ENTREPRISE, "room": "", "prof": ""}
+    ordinaire = cours(date="2026-10-01", start="08h00", end="10h00")
+
+    garde = edt_stri.deduplicer([entreprise, ordinaire])
+    egal(len(garde), 2, "la journée entière n'est pas prise pour un doublon")
+
+    with tempfile.TemporaryDirectory() as dossier:
+        chemin = Path(dossier) / "essai.ics"
+        egal(edt_stri.construire_ics([entreprise, ordinaire], str(chemin)), 2,
+             "les deux événements sont écrits")
+        texte = chemin.read_text(encoding="utf-8")
+    assert "DTSTART;VALUE=DATE:20261001" in texte, (
+        f"l'ICS doit porter une date sans heure :\n{texte}")
+
+    # Côté Google, c'est la clé `date` qui fait la journée entière.
+    evenement = google_agenda._en_evenement(entreprise)
+    egal(evenement["start"], {"date": "2026-10-01"}, "début sur la date seule")
+    egal(evenement["end"], {"date": "2026-10-02"}, "fin exclusive au lendemain")
+    assert google_agenda._identifiant(entreprise) != google_agenda._identifiant(ordinaire)
+
+
+@test
 def une_journee_banalisee_n_est_pas_une_case_fantome():
     """Une case de plus de 8 h trahit d'ordinaire des bordures mal lues.
 
