@@ -240,6 +240,34 @@ def destinataires_la_couleur_prime_sur_la_position():
 
 
 @test
+def une_journee_banalisee_n_est_pas_une_case_fantome():
+    """Une case de plus de 8 h trahit d'ordinaire des bordures mal lues.
+
+    Mais le 15/10 (L3) porte « JOURNEE UT - FESTIVAL FUTURSPROCHES » de 07h45
+    à 18h00 : 10 h 15 parfaitement réelles. Ce qui la distingue, c'est qu'elle
+    commence avec la journée et porte un intitulé.
+    """
+    def case(debut, fin, cours=None):
+        return {"date": "2026-10-15", "debut": debut, "fin": fin,
+                "bloc": {"course": cours} if cours else None}
+
+    journee = case("07h45", "18h00", "JOURNEE UT - FESTIVAL FUTURSPROCHES")
+    fantome = case("10h00", "19h30", "Réseaux")     # commence en plein jour
+    muette = case("07h45", "18h00")                  # aucun intitulé lu
+
+    rapport = verif_edt.Rapport()
+    verif_edt.controler_horaires(rapport, [journee, case("08h00", "10h00", "BD")])
+    egal(rapport.anomalies, 0, "une journée banalisée ne bloque pas")
+    egal(rapport.reserves, 1, "mais elle reste signalée")
+
+    for suspecte, pourquoi in ((fantome, "commence en milieu de journée"),
+                               (muette, "aucun intitulé lu")):
+        rapport = verif_edt.Rapport()
+        verif_edt.controler_horaires(rapport, [suspecte])
+        assert rapport.anomalies >= 1, f"doit rester une anomalie : {pourquoi}"
+
+
+@test
 def destinataires_une_promotion_nommee_prime_sur_tout():
     """« Gestion (M1 RT) » : écrit noir sur blanc, donc plus fort que le reste.
 

@@ -380,11 +380,27 @@ def controler_horaires(rap, cellules):
                  f"{len(hors_quart)} hors grille : "
                  + ", ".join(f"{c['date']} {c['debut']}-{c['fin']}" for c in hors_quart[:4]))
 
-    trop_longs = [c for c in lisibles
-                  if minutes(c["fin"]) - minutes(c["debut"]) > 8 * 60]
+    # Une case de plus de 8 h trahit d'ordinaire des bordures mal lues, qui ont
+    # fondu plusieurs créneaux en un. Mais la journée banalisée existe :
+    # « JOURNEE UT - FESTIVAL FUTURSPROCHES » occupe le 15/10 de 07h45 à 18h00.
+    # Ce qui la distingue d'une case fantôme, c'est qu'elle commence AVEC la
+    # journée et porte un vrai intitulé. On l'accepte, mais en la signalant :
+    # une réserve reste sous les yeux, là où une exception muette se retourne
+    # tôt ou tard contre nous.
+    longues = [c for c in lisibles
+               if minutes(c["fin"]) - minutes(c["debut"]) > 8 * 60]
+    journees = [c for c in longues
+                if c["bloc"] and minutes(c["debut"]) <= GRILLE_DEBUT + 15]
+    trop_longs = [c for c in longues if c not in journees]
+
     rap.verifier(not trop_longs, "aucune durée aberrante", "toutes sous 8 h",
                  f"{len(trop_longs)} au-delà de 8 h — "
                  "signe d'une case fantôme sur la grille vide")
+    if journees:
+        rap.reserve("journée(s) banalisée(s)",
+                    ", ".join(f"{c['date']} {c['debut']}-{c['fin']} "
+                              f"{(c['bloc'].get('course') or '')[:28]}"
+                              for c in journees[:3]))
 
 
 def controler_plausibilite(rap, cellules, donnees):
