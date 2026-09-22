@@ -52,7 +52,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "SHS (André AOUN)",
-    "room": "U3-04",
+    "room": "U3-02",
     "prof": "André AOUN"
   },
   {
@@ -232,20 +232,12 @@
     "prof": "André AOUN"
   },
   {
-    "date": "2026-10-08",
-    "start": "15h45",
-    "end": "18h00",
-    "titre": "JOURNEE UT - FESTIVAL FUTURS PROCHES",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-10-12",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Outils de modélisation info - C (KINX5AB1)",
+    "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
     "room": "U3-amphi",
-    "prof": "KINX5AB1"
+    "prof": "Andréi ANDRÉI"
   },
   {
     "date": "2026-10-12",
@@ -259,17 +251,9 @@
     "date": "2026-10-12",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
     "room": "U3-04",
     "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-10-12",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPB (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
   },
   {
     "date": "2026-10-13",
@@ -299,9 +283,9 @@
     "date": "2026-10-14",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] Outils Maths (KINX5AA2)",
+    "titre": "[EXAMEN] Outils Maths (Abdelmalek BENZEKRI)",
     "room": "U3-amphi",
-    "prof": "KINX5AA2"
+    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-10-14",
@@ -320,12 +304,12 @@
     "prof": "André AOUN"
   },
   {
-    "date": "2026-10-14",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPC (KINX5AC2)",
+    "date": "2026-10-15",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "JOURNEE UT - FESTIVAL FUTURSPROCHES",
     "room": "Non attribuée",
-    "prof": "KINX5AC2"
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-19",
@@ -350,14 +334,6 @@
     "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
     "room": "U3-amphi",
     "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-10-19",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPB (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
   },
   {
     "date": "2026-10-20",
@@ -398,13 +374,5 @@
     "titre": "Gestion/PPP (André AOUN)",
     "room": "Non attribuée",
     "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-21",
-    "start": "18h00",
-    "end": "19h45",
-    "titre": "Réseaux - TPC (KINX5AC2)",
-    "room": "Non attribuée",
-    "prof": "KINX5AC2"
   }
 ]
