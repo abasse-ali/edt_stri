@@ -724,6 +724,13 @@ def extraire_zones_jours_pdf(chemin_pdf):
     annee_courante = None
     mois_precedent = None
 
+    # La date n'est écrite qu'UNE fois par semaine, sur la ligne du lundi : les
+    # autres jours s'en déduisent par décalage. Cette référence doit donc
+    # traverser les pages, car une semaine peut être coupée en deux — celle du
+    # 12/10 a son lundi et son mardi en page 1, et la suite en page 2, sans
+    # aucune date. La remettre à zéro à chaque page perdait ces trois journées.
+    current_monday_date = None
+
     with pdfplumber.open(chemin_pdf) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             words = page.extract_words()
@@ -736,12 +743,13 @@ def extraire_zones_jours_pdf(chemin_pdf):
             r_lines = [r['top'] for r in page.rects if r['width'] > 100 and r['height'] < 5]
             all_y_lines = sorted({round(y, 1) for y in h_lines + r_lines})
 
-            current_monday_date = None
+            date_lue_ici = False
             for w in sorted(words, key=lambda w: (w['top'], w['x0'])):
                 text = w['text'].lower()
 
                 match_date = REGEX_DATE.match(text)
                 if match_date:
+                    date_lue_ici = True
                     jour_str, mois_str = match_date.groups()
                     mois = MOIS_MAP[mois_str]
                     jour = int(jour_str)
@@ -765,6 +773,17 @@ def extraire_zones_jours_pdf(chemin_pdf):
 
                 if day_offset != -1 and current_monday_date:
                     actual_date = current_monday_date + timedelta(days=day_offset)
+
+                    # Référence héritée de la page précédente : si elle produit
+                    # une date déjà vue, c'est qu'une nouvelle semaine commence
+                    # sans que sa date soit écrite. Les journées se suivent
+                    # toujours, jamais l'inverse : on avance de semaine en
+                    # semaine jusqu'à retrouver cet ordre.
+                    if not date_lue_ici and final_day_zones:
+                        derniere = final_day_zones[-1]['date']
+                        while actual_date <= derniere:
+                            current_monday_date += timedelta(days=7)
+                            actual_date += timedelta(days=7)
                     lines_above = [y for y in all_y_lines if y < w['top']]
                     exact_top = lines_above[-1] if lines_above else w['top'] - 10
                     lines_below = [y for y in all_y_lines if y > w['bottom']]

@@ -16,6 +16,7 @@ simplifiant.
 Aucune dépendance de test : la bibliothèque standard suffit.
 """
 
+import io
 import sys
 import tempfile
 from datetime import datetime, timedelta, timezone
@@ -237,6 +238,44 @@ def destinataires_la_couleur_prime_sur_la_position():
     egal(d({"position": "FULL", "couleur": "ORANGE"}), {"HAUT"}, "orange en pleine hauteur")
     egal(d({"position": "FULL", "couleur": "OLIVE"}), {"BAS"}, "olive en pleine hauteur")
     egal(d({"position": "BOTTOM", "couleur": "ORANGE"}), {"HAUT"}, "orange contredit la position")
+
+
+@test
+def une_semaine_coupee_en_deux_pages_garde_ses_journees():
+    """La date n'est écrite qu'une fois par semaine, sur la ligne du lundi.
+
+    Vécu le 24/09 : la semaine du 12/10 avait son lundi et son mardi en page 1
+    de l'emploi du temps de L3, et le reste en page 2 — sans aucune date. La
+    référence étant remise à zéro à chaque page, les 14, 15 et 16 octobre
+    disparaissaient purement et simplement.
+
+    Le contrôle porte sur les PDF du dépôt : aucun jour ouvré ne doit manquer
+    entre la première et la dernière journée lues.
+    """
+    for promo, config in edt_stri.PROMOS.items():
+        chemin = Path(config["pdf"])
+        if not chemin.exists():
+            raise Passer(f"{chemin.name} absent")
+
+        silence = io.StringIO()
+        vrai, sys.stdout = sys.stdout, silence
+        try:
+            zones = edt_stri.extraire_zones_jours_pdf(str(chemin))
+        finally:
+            sys.stdout = vrai
+
+        dates = sorted(z["date"] for z in zones)
+        assert dates, f"{promo} : aucune journée lue"
+        egal(len(dates), len(set(dates)), f"{promo} : une date apparaît deux fois")
+
+        manquants, jour = [], dates[0]
+        while jour <= dates[-1]:
+            if jour.weekday() < 5 and jour not in dates:
+                manquants.append(jour.strftime("%d/%m"))
+            jour += timedelta(days=1)
+        assert not manquants, (
+            f"{promo} : {len(manquants)} jour(s) ouvré(s) manquant(s) — "
+            f"{', '.join(manquants[:5])}")
 
 
 @test
