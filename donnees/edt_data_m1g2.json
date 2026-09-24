@@ -425,6 +425,14 @@
   },
   {
     "date": "2026-10-12",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-12",
     "start": "10h00",
     "end": "12h00",
     "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
@@ -446,6 +454,14 @@
     "titre": "Projets / BE (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-13",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
   },
   {
     "date": "2026-10-13",
@@ -481,6 +497,14 @@
   },
   {
     "date": "2026-10-14",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-14",
     "start": "07h45",
     "end": "09h45",
     "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
@@ -510,6 +534,22 @@
     "titre": "BE (M1 non alternants)",
     "room": "U3-306",
     "prof": "M1 non alternants"
+  },
+  {
+    "date": "2026-10-15",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-16",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
   },
   {
     "date": "2026-10-16",

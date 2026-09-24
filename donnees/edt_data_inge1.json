@@ -169,6 +169,14 @@
   },
   {
     "date": "2026-09-30",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Réseaux d'entreprise (André AOUN)",
+    "room": "U3-4",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-09-30",
     "start": "10h00",
     "end": "12h00",
     "titre": "Tech. de trans. (Frédéric MOUTIER)",
