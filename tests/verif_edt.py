@@ -614,6 +614,39 @@ def controler_donnees(rap, moitie, cours, chemin_ics):
                  f"{texte.count('BEGIN:VEVENT') - len(uid_ics)} doublon(s)")
 
 
+def ecart_evenement(c, evt):
+    """En quoi l'agenda diffère-t-il du cours attendu ? Rend None si tout va bien.
+
+    Une journée entière (alternant en entreprise) n'a pas d'horaire : Google la
+    porte sur la clé `date` et non `dateTime`, sans salle ni fuseau. La
+    comparer à un horaire attendu la déclarait fausse à chaque passage.
+    """
+    if evt is None:
+        return f"absent : {c['date']} {c['start']} {c['titre'][:20]}"
+
+    if not c["start"]:
+        debut = evt.get("start", {}).get("date", "")
+        return None if debut == c["date"] else f"journée : {c['date']} ≠ {debut}"
+
+    debut = evt.get("start", {}).get("dateTime", "")
+    attendu = f"{c['date']}T{c['start'][:2]}:{c['start'][3:5]}:00"
+    if not debut.startswith(attendu):
+        return f"horaire : {c['date']} {c['start']} ≠ {debut[:16]}"
+    if (evt.get("location") or "") != (c.get("room") or ""):
+        return f"salle : {c['date']} {c['start']}"
+    return None
+
+
+def fuseaux_declares(evenements):
+    """Fuseaux des événements HORODATÉS de l'agenda.
+
+    Une journée entière est une date nue : Google n'y attend aucun fuseau, et
+    les compter faisait apparaître un `None` parmi les fuseaux trouvés.
+    """
+    return {e["start"].get("timeZone") for e in evenements
+            if e.get("start", {}).get("dateTime")}
+
+
 def controler_agendas(rap, promo, moitie, cours):
     """Contrôles sur Google Agenda. Sautés en --hors-ligne."""
     from googleapiclient.discovery import build
@@ -655,23 +688,13 @@ def controler_agendas(rap, promo, moitie, cours):
                  f"{len(evenements)} dans l'agenda, {len(ordinaires)} attendus")
 
     # Chaque cours doit être présent, à la bonne heure et dans la bonne salle.
-    ecarts = []
-    for c in ordinaires:
-        evt = evenements.get(google_agenda._identifiant(c))
-        if evt is None:
-            ecarts.append(f"absent : {c['date']} {c['start']} {c['titre'][:20]}")
-            continue
-        debut = evt.get("start", {}).get("dateTime", "")
-        attendu = f"{c['date']}T{c['start'][:2]}:{c['start'][3:5]}:00"
-        if not debut.startswith(attendu):
-            ecarts.append(f"horaire : {c['date']} {c['start']} ≠ {debut[:16]}")
-        elif (evt.get("location") or "") != (c.get("room") or ""):
-            ecarts.append(f"salle : {c['date']} {c['start']}")
+    ecarts = [e for e in (ecart_evenement(c, evenements.get(
+        google_agenda._identifiant(c))) for c in ordinaires) if e]
     rap.verifier(not ecarts, "horaires et salles conformes",
                  f"{len(ordinaires)} vérifiés",
                  f"{len(ecarts)} écart(s) : " + " | ".join(ecarts[:3]))
 
-    fuseaux = {e.get("start", {}).get("timeZone") for e in evenements.values()}
+    fuseaux = fuseaux_declares(evenements.values())
     rap.verifier(fuseaux <= {"Europe/Paris"}, "fuseau horaire correct",
                  "Europe/Paris", f"fuseaux trouvés : {fuseaux}")
 

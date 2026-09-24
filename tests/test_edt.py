@@ -324,6 +324,41 @@ def seules_les_promos_avec_alternants_vont_en_entreprise():
 
 
 @test
+def la_verification_accepte_une_journee_entiere_dans_l_agenda():
+    """Google porte une journée entière sur `date`, un cours sur `dateTime`.
+
+    Les deux contrôles d'agenda comparaient tout à un horaire : les cinq
+    journées du M1 G2 et les treize de l'IRT L3 étaient déclarées fausses à
+    chaque passage, et la CI échouait alors que les agendas étaient justes.
+    """
+    journee = {"date": "2026-10-12", "start": "", "end": "",
+               "titre": "Alternant en entreprise", "room": ""}
+    cours_normal = cours(date="2026-10-12", start="08h00", end="10h00",
+                         room="U3-4")
+
+    egal(verif_edt.ecart_evenement(journee, {"start": {"date": "2026-10-12"}}),
+         None, "une journée entière bien posée ne fait pas d'écart")
+    assert verif_edt.ecart_evenement(journee, {"start": {"date": "2026-10-13"}}), (
+        "une journée entière au mauvais jour reste un écart")
+    assert verif_edt.ecart_evenement(journee, None), "absente de l'agenda : écart"
+
+    horodate = {"start": {"dateTime": "2026-10-12T08:00:00+02:00",
+                          "timeZone": "Europe/Paris"}, "location": "U3-4"}
+    egal(verif_edt.ecart_evenement(cours_normal, horodate), None,
+         "un cours à la bonne heure et dans la bonne salle")
+    assert verif_edt.ecart_evenement(cours_normal, {**horodate, "location": "U3-9"}), (
+        "une salle qui change reste un écart")
+
+    # Le contrôle de fuseau ne regarde que les événements horodatés : une
+    # journée entière est une date nue, et Google n'y met aucun fuseau.
+    egal(verif_edt.fuseaux_declares([{"start": {"date": "2026-10-12"}}, horodate]),
+         {"Europe/Paris"}, "la journée entière ne fausse pas les fuseaux")
+    egal(verif_edt.fuseaux_declares([{"start": {"dateTime": "2026-10-12T08:00:00Z",
+                                                "timeZone": "UTC"}}]),
+         {"UTC"}, "un fuseau inattendu reste visible")
+
+
+@test
 def une_journee_entiere_traverse_toute_la_chaine():
     """Un événement sans horaire doit survivre à la déduplication et à l'ICS.
 
