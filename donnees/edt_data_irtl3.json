@@ -139,9 +139,9 @@
     "date": "2026-09-29",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Réseaux (AA) U3-306",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-09-30",
@@ -256,6 +256,14 @@
     "prof": "André AOUN"
   },
   {
+    "date": "2026-10-07",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
     "date": "2026-10-08",
     "start": "",
     "end": "",
@@ -270,6 +278,14 @@
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-10-12",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Gestion/PPP (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-10-12",
@@ -334,14 +350,6 @@
     "titre": "Tech. de trans. - C (KINX5AC1)",
     "room": "U3-amphi",
     "prof": "KINX5AC1"
-  },
-  {
-    "date": "2026-10-14",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Gestion/PPP (André AOUN)",
-    "room": "Non attribuée",
-    "prof": "André AOUN"
   },
   {
     "date": "2026-10-15",

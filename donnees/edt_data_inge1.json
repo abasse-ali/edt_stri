@@ -60,7 +60,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Econo/Gestion TD (SLA)",
-    "room": "Non attribuée",
+    "room": "U3-04",
     "prof": "SLA"
   },
   {
@@ -100,7 +100,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Econo/Gestion - C (KBR)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "KBR"
   },
   {
@@ -256,6 +256,14 @@
     "prof": "Gérard ROUZIES"
   },
   {
+    "date": "2026-10-05",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
     "date": "2026-10-06",
     "start": "07h45",
     "end": "09h45",
@@ -310,6 +318,14 @@
     "titre": "Sport",
     "room": "Non attribuée",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-09",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-10-09",
@@ -409,6 +425,14 @@
   },
   {
     "date": "2026-10-16",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-16",
     "start": "10h00",
     "end": "12h00",
     "titre": "Econo/Gestion - C (RAB)",
@@ -486,6 +510,14 @@
     "titre": "Sport",
     "room": "Non attribuée",
     "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-10-23",
