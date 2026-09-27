@@ -1,17 +1,5 @@
 [
   {
-    "date": "2026-09-22",
-    "start": "10h10",
-    "end": "10h10",
-    "uid": "4047@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "Quiz Cours 3 se termine",
-    "room": "",
-    "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\nOnze questions sur le cours 2 (vues 1 à 26) en cinq minutes.",
-    "provenance": "Moodle inetdoc"
-  },
-  {
     "date": "2026-09-27",
     "start": "22h00",
     "end": "22h00",
