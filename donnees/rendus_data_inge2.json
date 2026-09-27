@@ -310,5 +310,17 @@
     "prof": "IntroGNU/Linux-26",
     "description": "Cours : IntroGNU/Linux-26\nDix questions sur le contenu de la séance TP3 en cinq minutes.",
     "provenance": "Moodle inetdoc"
+  },
+  {
+    "date": "2027-09-27",
+    "start": "13h30",
+    "end": "13h30",
+    "uid": "3966@moodle.inetdoc.net",
+    "echeance": true,
+    "titre": "Quiz début séance TP5 opens",
+    "room": "",
+    "prof": "IntroGNU/Linux-26",
+    "description": "Cours : IntroGNU/Linux-26\nDix questions sur le contenu de la séance TP4 en cinq minutes.",
+    "provenance": "Moodle inetdoc"
   }
 ]
