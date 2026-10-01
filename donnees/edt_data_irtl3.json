@@ -169,10 +169,10 @@
   },
   {
     "date": "2026-10-07",
-    "start": "13h30",
-    "end": "15h30",
+    "start": "10h00",
+    "end": "12h00",
     "titre": "Gestion/PPP (André AOUN)",
-    "room": "Non attribuée",
+    "room": "U3-306",
     "prof": "André AOUN"
   },
   {
@@ -374,6 +374,14 @@
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-10-23",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-26",
