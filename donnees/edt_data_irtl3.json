@@ -305,6 +305,14 @@
   },
   {
     "date": "2026-10-19",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-19",
     "start": "13h30",
     "end": "15h30",
     "titre": "Informatique (ME)",
@@ -353,10 +361,18 @@
   },
   {
     "date": "2026-10-21",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Réseaux (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-21",
     "start": "13h30",
     "end": "15h30",
     "titre": "Gestion/PPP (André AOUN)",
-    "room": "Non attribuée",
+    "room": "U3-306",
     "prof": "André AOUN"
   },
   {
@@ -366,6 +382,14 @@
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-10-22",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "BE/Projet (L3 non alternants)",
+    "room": "U3-306",
+    "prof": "L3 non alternants"
   },
   {
     "date": "2026-10-23",
