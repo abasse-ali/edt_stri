@@ -1,125 +1,5 @@
 [
   {
-    "date": "2026-09-28",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "[EXAMEN] Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils de modélisation info (Andréi ANDRÉI)",
-    "room": "U3-amphi",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Outils Maths - TD - AB",
-    "room": "U1-Mathis",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U3-04",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "O de mod info (IB)",
-    "room": "U3-amphi",
-    "prof": "IB"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-4",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-amphi",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U2-116",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "U3-amphi",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-10-01",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Econo/Gestion TD (SLA)",
-    "room": "U3-04",
-    "prof": "SLA"
-  },
-  {
-    "date": "2026-10-01",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-02",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-10-02",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (FHE)",
-    "room": "U3-amphi",
-    "prof": "FHE"
-  },
-  {
     "date": "2026-10-05",
     "start": "07h45",
     "end": "09h45",
@@ -438,5 +318,45 @@
     "titre": "O de mod info (Andréi ANDRÉI)",
     "room": "U3-04",
     "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-10-26",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-27",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-28",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-29",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-10-30",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   }
 ]

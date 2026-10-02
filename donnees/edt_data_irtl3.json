@@ -1,117 +1,5 @@
 [
   {
-    "date": "2026-09-28",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "[EXAMEN] Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils de modélisation info (Andréi ANDRÉI)",
-    "room": "U3-amphi",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Gestion/PPP (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "O de mod info (FB)",
-    "room": "U3-04",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "SHS (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux d'entreprise (André AOUN)",
-    "room": "U3-4",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-amphi",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "U3-amphi",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-10-01",
-    "start": "",
-    "end": "",
-    "titre": "Alternant en entreprise",
-    "room": "",
-    "prof": ""
-  },
-  {
-    "date": "2026-10-01",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Gestion/PPP (AA) - L3 du G1",
-    "room": "U3-306",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-02",
-    "start": "",
-    "end": "",
-    "titre": "Alternant en entreprise",
-    "room": "",
-    "prof": ""
-  },
-  {
     "date": "2026-10-05",
     "start": "07h45",
     "end": "09h45",
@@ -169,8 +57,8 @@
   },
   {
     "date": "2026-10-07",
-    "start": "10h00",
-    "end": "12h00",
+    "start": "07h45",
+    "end": "09h45",
     "titre": "Gestion/PPP (André AOUN)",
     "room": "U3-306",
     "prof": "André AOUN"
@@ -400,20 +288,20 @@
     "prof": ""
   },
   {
-    "date": "2026-10-23",
-    "start": "07h45",
-    "end": "18h00",
-    "titre": "Page 1",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-10-26",
     "start": "",
     "end": "",
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-10-26",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-27",
@@ -424,12 +312,28 @@
     "prof": ""
   },
   {
+    "date": "2026-10-27",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
     "date": "2026-10-28",
     "start": "",
     "end": "",
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-10-28",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-29",
@@ -440,11 +344,27 @@
     "prof": ""
   },
   {
+    "date": "2026-10-29",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
     "date": "2026-10-30",
     "start": "",
     "end": "",
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-10-30",
+    "start": "07h45",
+    "end": "18h00",
+    "titre": "Page 1",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   }
 ]
