@@ -211,9 +211,9 @@
     "date": "2026-10-16",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Econo/Gestion - C (RAB)",
+    "titre": "Econo/Gestion - C (Ketty BRAVO)",
     "room": "U3-amphi",
-    "prof": "RAB"
+    "prof": "Ketty BRAVO"
   },
   {
     "date": "2026-10-19",
@@ -275,9 +275,9 @@
     "date": "2026-10-22",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Econo/Gestion TD + CC1 (SLA)",
+    "titre": "Econo/Gestion TD + CC1 (SLA",
     "room": "U3-04",
-    "prof": "SLA"
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-22",
@@ -307,9 +307,9 @@
     "date": "2026-10-23",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Econo/Gestion - C (KBR)",
+    "titre": "Econo/Gestion - C (RAB)",
     "room": "U3-amphi",
-    "prof": "KBR"
+    "prof": "RAB"
   },
   {
     "date": "2026-10-23",
@@ -318,45 +318,5 @@
     "titre": "O de mod info (Andréi ANDRÉI)",
     "room": "U3-04",
     "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-10-26",
-    "start": "07h45",
-    "end": "18h00",
-    "titre": "Page 1",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-27",
-    "start": "07h45",
-    "end": "18h00",
-    "titre": "Page 1",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-28",
-    "start": "07h45",
-    "end": "18h00",
-    "titre": "Page 1",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-29",
-    "start": "07h45",
-    "end": "18h00",
-    "titre": "Page 1",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-30",
-    "start": "07h45",
-    "end": "18h00",
-    "titre": "Page 1",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
   }
 ]
