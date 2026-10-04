@@ -1,149 +1,5 @@
 [
   {
-    "date": "2026-09-28",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Rés. Mobiles (Yannick PTAK)",
-    "room": "U3-4",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "BD (Riad MOKADEM)",
-    "room": "U3-213/214",
-    "prof": "Riad MOKADEM"
-  },
-  {
-    "date": "2026-09-28",
-    "start": "16h15",
-    "end": "18h15",
-    "titre": "Adm. Windows (Cédric CHAMBAULT)",
-    "room": "U3-306/308",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Tel. Mobiles (Yannick PTAK)",
-    "room": "U3-Amphi",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interco (Philippe LATU)",
-    "room": "U3-Amphi",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interop (André AOUN)",
-    "room": "U3-4",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-09-29",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Interco (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Interop (Patrice TORGUET)",
-    "room": "U3-214",
-    "prof": "Patrice TORGUET"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Rés. Mobiles (Thierry GAYRAUD)",
-    "room": "U3-110",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-09-30",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Tel. Mobiles (Yannick PTAK)",
-    "room": "U3-4",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-10-01",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-10-01",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-10-01",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "Tél. Spat. (Manuel ARDOUIN & Frédéric MOUTIER)",
-    "room": "U4-307/308",
-    "prof": "Manuel ARDOUIN & Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-10-02",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "[EXAMEN] Interco (Thierry DESPRATS)",
-    "room": "U2-Amphi Vandel",
-    "prof": "Thierry DESPRATS"
-  },
-  {
-    "date": "2026-10-02",
-    "start": "13h00",
-    "end": "15h00",
-    "titre": "Tel. Mobiles (Yannick PTAK)",
-    "room": "U3-4",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-10-02",
-    "start": "15h15",
-    "end": "17h15",
-    "titre": "Gestion (M1 RT) (André AOUN)",
-    "room": "U3-4",
-    "prof": "André AOUN"
-  },
-  {
     "date": "2026-10-05",
     "start": "07h45",
     "end": "09h45",
@@ -371,7 +227,7 @@
     "date": "2026-10-14",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
   },
@@ -379,7 +235,7 @@
     "date": "2026-10-14",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
   },
@@ -387,7 +243,7 @@
     "date": "2026-10-14",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
   },
@@ -427,7 +283,7 @@
     "date": "2026-10-16",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
   },
@@ -438,5 +294,229 @@
     "titre": "BE (M1 non alternants)",
     "room": "U3-306",
     "prof": "M1 non alternants"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-19",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "BE (M1 non alternants)",
+    "room": "U3-307",
+    "prof": "M1 non alternants"
+  },
+  {
+    "date": "2026-10-19",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-20",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-20",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-21",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-21",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-22",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-22",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-22",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-23",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "BE (M1 non alternants)",
+    "room": "U3-307",
+    "prof": "M1 non alternants"
+  },
+  {
+    "date": "2026-10-23",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-10-26",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-27",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-28",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-29",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-10-30",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
   }
 ]
