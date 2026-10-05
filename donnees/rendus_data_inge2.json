@@ -37,9 +37,9 @@
   },
   {
     "date": "2026-10-18",
-    "start": "09h30",
-    "end": "09h30",
-    "uid": "4103@moodle.inetdoc.net",
+    "start": "23h30",
+    "end": "23h30",
+    "uid": "4120@moodle.inetdoc.net",
     "echeance": true,
     "titre": "TP3 - Validations topologie Hub & Spoke doit être achevée",
     "room": "",
