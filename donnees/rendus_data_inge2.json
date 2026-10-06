@@ -108,6 +108,42 @@
     "provenance": "Moodle inetdoc"
   },
   {
+    "date": "2026-12-11",
+    "start": "23h55",
+    "end": "23h55",
+    "uid": "1398@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Dépôt Projet version 2 doit être rendu",
+    "room": "",
+    "prof": "Déploiement de services et interopérabilité",
+    "description": "Cours : Déploiement de services et interopérabilité\nLe nom du fichier déposé doit contenir le nom des étudiants ayant participé au projet.\nExemple : Durand_Dupont_Martin.zip\nSI VOUS N'ARRIVEZ PAS À DÉPOSER VOTRE FICHIER C'EST QU'IL EST TROP GROS. ON NE VEUT QUE LES SOURCES ET LE PDF DU RAPPORT (AVEC L'UML).\nSI LE RESTE EST UTILE, VOUS POUVEZ LE DÉPOSER SUR UN DRIVE (GOOGLE DRIVE, ONEDRIVE...) ET NOUS DONNER LE LIEN DANS UN FICHIER README.TXT.",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2026-12-13",
+    "start": "23h55",
+    "end": "23h55",
+    "uid": "1257@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Dépôt Projet version 1 doit être rendu",
+    "room": "",
+    "prof": "Déploiement de services et interopérabilité",
+    "description": "Cours : Déploiement de services et interopérabilité\nLe nom du fichier déposé doit contenir le nom des étudiants ayant participé au projet.\nExemple : Durand_Dupont_Martin.zip\nSI VOUS N'ARRIVEZ PAS À DÉPOSER VOTRE FICHIER C'EST QU'IL EST TROP GROS. ON NE VEUT QUE LES SOURCES ET LE PDF DU RAPPORT (AVEC L'UML).\nSI LE RESTE EST UTILE, VOUS POUVEZ LE DÉPOSER SUR UN DRIVE (GOOGLE DRIVE, ONEDRIVE...) ET NOUS DONNER LE LIEN DANS UN FICHIER README.TXT.",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2027-01-08",
+    "start": "23h55",
+    "end": "23h55",
+    "uid": "1674@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Dépôt Projet version 3 doit être rendu",
+    "room": "",
+    "prof": "Déploiement de services et interopérabilité",
+    "description": "Cours : Déploiement de services et interopérabilité\nLe nom du fichier déposé doit contenir le nom des étudiants ayant participé au projet.\nExemple : Durand_Dupont_Martin.zip\nSI VOUS N'ARRIVEZ PAS À DÉPOSER VOTRE FICHIER C'EST QU'IL EST TROP GROS. ON NE VEUT QUE LES SOURCES ET LE PDF DU RAPPORT (AVEC L'UML).\nSI LE RESTE EST UTILE, VOUS POUVEZ LE DÉPOSER SUR UN DRIVE (GOOGLE DRIVE, ONEDRIVE...) ET NOUS DONNER LE LIEN DANS UN FICHIER README.TXT.",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
     "date": "2027-05-30",
     "start": "15h56",
     "end": "15h56",
