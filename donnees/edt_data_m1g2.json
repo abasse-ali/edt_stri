@@ -124,16 +124,16 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Tel. Mobiles (Yannick PTAK)",
-    "room": "U3-Amphi",
+    "room": "U4-shannon",
     "prof": "Yannick PTAK"
   },
   {
     "date": "2026-10-09",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Projets / BE / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
+    "titre": "Tel. Mobiles (Yannick PTAK)",
+    "room": "U4-shannon",
+    "prof": "Yannick PTAK"
   },
   {
     "date": "2026-10-09",
@@ -187,7 +187,7 @@
     "date": "2026-10-13",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Projets / BE (Travail en autonomie)",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
   },
@@ -235,7 +235,7 @@
     "date": "2026-10-14",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "titre": "Projets / BE (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
   },
