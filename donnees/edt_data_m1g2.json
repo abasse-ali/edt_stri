@@ -148,7 +148,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "BE (M1 non alternants)",
-    "room": "U3-306",
+    "room": "Visio",
     "prof": "M1 non alternants"
   },
   {
@@ -619,8 +619,8 @@
     "date": "2026-11-13",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Tel. Mobiles (Guillaume BARANGER)",
+    "titre": "Tel. Mobiles (AF)",
     "room": "U3-Amphi",
-    "prof": "Guillaume BARANGER"
+    "prof": "AF"
   }
 ]

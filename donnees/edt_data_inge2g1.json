@@ -44,7 +44,7 @@
     "start": "13h30",
     "end": "16h30",
     "titre": "Tél. Spat. (Manuel ARDOUIN & Frédéric MOUTIER)",
-    "room": "U4-307/308",
+    "room": "IUT GEII Ponsan",
     "prof": "Manuel ARDOUIN & Frédéric MOUTIER"
   },
   {
@@ -116,7 +116,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "BE (M1 non alternants)",
-    "room": "U3-306",
+    "room": "Visio",
     "prof": "M1 non alternants"
   },
   {
@@ -531,9 +531,9 @@
     "date": "2026-11-13",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Tel. Mobiles (Guillaume BARANGER)",
+    "titre": "Tel. Mobiles (AF)",
     "room": "U3-Amphi",
-    "prof": "Guillaume BARANGER"
+    "prof": "AF"
   },
   {
     "date": "2026-11-13",
