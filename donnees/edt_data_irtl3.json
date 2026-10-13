@@ -68,8 +68,16 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-amphi",
+    "room": "Visio",
     "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-10-14",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Informatique (ME)",
+    "room": "Visio",
+    "prof": "ME"
   },
   {
     "date": "2026-10-15",
@@ -108,7 +116,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
-    "room": "U3-amphi",
+    "room": "U3-4",
     "prof": "Andréi ANDRÉI"
   },
   {
@@ -164,7 +172,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "[EXAMEN] Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U2-Vandel",
+    "room": "U3-amphi",
     "prof": "Abdelmalek BENZEKRI"
   },
   {
