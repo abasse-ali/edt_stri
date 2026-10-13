@@ -4,7 +4,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Gestion/PPP (André AOUN)",
-    "room": "U3-306",
+    "room": "reporté",
     "prof": "André AOUN"
   },
   {
@@ -12,7 +12,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
-    "room": "U3-amphi",
+    "room": "reporté",
     "prof": "Andréi ANDRÉI"
   },
   {
@@ -20,7 +20,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "Informatique (ME)",
-    "room": "U3-306",
+    "room": "reporté",
     "prof": "ME"
   },
   {
@@ -28,7 +28,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Res. Entreprise (Thierry GAYRAUD)",
-    "room": "U3-04",
+    "room": "reporté",
     "prof": "Thierry GAYRAUD"
   },
   {
@@ -107,9 +107,9 @@
     "date": "2026-10-19",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
+    "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
+    "room": "U3-amphi",
+    "prof": "Andréi ANDRÉI"
   },
   {
     "date": "2026-10-19",
