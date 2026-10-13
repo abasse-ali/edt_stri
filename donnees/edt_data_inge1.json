@@ -41,6 +41,14 @@
   },
   {
     "date": "2026-10-14",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Réseaux (André AOUN)",
+    "room": "Visio",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-10-14",
     "start": "10h00",
     "end": "12h00",
     "titre": "Tech. de trans. (Frédéric MOUTIER)",
