@@ -108,6 +108,30 @@
     "provenance": "eFormation STRI (Ingé2)"
   },
   {
+    "date": "2027-03-24",
+    "start": "23h59",
+    "end": "23h59",
+    "uid": "2342@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Dépôt Articles doit être rendu",
+    "room": "",
+    "prof": "TER",
+    "description": "Cours : TER",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2027-03-25",
+    "start": "12h00",
+    "end": "12h00",
+    "uid": "2343@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Dépôt Présentations TER doit être rendu",
+    "room": "",
+    "prof": "TER",
+    "description": "Cours : TER",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
     "date": "2027-05-30",
     "start": "15h56",
     "end": "15h56",
