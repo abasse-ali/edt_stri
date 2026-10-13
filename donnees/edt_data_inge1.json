@@ -1,109 +1,5 @@
 [
   {
-    "date": "2026-10-05",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info (FB)",
-    "room": "U3-amphi",
-    "prof": "FB"
-  },
-  {
-    "date": "2026-10-05",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "[EXAMEN] Outils Maths (KINX5AA2)",
-    "room": "U3-amphi",
-    "prof": "KINX5AA2"
-  },
-  {
-    "date": "2026-10-05",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-10-05",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-06",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-10-06",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U3-04",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-10-06",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "O de mod info - TD (IB)",
-    "room": "U3-04",
-    "prof": "IB"
-  },
-  {
-    "date": "2026-10-07",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-04",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-10-07",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "U3-307/308",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-10-08",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Econo/Gestion TD (SLA)",
-    "room": "U3-110",
-    "prof": "SLA"
-  },
-  {
-    "date": "2026-10-08",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-09",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "SHS (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-09",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (KBR)",
-    "room": "U3-amphi",
-    "prof": "KBR"
-  },
-  {
     "date": "2026-10-12",
     "start": "10h00",
     "end": "12h00",
@@ -132,32 +28,24 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
+    "room": "reporté",
     "prof": "Olfa MECHI"
   },
   {
     "date": "2026-10-13",
     "start": "15h45",
     "end": "17h45",
-    "titre": "O de mod info - TD (IB)",
-    "room": "U3-04",
+    "titre": "O de mod info (IB)",
+    "room": "reporté",
     "prof": "IB"
-  },
-  {
-    "date": "2026-10-14",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "[EXAMEN] Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
-    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-10-14",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Tech. de trans. - C (KINX5AC1)",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
     "room": "U3-amphi",
-    "prof": "KINX5AC1"
+    "prof": "Frédéric MOUTIER"
   },
   {
     "date": "2026-10-14",
@@ -219,9 +107,9 @@
     "date": "2026-10-19",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] Outils de modélisation info (KINX5AB1)",
+    "titre": "[EXAMEN] Outils de modélisation info (FB)",
     "room": "U3-amphi",
-    "prof": "KINX5AB1"
+    "prof": "FB"
   },
   {
     "date": "2026-10-19",
@@ -235,7 +123,7 @@
     "date": "2026-10-19",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Res. Entreprise - C (Thierry GAYRAUD)",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
     "room": "U3-amphi",
     "prof": "Thierry GAYRAUD"
   },
@@ -251,9 +139,9 @@
     "date": "2026-10-21",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
+    "titre": "[EXAMEN] Outils Maths (Abdelmalek BENZEKRI)",
+    "room": "U2-Vandel",
+    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-10-21",
@@ -275,9 +163,9 @@
     "date": "2026-10-22",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Econo/Gestion TD + CC1 (SLA",
+    "titre": "Econo/Gestion TD + CC1 (SLA)",
     "room": "U3-04",
-    "prof": "Inconnu"
+    "prof": "SLA"
   },
   {
     "date": "2026-10-22",
@@ -313,6 +201,118 @@
   },
   {
     "date": "2026-10-23",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "U3-04",
+    "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-11-02",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Réseaux d'entreprise (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-02",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms (Jérôme SOKOLOFF)",
+    "room": "U3-amphi",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-11-02",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-02",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
+    "room": "U3-amphi",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-11-03",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[GA] Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-11-04",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
+    "room": "U3-110",
+    "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-11-04",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Administration Système (Philippe LATU)",
+    "room": "U3-amphi",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-04",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-11-05",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD (FHE)",
+    "room": "U3-amphi",
+    "prof": "FHE"
+  },
+  {
+    "date": "2026-11-05",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "U3-amphi",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-11-05",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-11-06",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-06",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (FHE)",
+    "room": "U3-amphi",
+    "prof": "FHE"
+  },
+  {
+    "date": "2026-11-06",
     "start": "13h30",
     "end": "15h30",
     "titre": "O de mod info (Andréi ANDRÉI)",
