@@ -82,18 +82,10 @@
   {
     "date": "2026-10-15",
     "start": "07h45",
-    "end": "15h45",
+    "end": "19h30",
     "titre": "Festival des campus en transitions (https://futurs-proches.univ-toulouse.fr/)",
     "room": "Non attribuée",
     "prof": "https://futurs-proches.univ-toulouse.fr/"
-  },
-  {
-    "date": "2026-10-15",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Sport (Ingé)",
-    "room": "Non attribuée",
-    "prof": "Ingé"
   },
   {
     "date": "2026-10-16",
@@ -459,9 +451,9 @@
     "date": "2026-11-10",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "titre": "Projets / BE / TER / Recherche stage / RI",
     "room": "Non attribuée",
-    "prof": "Travail en autonomie"
+    "prof": "Inconnu"
   },
   {
     "date": "2026-11-10",
