@@ -76,7 +76,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Econo/Gestion TD (SLA)",
-    "room": "U3-amphi",
+    "room": "Visio",
     "prof": "SLA"
   },
   {
@@ -84,7 +84,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U3-04",
+    "room": "Visio",
     "prof": "Rahim KACIMI"
   },
   {
@@ -123,9 +123,9 @@
     "date": "2026-10-19",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils de modélisation info (FB / IB)",
-    "room": "U3-amphi",
-    "prof": "FB / IB"
+    "titre": "Outils de modélisation info",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-19",
@@ -275,7 +275,7 @@
     "date": "2026-11-03",
     "start": "18h00",
     "end": "20h00",
-    "titre": "[EXAMEN] Outils de modélisation info (FB)",
+    "titre": "[EXAMEN] Outils demodélisation info (FB)",
     "room": "U3-amphi",
     "prof": "FB"
   },
