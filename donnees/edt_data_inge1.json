@@ -108,7 +108,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "SHS (André AOUN)",
-    "room": "Visio",
+    "room": "U3-306",
     "prof": "André AOUN"
   },
   {
@@ -123,9 +123,9 @@
     "date": "2026-10-19",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils de modélisation info",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
+    "titre": "Outils de modélisation info (FB / IB)",
+    "room": "U3-amphi",
+    "prof": "FB / IB"
   },
   {
     "date": "2026-10-19",
