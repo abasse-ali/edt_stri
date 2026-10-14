@@ -1,6 +1,18 @@
 [
   {
     "date": "2026-10-18",
+    "start": "22h00",
+    "end": "22h00",
+    "uid": "1689@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Vérifiez que vous pouvez trouver votre place dans l'équipe. se termine",
+    "room": "",
+    "prof": "SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)",
+    "description": "Cours : SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)\nATTENTION : Le test ne sera pas réouvert après la fermeture. Si le test n'est pas réalisé, vous aurez 0 à ce test. Donc prenez vos précautions et marquez l'échéance sur votre agenda.\n * Une tentative\n * Au sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte de telle façon que la somme des pondérations soit égale à 0 (ex. Si sur 3 choix, deux sont corrects alors deux cho",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2026-10-18",
     "start": "23h30",
     "end": "23h30",
     "uid": "4120@moodle.inetdoc.net",
@@ -21,6 +33,30 @@
     "room": "",
     "prof": "STRI2A/M1 - Administration des systèmes Windows en réseau",
     "description": "Cours : STRI2A/M1 - Administration des systèmes Windows en réseau\n- La date limite de remise du devoir est fixée au dimanche 19 octobre à 23h59.\n- Le nom du fichier à déposer sera de la forme CR_TP3_Nom_Prénom.pdf (à respecter impérativement)\n- Chacun des membres rend le TP à son nom mais le compte rendu est le même.",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2026-10-25",
+    "start": "22h00",
+    "end": "22h00",
+    "uid": "1690@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Vérifiez que vous savez utiliser une communication positive et une bonne posture relationnelle se termine",
+    "room": "",
+    "prof": "SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)",
+    "description": "Cours : SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)\nATTENTION : Le test ne sera pas réouvert après la fermeture. Si le test n'est pas réalisé, vous aurez 0 à ce test. Donc prenez vos précautions et marquez l'échéance sur votre agenda.\n * Une tentative\n * Au sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte de telle façon que la somme des pondrions soit égale à 0 (ex. Si sur 3 choix, deux sont corrects alors deux choix",
+    "provenance": "eFormation STRI (Ingé2)"
+  },
+  {
+    "date": "2026-11-01",
+    "start": "22h00",
+    "end": "22h00",
+    "uid": "1691@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Vérifiez que vous savez vous organiser en équipe se termine",
+    "room": "",
+    "prof": "SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)",
+    "description": "Cours : SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)\nATTENTION : Le test ne sera pas réouvert après la fermeture. Si le test n'est pas réalisé, vous aurez 0 à ce test. Donc prenez vos précautions et marquez l'échéance sur votre agenda.\n * Une tentative\n * Au sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte de telle façon que la somme des pondrions soit égale à 0 (ex. Si sur 3 choix, deux sont corrects alors deux choix",
     "provenance": "eFormation STRI (Ingé2)"
   },
   {
@@ -58,6 +94,18 @@
     "prof": "IntercoLANWAN",
     "description": "Cours : IntercoLANWAN\nCanal Zulip : TP5 & 6 OSPF [1]\nVous devez définir la composition des topologies en triangle.\nNOM DE FÉDÉRATION\n ROUTEUR R1\n ROUTEUR R2\n ROUTEUR R3\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\nLinks:\n------\n[1] https://zulip.inetdoc.net/#narrow/channel/4-2025-2028/topic/M1.20interco.20TP5.266/with/7940",
     "provenance": "Moodle inetdoc"
+  },
+  {
+    "date": "2026-11-15",
+    "start": "22h00",
+    "end": "22h00",
+    "uid": "1509@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Vidéo de synthèse et de réflexion +  Charte doit être rendu",
+    "room": "",
+    "prof": "SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)",
+    "description": "Cours : SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)\nVous avez suivi une formation en ligne consacrée au travail en équipe. En parallèle, Google a mené en 2012 le PROJET ARISTOTE, une étude portant sur environ 180 de ses équipes.\nVous réaliserez :\n1) Une CAPSULE VIDÉO d'une durée 14-15 minutes qui comprendra :\n- une synthèse personnalisée de ce que vous avez appris dans ce cours mais aussi de ce que vous aurez compris du projet Aristote\n- une réflex",
+    "provenance": "eFormation STRI (Ingé2)"
   },
   {
     "date": "2026-11-22",
