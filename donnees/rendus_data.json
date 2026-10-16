@@ -1,53 +1,5 @@
 [
   {
-    "date": "2026-10-11",
-    "start": "22h00",
-    "end": "22h00",
-    "uid": "1317@www.stri.fr/eformation",
-    "echeance": true,
-    "titre": "Quiz S3P1 se termine",
-    "room": "",
-    "prof": "L’économie collaborative",
-    "description": "Cours : L’économie collaborative\nUne seule tentative. Attention à la date limite.\nAu sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte.\nLa note d'une question est comprise entre 0 et 1.\nLe Quiz de chaque partie de séquence est noté sur 20.\nLa solution au Quiz est affichée à la fermeture du test.",
-    "provenance": "eFormation STRI"
-  },
-  {
-    "date": "2026-10-11",
-    "start": "22h00",
-    "end": "22h00",
-    "uid": "1318@www.stri.fr/eformation",
-    "echeance": true,
-    "titre": "Quiz S3P2 se termine",
-    "room": "",
-    "prof": "L’économie collaborative",
-    "description": "Cours : L’économie collaborative\nUne seule tentative. Attention à la date limite.\nAu sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte.\nLa note d'une question est comprise entre 0 et 1.\nLe Quiz de chaque partie de séquence est noté sur 20.\nLa solution au Quiz est affichée à la fermeture du test.",
-    "provenance": "eFormation STRI"
-  },
-  {
-    "date": "2026-10-11",
-    "start": "22h00",
-    "end": "22h00",
-    "uid": "1319@www.stri.fr/eformation",
-    "echeance": true,
-    "titre": "Quiz S3P3 se termine",
-    "room": "",
-    "prof": "L’économie collaborative",
-    "description": "Cours : L’économie collaborative\nUne seule tentative. Attention à la date limite.\nAu sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte.\nLa note d'une question est comprise entre 0 et 1.\nLe Quiz de chaque partie de séquence est noté sur 20.\nLa solution au Quiz est affichée à la fermeture du test.",
-    "provenance": "eFormation STRI"
-  },
-  {
-    "date": "2026-10-11",
-    "start": "22h00",
-    "end": "22h00",
-    "uid": "1320@www.stri.fr/eformation",
-    "echeance": true,
-    "titre": "Quiz S3P4 se termine",
-    "room": "",
-    "prof": "L’économie collaborative",
-    "description": "Cours : L’économie collaborative\nUne seule tentative. Attention à la date limite.\nAu sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte.\nLa note d'une question est comprise entre 0 et 1.\nLe Quiz de chaque partie de séquence est noté sur 20.\nLa solution au Quiz est affichée à la fermeture du test.",
-    "provenance": "eFormation STRI"
-  },
-  {
     "date": "2026-10-18",
     "start": "23h30",
     "end": "23h30",
