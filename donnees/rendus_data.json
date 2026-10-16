@@ -72,6 +72,18 @@
     "provenance": "eFormation STRI"
   },
   {
+    "date": "2026-10-26",
+    "start": "23h59",
+    "end": "23h59",
+    "uid": "2344@www.stri.fr/eformation",
+    "echeance": true,
+    "titre": "Dépot BE G2 doit être rendu",
+    "room": "",
+    "prof": "Télécommunications spatiales",
+    "description": "Cours : Télécommunications spatiales",
+    "provenance": "eFormation STRI"
+  },
+  {
     "date": "2026-11-01",
     "start": "22h00",
     "end": "22h00",
