@@ -1,123 +1,11 @@
 [
   {
-    "date": "2026-10-12",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
-    "room": "reporté",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-10-12",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-10-12",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Res. Entreprise (Thierry GAYRAUD)",
-    "room": "reporté",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-10-13",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "reporté",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-10-13",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "O de mod info (IB)",
-    "room": "reporté",
-    "prof": "IB"
-  },
-  {
-    "date": "2026-10-14",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Réseaux (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-14",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "Visio",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-10-14",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "Visio",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-10-14",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "Visio",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-10-15",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Econo/Gestion TD (SLA)",
-    "room": "Visio",
-    "prof": "SLA"
-  },
-  {
-    "date": "2026-10-15",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "Visio",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-10-15",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-16",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "SHS (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-16",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (Ketty BRAVO)",
-    "room": "U3-amphi",
-    "prof": "Ketty BRAVO"
-  },
-  {
     "date": "2026-10-19",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Outils de modélisation info (FB / IB)",
-    "room": "U3-amphi",
-    "prof": "FB / IB"
+    "titre": "Outils de modélisation info",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-10-19",
@@ -163,16 +51,16 @@
     "date": "2026-10-21",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] Outils Maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
-    "prof": "Abdelmalek BENZEKRI"
+    "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
+    "room": "visio",
+    "prof": "Andréi ANDRÉI"
   },
   {
     "date": "2026-10-21",
     "start": "10h00",
     "end": "12h00",
     "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-110",
+    "room": "...",
     "prof": "Frédéric MOUTIER"
   },
   {
@@ -180,7 +68,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "U3-307/308",
+    "room": "visio",
     "prof": "Cédric CHAMBAULT"
   },
   {
@@ -188,7 +76,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Econo/Gestion TD + CC1 (SLA)",
-    "room": "U3-04",
+    "room": "visio",
     "prof": "SLA"
   },
   {
@@ -196,7 +84,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U3-04",
+    "room": "visio",
     "prof": "Rahim KACIMI"
   },
   {
@@ -212,7 +100,7 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "U3-307/308",
+    "room": "visio",
     "prof": "Cédric CHAMBAULT"
   },
   {
@@ -220,7 +108,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "SHS (André AOUN)",
-    "room": "U3-306",
+    "room": "visio",
     "prof": "André AOUN"
   },
   {
@@ -228,7 +116,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Econo/Gestion - C (RAB)",
-    "room": "U3-amphi",
+    "room": "visio",
     "prof": "RAB"
   },
   {
@@ -236,7 +124,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "O de mod info (Andréi ANDRÉI)",
-    "room": "U3-04",
+    "room": "visio",
     "prof": "Andréi ANDRÉI"
   },
   {
@@ -283,7 +171,7 @@
     "date": "2026-11-03",
     "start": "18h00",
     "end": "20h00",
-    "titre": "[EXAMEN] Outils de modélisation info (FB)",
+    "titre": "[EXAMEN] Outils demodélisation info (FB)",
     "room": "U3-amphi",
     "prof": "FB"
   },
