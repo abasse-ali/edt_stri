@@ -1,17 +1,5 @@
 [
   {
-    "date": "2026-10-18",
-    "start": "23h59",
-    "end": "23h59",
-    "uid": "1212@www.stri.fr/eformation",
-    "echeance": true,
-    "titre": "Compte rendu de TP3 doit être rendu",
-    "room": "",
-    "prof": "STRI2A/M1 - Administration des systèmes Windows en réseau",
-    "description": "Cours : STRI2A/M1 - Administration des systèmes Windows en réseau\n- La date limite de remise du devoir est fixée au dimanche 19 octobre à 23h59.\n- Le nom du fichier à déposer sera de la forme CR_TP3_Nom_Prénom.pdf (à respecter impérativement)\n- Chacun des membres rend le TP à son nom mais le compte rendu est le même.",
-    "provenance": "eFormation STRI (Ingé2)"
-  },
-  {
     "date": "2026-10-25",
     "start": "22h00",
     "end": "22h00",
