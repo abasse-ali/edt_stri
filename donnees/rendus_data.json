@@ -1,18 +1,6 @@
 [
   {
     "date": "2026-10-18",
-    "start": "23h30",
-    "end": "23h30",
-    "uid": "4120@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "TP3 - Validations topologie Hub & Spoke doit être achevée",
-    "room": "",
-    "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\nCanal Zulip : Interco TP3 Hub & Spoke PPPoE [1]\nVous devez définir la composition des topologies en triangle.\nNOM DE FÉDÉRATION\n NUMÉRO HUB 1\n NUMÉRO SPOKE 1_1\n NUMÉRO SPOKE 1_2\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\n NUMÉRO HUB 2\n NUMÉRO SPOKE 2_1\n NUMÉRO SPOKE 2_2\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\nLinks:\n------\n[1] https://zulip.inetdoc.net/#narrow/channel/4-2025-2028/topi",
-    "provenance": "Moodle inetdoc"
-  },
-  {
-    "date": "2026-10-18",
     "start": "23h59",
     "end": "23h59",
     "uid": "1212@www.stri.fr/eformation",

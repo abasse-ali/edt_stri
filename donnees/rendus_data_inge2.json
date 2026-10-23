@@ -1,30 +1,6 @@
 [
   {
     "date": "2026-10-18",
-    "start": "22h00",
-    "end": "22h00",
-    "uid": "1689@www.stri.fr/eformation",
-    "echeance": true,
-    "titre": "Vérifiez que vous pouvez trouver votre place dans l'équipe. se termine",
-    "room": "",
-    "prof": "SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)",
-    "description": "Cours : SHS (STRI 4A / RT M1) - Travaillez efficacement en équipe (A. Aoun)\nATTENTION : Le test ne sera pas réouvert après la fermeture. Si le test n'est pas réalisé, vous aurez 0 à ce test. Donc prenez vos précautions et marquez l'échéance sur votre agenda.\n * Une tentative\n * Au sein de chaque question, une pénalité s'applique pour chaque réponse incorrecte de telle façon que la somme des pondérations soit égale à 0 (ex. Si sur 3 choix, deux sont corrects alors deux cho",
-    "provenance": "eFormation STRI (Ingé2)"
-  },
-  {
-    "date": "2026-10-18",
-    "start": "23h30",
-    "end": "23h30",
-    "uid": "4120@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "TP3 - Validations topologie Hub & Spoke doit être achevée",
-    "room": "",
-    "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\nCanal Zulip : Interco TP3 Hub & Spoke PPPoE [1]\nVous devez définir la composition des topologies en triangle.\nNOM DE FÉDÉRATION\n NUMÉRO HUB 1\n NUMÉRO SPOKE 1_1\n NUMÉRO SPOKE 1_2\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\n NUMÉRO HUB 2\n NUMÉRO SPOKE 2_1\n NUMÉRO SPOKE 2_2\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\nLinks:\n------\n[1] https://zulip.inetdoc.net/#narrow/channel/4-2025-2028/topi",
-    "provenance": "Moodle inetdoc"
-  },
-  {
-    "date": "2026-10-18",
     "start": "23h59",
     "end": "23h59",
     "uid": "1212@www.stri.fr/eformation",
