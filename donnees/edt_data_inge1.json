@@ -1,139 +1,11 @@
 [
   {
-    "date": "2026-10-19",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-19",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
-    "room": "U3-4",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-10-19",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-10-19",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Res. Entreprise (Thierry GAYRAUD)",
-    "room": "U3-amphi",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-10-20",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-10-20",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Réseaux (André AOUN)",
-    "room": "U3-306",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-21",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Outils de modélisation info / UML (Andréi ANDRÉI)",
-    "room": "visio",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-10-21",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "...",
-    "prof": "Frédéric MOUTIER"
-  },
-  {
-    "date": "2026-10-21",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "visio",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-10-22",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Econo/Gestion TD + CC1 (SLA)",
-    "room": "visio",
-    "prof": "SLA"
-  },
-  {
-    "date": "2026-10-22",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "visio",
-    "prof": "Rahim KACIMI"
-  },
-  {
-    "date": "2026-10-22",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-10-22",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "visio",
-    "prof": "Cédric CHAMBAULT"
-  },
-  {
-    "date": "2026-10-23",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "SHS (André AOUN)",
-    "room": "visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-10-23",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (RAB)",
-    "room": "visio",
-    "prof": "RAB"
-  },
-  {
-    "date": "2026-10-23",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "O de mod info (Andréi ANDRÉI)",
-    "room": "visio",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
     "date": "2026-11-02",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] Réseaux d'entreprise (André AOUN)",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
     "room": "U3-amphi",
-    "prof": "André AOUN"
+    "prof": "Thierry GAYRAUD"
   },
   {
     "date": "2026-11-02",
@@ -170,8 +42,8 @@
   {
     "date": "2026-11-03",
     "start": "18h00",
-    "end": "20h00",
-    "titre": "[EXAMEN] Outils demodélisation info (FB)",
+    "end": "19h45",
+    "titre": "[EXAMEN] Outils de modélisation info (FB)",
     "room": "U3-amphi",
     "prof": "FB"
   },
