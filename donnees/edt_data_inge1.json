@@ -110,5 +110,93 @@
     "titre": "O de mod info (Andréi ANDRÉI)",
     "room": "U3-04",
     "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-11-06",
+    "start": "15h45",
+    "end": "18h15",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
+    "room": "U3-04",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-11-09",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Administration Linux (Philippe LATU)",
+    "room": "Non attribuée",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-09",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-10",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-11-10",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Administration Linux (Philippe LATU)",
+    "room": "U3-4",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-12",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD (FHE)",
+    "room": "U3-04",
+    "prof": "FHE"
+  },
+  {
+    "date": "2026-11-12",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Télécoms) (BJT)",
+    "room": "Non attribuée",
+    "prof": "BJT"
+  },
+  {
+    "date": "2026-11-12",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-11-13",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-13",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Econo/Gestion - C (KBR)",
+    "room": "Non attribuée",
+    "prof": "KBR"
+  },
+  {
+    "date": "2026-11-13",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "U3-110",
+    "prof": "Andréi ANDRÉI"
   }
 ]
