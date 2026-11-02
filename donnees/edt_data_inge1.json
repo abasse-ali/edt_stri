@@ -12,7 +12,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Télécoms (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
+    "room": "visio",
     "prof": "Jérôme SOKOLOFF"
   },
   {
@@ -20,7 +20,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
+    "room": "visio",
     "prof": "Gérard ROUZIES"
   },
   {
@@ -33,10 +33,18 @@
   },
   {
     "date": "2026-11-03",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Réseaux) (Rahim KACIMI)",
+    "room": "visio",
+    "prof": "Rahim KACIMI"
+  },
+  {
+    "date": "2026-11-03",
     "start": "13h30",
     "end": "15h30",
     "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
+    "room": "Visio",
     "prof": "Olfa MECHI"
   },
   {
@@ -52,7 +60,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Tech. de trans. (Frédéric MOUTIER)",
-    "room": "U3-110",
+    "room": "Visio",
     "prof": "Frédéric MOUTIER"
   },
   {
@@ -60,7 +68,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "Administration Système (Philippe LATU)",
-    "room": "U3-amphi",
+    "room": "Visio",
     "prof": "Philippe LATU"
   },
   {
@@ -68,16 +76,8 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Econo/Gestion TD (FHE)",
-    "room": "U3-amphi",
+    "room": "Visio",
     "prof": "FHE"
-  },
-  {
-    "date": "2026-11-05",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Réseaux) (Rahim KACIMI)",
-    "room": "U3-amphi",
-    "prof": "Rahim KACIMI"
   },
   {
     "date": "2026-11-05",
@@ -92,7 +92,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "SHS (André AOUN)",
-    "room": "U3-306",
+    "room": "Visio",
     "prof": "André AOUN"
   },
   {
@@ -100,7 +100,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Econo/Gestion - C (FHE)",
-    "room": "U3-amphi",
+    "room": "Visio",
     "prof": "FHE"
   },
   {
@@ -108,7 +108,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "O de mod info (Andréi ANDRÉI)",
-    "room": "U3-04",
+    "room": "Visio",
     "prof": "Andréi ANDRÉI"
   },
   {
@@ -116,7 +116,7 @@
     "start": "15h45",
     "end": "18h15",
     "titre": "Res. Entreprise (Thierry GAYRAUD)",
-    "room": "U3-04",
+    "room": "Visio",
     "prof": "Thierry GAYRAUD"
   },
   {
