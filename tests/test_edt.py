@@ -624,6 +624,32 @@ def une_case_tracee_en_courbes_garde_ses_bords():
 
 
 @test
+def une_bordure_horizontale_en_pointilles_de_courbes_borne_la_journee():
+    """L3 du 02/11 : le trait sous l'en-tête des heures n'est qu'une suite de
+    morceaux de courbe de 8 pt. Sans lui, la bande du lundi englobait l'en-tête,
+    dont les cases passaient pour quatre cours illisibles."""
+    NOIR = (0.0, 0.0, 0.0)
+
+    def morceau(x0, x1, haut, bas, couleur=NOIR):
+        return {"x0": x0, "x1": x1, "top": haut, "bottom": bas,
+                "stroking_color": couleur}
+
+    class Page:
+        curves = (
+            # quinze morceaux de 8,5 pt espacés de 14 pt : 127 pt cumulés
+            [morceau(111.3 + 13.9 * i, 119.8 + 13.9 * i, 127.44, 128.21)
+             for i in range(15)]
+            # un bord vertical, et un court soulignement isolé : ni l'un ni
+            # l'autre n'est une ligne
+            + [morceau(581.8, 582.7, 130.0, 140.0),
+               morceau(300.0, 330.0, 160.0, 160.8)]
+        )
+
+    egal([round(y, 2) for y in lecture_pdf._horizontales_en_courbes(Page())],
+         [127.44], "une seule ligne, à l'ordonnée du trait")
+
+
+@test
 def olive_ne_se_confond_pas_avec_le_vert_des_salles():
     """Une confusion ferait passer les titres de cours pour des salles."""
     egal(lecture_pdf.est_vert((0.573, 0.816, 0.314)), False, "olive pris pour du vert")

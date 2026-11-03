@@ -741,7 +741,9 @@ def extraire_zones_jours_pdf(chemin_pdf):
             h_lines = [l['top'] for l in page.lines
                        if l['width'] > 100 and abs(l['top'] - l['bottom']) < 1]
             r_lines = [r['top'] for r in page.rects if r['width'] > 100 and r['height'] < 5]
-            all_y_lines = sorted({round(y, 1) for y in h_lines + r_lines})
+            # Certaines bordures sont des pointillés de courbes (L3, 02/11).
+            c_lines = lecture_pdf._horizontales_en_courbes(page)
+            all_y_lines = sorted({round(y, 1) for y in h_lines + r_lines + c_lines})
 
             date_lue_ici = False
             for w in sorted(words, key=lambda w: (w['top'], w['x0'])):

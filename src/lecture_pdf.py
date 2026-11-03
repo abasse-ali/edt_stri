@@ -222,6 +222,39 @@ def _verticales_en_courbes(page, colle=2.0, alignement=1.5):
             for t in traits]
 
 
+def _horizontales_en_courbes(page, longueur_min=100, alignement=1.0):
+    """Ordonnées des bordures horizontales dessinées en COURBES.
+
+    Pendant horizontal de `_verticales_en_courbes`. Dans l'EDT de L3 du 02/11,
+    le trait qui sépare l'en-tête des heures du lundi n'est plus un rectangle
+    mais une quarantaine de morceaux de courbe de 8 pt, séparés de petits
+    blancs. Ne voyant aucune ligne à cet endroit, la bande du lundi remontait
+    jusqu'au haut de l'en-tête : les cases d'heures passaient pour des cours
+    vides, et les vrais cours du lundi tombaient dans la moitié basse.
+
+    Les morceaux noirs, plats, à la même ordonnée sont regroupés ; un groupe
+    compte comme ligne si leur longueur cumulée atteint `longueur_min` — le
+    même seuil que celui des lignes d'un seul tenant.
+    """
+    morceaux = sorted(
+        (c for c in page.curves
+         if _est_trait_noir(c) and c['bottom'] - c['top'] < 2
+         and c['x1'] - c['x0'] >= 3),
+        key=lambda c: (c['top'] + c['bottom']) / 2)
+
+    groupes = []
+    for m in morceaux:
+        centre = (m['top'] + m['bottom']) / 2
+        if groupes and centre - groupes[-1]['centre'] <= alignement:
+            groupes[-1]['morceaux'].append((m['x0'], m['x1']))
+        else:
+            groupes.append({'centre': centre, 'top': m['top'],
+                            'morceaux': [(m['x0'], m['x1'])]})
+
+    return [g['top'] for g in groupes
+            if _longueur_union(g['morceaux']) >= longueur_min]
+
+
 # --- Découpage géométrique ---------------------------------------------------
 
 class GrilleJour:
