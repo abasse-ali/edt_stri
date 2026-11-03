@@ -132,7 +132,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Administration Linux (Philippe LATU)",
-    "room": "Non attribuée",
+    "room": "U3-4",
     "prof": "Philippe LATU"
   },
   {
@@ -220,7 +220,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Télécoms (Jérôme SOKOLOFF)",
-    "room": "Non attribuée",
+    "room": "U3-amphi",
     "prof": "Jérôme SOKOLOFF"
   },
   {
@@ -275,9 +275,9 @@
     "date": "2026-11-18",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Gestion/PPP (André AOUN)",
+    "titre": "[EXAMEN] Outils maths (Abdelmalek BENZEKRI)",
     "room": "U3-amphi",
-    "prof": "André AOUN"
+    "prof": "Abdelmalek BENZEKRI"
   },
   {
     "date": "2026-11-18",
