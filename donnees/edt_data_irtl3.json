@@ -64,20 +64,20 @@
     "prof": "André AOUN"
   },
   {
-    "date": "2026-11-03",
-    "start": "18h00",
-    "end": "20h00",
-    "titre": "[EXAMEN] FB Reporté",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-11-04",
     "start": "07h45",
     "end": "09h45",
     "titre": "Gestion/PPP (André AOUN)",
     "room": "Visio",
     "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-04",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (Frédéric MOUTIER)",
+    "room": "Visio",
+    "prof": "Frédéric MOUTIER"
   },
   {
     "date": "2026-11-04",
@@ -201,6 +201,110 @@
   },
   {
     "date": "2026-11-13",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-11-16",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Informatique (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms (Jérôme SOKOLOFF)",
+    "room": "Non attribuée",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (ME & Olfa MECHI)",
+    "room": "U3-307/308",
+    "prof": "ME & Olfa MECHI"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "15h45",
+    "end": "18h15",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
+    "room": "Non attribuée",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-11-17",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "Non attribuée",
+    "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-11-17",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-17",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-18",
+    "start": "09h00",
+    "end": "12h00",
+    "titre": "[GC] Tech. de trans.",
+    "room": "U4-307/308",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-11-18",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Gestion/PPP (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-18",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "[GB] Tech. de trans.",
+    "room": "U4-307/308",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-11-19",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-11-19",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "BE/Projet -L3 non alternants (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-20",
     "start": "",
     "end": "",
     "titre": "Alternant en entreprise",

@@ -48,14 +48,6 @@
     "prof": "Olfa MECHI"
   },
   {
-    "date": "2026-11-03",
-    "start": "18h00",
-    "end": "20h00",
-    "titre": "[EXAMEN] Outils de modélisation info",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
     "date": "2026-11-04",
     "start": "10h00",
     "end": "12h00",
@@ -198,5 +190,117 @@
     "titre": "O de mod info (Andréi ANDRÉI)",
     "room": "U3-110",
     "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Informatique (André AOUN)",
+    "room": "U3-amphi",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms (Jérôme SOKOLOFF)",
+    "room": "Non attribuée",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-16",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-17",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "Non attribuée",
+    "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-11-17",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-11-17",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "[GA] Tech. de trans. (Eric GONNEAU)",
+    "room": "U4-307/308",
+    "prof": "Eric GONNEAU"
+  },
+  {
+    "date": "2026-11-18",
+    "start": "10h00",
+    "end": "12h30",
+    "titre": "Res. Entreprise (Thierry GAYRAUD)",
+    "room": "Non attribuée",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-11-19",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Econo/Gestion TD (FHE)",
+    "room": "Non attribuée",
+    "prof": "FHE"
+  },
+  {
+    "date": "2026-11-19",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Télécoms) (BJT)",
+    "room": "Non attribuée",
+    "prof": "BJT"
+  },
+  {
+    "date": "2026-11-19",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-11-19",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "U3-307/308",
+    "prof": "Cédric CHAMBAULT"
+  },
+  {
+    "date": "2026-11-20",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-11-20",
+    "start": "13h30",
+    "end": "16h30",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
   }
 ]
