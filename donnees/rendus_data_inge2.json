@@ -25,9 +25,9 @@
   },
   {
     "date": "2026-11-05",
-    "start": "09h30",
-    "end": "09h30",
-    "uid": "4104@moodle.inetdoc.net",
+    "start": "23h30",
+    "end": "23h30",
+    "uid": "4143@moodle.inetdoc.net",
     "echeance": true,
     "titre": "TP4 - Validations filtrage réseau doit être achevée",
     "room": "",
