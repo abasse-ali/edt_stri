@@ -622,6 +622,20 @@ def une_case_tracee_en_courbes_garde_ses_bords():
     egal(len(lecture_pdf._verticales_en_courbes(PageEparse())), 2,
          "deux morceaux distants restent deux petits traits")
 
+    # L3 du 06/11 : deux marques à des abscisses différant de 0,01 pt, en haut
+    # et en bas de la semaine, chacune déclarée deux fois. Recollées, elles
+    # formaient un faux bord à 14h00 du lundi au vendredi.
+    class PageMarques:
+        lines = []
+        curves = [morceau(468.85, 471.61, 79.0, 79.69),
+                  morceau(468.85, 471.61, 194.92, 195.62),
+                  morceau(468.86, 471.62, 79.0, 79.7, couleur=0),
+                  morceau(468.86, 471.62, 194.93, 195.62, couleur=0)]
+
+    hauteurs = [round(t["height"], 1)
+                for t in lecture_pdf._verticales_en_courbes(PageMarques())]
+    egal(max(hauteurs), 0.7, "deux marques éloignées ne font pas un trait")
+
 
 @test
 def une_bordure_horizontale_en_pointilles_de_courbes_borne_la_journee():

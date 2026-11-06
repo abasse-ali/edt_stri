@@ -195,11 +195,18 @@ def _verticales_en_courbes(page, colle=2.0, alignement=1.5):
     abscisse et presque jointifs, et chaque trait obtenu est rendu sous la
     forme d'un rectangle : il passe ensuite par exactement les mêmes filtres
     que les bordures ordinaires, hauteur minimale comprise.
+
+    Les morceaux sont parcourus de haut en bas, et non par abscisse : deux
+    marques de 0,7 pt à x=470,23 et 470,24, l'une sur l'en-tête et l'autre au
+    pied de la semaine (L3, 06/11), s'entremêlaient dans le tri. La seconde
+    tombait alors « avant » la fin du trait déjà formé par la première — écart
+    négatif, donc accepté — et les deux devenaient un trait de 116 pt qui
+    coupait tous les cours de 14h00 de la semaine.
     """
     morceaux = sorted(
         (c for c in page.curves + page.lines
          if _est_trait_noir(c) and c['x1'] - c['x0'] < 3),
-        key=lambda c: ((c['x0'] + c['x1']) / 2, c['top']))
+        key=lambda c: c['top'])
 
     traits = []
     for m in morceaux:
