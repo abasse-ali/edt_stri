@@ -1,157 +1,5 @@
 [
   {
-    "date": "2026-11-02",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-02",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Réunion alternants (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-11-02",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Tel. Mobiles (AF)",
-    "room": "Visio",
-    "prof": "AF"
-  },
-  {
-    "date": "2026-11-02",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Interco (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-03",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-03",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tel. Mobiles (AF)",
-    "room": "Visio",
-    "prof": "AF"
-  },
-  {
-    "date": "2026-11-03",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-03",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Rés. Mobiles (Yannick PTAK)",
-    "room": "Visio",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-11-04",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "MCPR (Patrice TORGUET)",
-    "room": "U3-4",
-    "prof": "Patrice TORGUET"
-  },
-  {
-    "date": "2026-11-04",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tel. Mobiles (AF)",
-    "room": "Visio",
-    "prof": "AF"
-  },
-  {
-    "date": "2026-11-04",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interop (Patrice TORGUET)",
-    "room": "Visio",
-    "prof": "Patrice TORGUET"
-  },
-  {
-    "date": "2026-11-04",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Rés. Mobiles (Thierry GAYRAUD)",
-    "room": "U3-4",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-11-05",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Rés. Mobiles (Yannick PTAK)",
-    "room": "Visio",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-11-05",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tel. Mob. (AF)",
-    "room": "Visio",
-    "prof": "AF"
-  },
-  {
-    "date": "2026-11-05",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Interco (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-05",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "BD (Riad MOKADEM)",
-    "room": "Visio",
-    "prof": "Riad MOKADEM"
-  },
-  {
-    "date": "2026-11-06",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-06",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tel. Mobiles (Yannick PTAK)",
-    "room": "Visio",
-    "prof": "Yannick PTAK"
-  },
-  {
-    "date": "2026-11-06",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Gestion (M1 RT) (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
     "date": "2026-11-09",
     "start": "07h45",
     "end": "09h45",
@@ -164,7 +12,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Gestion (OA - Capgemini)",
-    "room": "U3-110",
+    "room": "Visio",
     "prof": "OA - Capgemini"
   },
   {
@@ -172,7 +20,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "MCPR (Patrice TORGUET)",
-    "room": "U3-Amphi",
+    "room": "Visio",
     "prof": "Patrice TORGUET"
   },
   {
@@ -180,16 +28,16 @@
     "start": "15h45",
     "end": "17h45",
     "titre": "BD (Riad MOKADEM)",
-    "room": "U3-212/213",
+    "room": "Visio",
     "prof": "Riad MOKADEM"
   },
   {
     "date": "2026-11-10",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Anglais",
-    "room": "4A K01",
-    "prof": "Inconnu"
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "Visio",
+    "prof": "Gérard ROUZIES"
   },
   {
     "date": "2026-11-10",
@@ -283,9 +131,9 @@
     "date": "2026-11-17",
     "start": "07h45",
     "end": "09h45",
-    "titre": "Anglais",
+    "titre": "Anglais (Gérard ROUZIES)",
     "room": "4A K01",
-    "prof": "Inconnu"
+    "prof": "Gérard ROUZIES"
   },
   {
     "date": "2026-11-17",
@@ -307,9 +155,9 @@
     "date": "2026-11-17",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Anglais",
+    "titre": "Anglais (Gérard ROUZIES)",
     "room": "4A K01",
-    "prof": "Inconnu"
+    "prof": "Gérard ROUZIES"
   },
   {
     "date": "2026-11-18",
@@ -323,9 +171,9 @@
     "date": "2026-11-18",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] BD (Riad MOKADEM)",
-    "room": "U3-Amphi",
-    "prof": "Riad MOKADEM"
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
   },
   {
     "date": "2026-11-18",
@@ -382,5 +230,141 @@
     "titre": "[EXAMEN] Interco (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-23",
+    "start": "09h00",
+    "end": "12h00",
+    "titre": "MCPR (PT ou CT)",
+    "room": "U3-4",
+    "prof": "PT ou CT"
+  },
+  {
+    "date": "2026-11-23",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Gestion (OA - Capgemini)",
+    "room": "U3-108",
+    "prof": "OA - Capgemini"
+  },
+  {
+    "date": "2026-11-23",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-24",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A K01",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-24",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "MCPR (Patrice TORGUET)",
+    "room": "U3-Amphi",
+    "prof": "Patrice TORGUET"
+  },
+  {
+    "date": "2026-11-24",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "[EXAMEN] Rés. Mobiles (Thierry GAYRAUD)",
+    "room": "U3-Amphi",
+    "prof": "Thierry GAYRAUD"
+  },
+  {
+    "date": "2026-11-24",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A K01",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-25",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-25",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-25",
+    "start": "13h30",
+    "end": "16h30",
+    "titre": "MCPR (PT ou CT)",
+    "room": "U3-Amphi",
+    "prof": "PT ou CT"
+  },
+  {
+    "date": "2026-11-26",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] BD (Riad MOKADEM)",
+    "room": "U4-Turing",
+    "prof": "Riad MOKADEM"
+  },
+  {
+    "date": "2026-11-26",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-26",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Tel. Mob. (AF)",
+    "room": "U3-4",
+    "prof": "AF"
+  },
+  {
+    "date": "2026-11-26",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-27",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-27",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-11-27",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
   }
 ]
