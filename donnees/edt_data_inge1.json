@@ -310,5 +310,85 @@
     "titre": "Adm linux (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-23",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "[EXAMEN] Techniques de trans. (Frédéric MOUTIER)",
+    "room": "U3-amphi",
+    "prof": "Frédéric MOUTIER"
+  },
+  {
+    "date": "2026-11-23",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-24",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-11-24",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Tech. de trans. (TPA)",
+    "room": "Non attribuée",
+    "prof": "TPA"
+  },
+  {
+    "date": "2026-11-25",
+    "start": "09h00",
+    "end": "12h00",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-26",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Télécoms) (BJT)",
+    "room": "U3-109",
+    "prof": "BJT"
+  },
+  {
+    "date": "2026-11-26",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-11-27",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "SHS - TD (KUPX5BA4)",
+    "room": "Non attribuée",
+    "prof": "KUPX5BA4"
+  },
+  {
+    "date": "2026-11-27",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "O de mod info (Andréi ANDRÉI)",
+    "room": "Non attribuée",
+    "prof": "Andréi ANDRÉI"
+  },
+  {
+    "date": "2026-11-27",
+    "start": "13h30",
+    "end": "16h30",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
   }
 ]
