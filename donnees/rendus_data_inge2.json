@@ -1,17 +1,5 @@
 [
   {
-    "date": "2026-11-05",
-    "start": "23h30",
-    "end": "23h30",
-    "uid": "4143@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "TP4 - Validations filtrage réseau doit être achevée",
-    "room": "",
-    "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\nCanal Zulip : TP4 Filtrage réseau [1]\nVous devez définir la composition des topologies en triangle.\nNOM DE FÉDÉRATION\n NUMÉRO HUB\n NUMÉRO SPOKE 1\n NUMÉRO SPOKE 2\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\nPour chaque sujet, apportez la preuve du fonctionnement du filtrage avec un affichage des compteurs des règles avant et après le test.\nLinks:\n------\n[1] https://zulip.inetdoc.net/#narrow/cha",
-    "provenance": "Moodle inetdoc"
-  },
-  {
     "date": "2026-11-11",
     "start": "23h00",
     "end": "23h00",
