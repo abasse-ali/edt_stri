@@ -733,7 +733,10 @@ def extraire_zones_jours_pdf(chemin_pdf):
 
     with pdfplumber.open(chemin_pdf) as pdf:
         for page_idx, page in enumerate(pdf.pages):
-            words = page.extract_words()
+            # Depuis le 08/11, la date du lundi de L3 est écrite deux fois,
+            # décalée de 1,6 pt pour simuler du gras : « 16/nov » se lisait
+            # « 1166//nnoovv » et aucune journée n'était trouvée.
+            words = page.dedupe_chars(tolerance=2).extract_words()
             # L'horizontalité est déduite de la géométrie, pas du champ
             # `orientation` : pdfplumber ne le fournit pas toujours, et l'EDT
             # de L3 — qui contient de vrais objets `line`, contrairement au M1 —
