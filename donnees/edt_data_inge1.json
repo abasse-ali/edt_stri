@@ -1,106 +1,18 @@
 [
   {
-    "date": "2026-11-09",
-    "start": "07h45",
-    "end": "10h00",
-    "titre": "Gestion/PPP (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-11-09",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Administration Linux (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-09",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "Visio",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-11-10",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "Visio",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-11-10",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Administration Linux (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-12",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Econo/Gestion TD (FHE)",
-    "room": "Visio",
-    "prof": "FHE"
-  },
-  {
-    "date": "2026-11-12",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Télécoms) (BJT)",
-    "room": "Visio",
-    "prof": "BJT"
-  },
-  {
-    "date": "2026-11-12",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-11-13",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "SHS (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-11-13",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Econo/Gestion - C (KBR)",
-    "room": "Visio",
-    "prof": "KBR"
-  },
-  {
-    "date": "2026-11-13",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "O de mod info (Andréi ANDRÉI)",
-    "room": "Visio",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
     "date": "2026-11-16",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] Informatique (André AOUN)",
-    "room": "U3-amphi",
-    "prof": "André AOUN"
+    "titre": "Administration Linux (Philippe LATU)",
+    "room": "Visio",
+    "prof": "Philippe LATU"
   },
   {
     "date": "2026-11-16",
     "start": "10h00",
     "end": "12h00",
     "titre": "Télécoms (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
+    "room": "visio",
     "prof": "Jérôme SOKOLOFF"
   },
   {
@@ -108,7 +20,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
+    "room": "Visio",
     "prof": "Gérard ROUZIES"
   },
   {
@@ -116,7 +28,7 @@
     "start": "15h45",
     "end": "18h45",
     "titre": "Adm linux (Philippe LATU)",
-    "room": "U3-307/308",
+    "room": "Visio",
     "prof": "Philippe LATU"
   },
   {
@@ -124,7 +36,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "O de mod info (Andréi ANDRÉI)",
-    "room": "Non attribuée",
+    "room": "Visio",
     "prof": "Andréi ANDRÉI"
   },
   {
@@ -132,7 +44,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
+    "room": "Visio",
     "prof": "Olfa MECHI"
   },
   {
@@ -185,11 +97,11 @@
   },
   {
     "date": "2026-11-19",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "U3-307/308",
-    "prof": "Cédric CHAMBAULT"
+    "start": "17h00",
+    "end": "18h15",
+    "titre": "[EXAMEN] Econo/Gestion",
+    "room": "Amphi-STAPS",
+    "prof": "Inconnu"
   },
   {
     "date": "2026-11-20",
@@ -222,6 +134,14 @@
     "titre": "Anglais (Gérard ROUZIES)",
     "room": "4A-K02",
     "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-11-23",
+    "start": "16h00",
+    "end": "18h00",
+    "titre": "Adm Windows (Cédric CHAMBAULT)",
+    "room": "Non attribuée",
+    "prof": "Cédric CHAMBAULT"
   },
   {
     "date": "2026-11-24",
@@ -286,5 +206,77 @@
     "titre": "Adm linux (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-11-30",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms (Jérôme SOKOLOFF)",
+    "room": "U3-amphi",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-11-30",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms - C (KINX6AC1)",
+    "room": "U3-amphi",
+    "prof": "KINX6AC1"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (Olfa MECHI)",
+    "room": "U3-306",
+    "prof": "Olfa MECHI"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Tech. de trans. (TPA)",
+    "room": "Non attribuée",
+    "prof": "TPA"
+  },
+  {
+    "date": "2026-12-03",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Phy (Télécoms) (BJT)",
+    "room": "Non attribuée",
+    "prof": "BJT"
+  },
+  {
+    "date": "2026-12-03",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Sport ( (Rattrapage)",
+    "room": "Non attribuée",
+    "prof": "Rattrapage"
+  },
+  {
+    "date": "2026-12-04",
+    "start": "09h00",
+    "end": "12h00",
+    "titre": "BE/Projets (KINR5AE1)",
+    "room": "Non attribuée",
+    "prof": "KINR5AE1"
+  },
+  {
+    "date": "2026-12-04",
+    "start": "13h30",
+    "end": "16h30",
+    "titre": "BE/Projets (KINR5AE1)",
+    "room": "Non attribuée",
+    "prof": "KINR5AE1"
   }
 ]
