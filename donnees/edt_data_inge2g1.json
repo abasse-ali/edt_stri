@@ -67,9 +67,9 @@
     "date": "2026-11-18",
     "start": "07h45",
     "end": "09h45",
-    "titre": "SHS",
-    "room": "Visio",
-    "prof": "Inconnu"
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
   },
   {
     "date": "2026-11-18",
@@ -88,9 +88,9 @@
     "prof": "Travail en autonomie"
   },
   {
-    "date": "2026-11-19",
-    "start": "07h45",
-    "end": "09h45",
+    "date": "2026-11-18",
+    "start": "15h45",
+    "end": "17h45",
     "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
     "room": "Non attribuée",
     "prof": "Travail en autonomie"
@@ -331,8 +331,8 @@
     "date": "2026-11-30",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI",
-    "room": "Non attribuée",
+    "titre": "SHS",
+    "room": "Visio",
     "prof": "Inconnu"
   },
   {
