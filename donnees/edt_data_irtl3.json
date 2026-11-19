@@ -206,5 +206,117 @@
     "titre": "Alternant en entreprise",
     "room": "",
     "prof": ""
+  },
+  {
+    "date": "2026-11-30",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms (Jérôme SOKOLOFF)",
+    "room": "U3-amphi",
+    "prof": "Jérôme SOKOLOFF"
+  },
+  {
+    "date": "2026-11-30",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Informatique (ME & Olfa MECHI)",
+    "room": "U3-307/308",
+    "prof": "ME & Olfa MECHI"
+  },
+  {
+    "date": "2026-11-30",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Gestion/PPP (André AOUN)",
+    "room": "Non attribuée",
+    "prof": "André AOUN"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Télécoms - C (KINX6AC1)",
+    "room": "U3-amphi",
+    "prof": "KINX6AC1"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Anglais (Gérard ROUZIES)",
+    "room": "4A-K02",
+    "prof": "Gérard ROUZIES"
+  },
+  {
+    "date": "2026-12-01",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Adm linux (Philippe LATU)",
+    "room": "U3-307/308",
+    "prof": "Philippe LATU"
+  },
+  {
+    "date": "2026-12-02",
+    "start": "09h00",
+    "end": "12h00",
+    "titre": "Tech. de trans. (TPC) (KINX5AC1)",
+    "room": "Non attribuée",
+    "prof": "KINX5AC1"
+  },
+  {
+    "date": "2026-12-02",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Res. Entreprise - TPC (KINX5AC3) - TG",
+    "room": "Non attribuée",
+    "prof": "Inconnu"
+  },
+  {
+    "date": "2026-12-02",
+    "start": "15h45",
+    "end": "18h45",
+    "titre": "Tech. de trans. - TPB (Eric GONNEAU)",
+    "room": "Non attribuée",
+    "prof": "Eric GONNEAU"
+  },
+  {
+    "date": "2026-12-03",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-04",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-04",
+    "start": "09h00",
+    "end": "12h00",
+    "titre": "BE/Projets (KINR5AE1)",
+    "room": "Non attribuée",
+    "prof": "KINR5AE1"
+  },
+  {
+    "date": "2026-12-04",
+    "start": "13h30",
+    "end": "16h30",
+    "titre": "BE/Projets (KINR5AE1)",
+    "room": "Non attribuée",
+    "prof": "KINR5AE1"
   }
 ]
