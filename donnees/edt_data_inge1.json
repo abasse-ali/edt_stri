@@ -76,7 +76,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Econo/Gestion TD (FHE)",
-    "room": "Non attribuée",
+    "room": "Visio",
     "prof": "FHE"
   },
   {
@@ -84,7 +84,7 @@
     "start": "10h00",
     "end": "12h00",
     "titre": "Phy (Télécoms) (BJT)",
-    "room": "Non attribuée",
+    "room": "Visio",
     "prof": "BJT"
   },
   {
@@ -97,8 +97,8 @@
   },
   {
     "date": "2026-11-19",
-    "start": "17h00",
-    "end": "18h15",
+    "start": "15h45",
+    "end": "17h30",
     "titre": "[EXAMEN] Econo/Gestion",
     "room": "Amphi-STAPS",
     "prof": "Inconnu"
@@ -206,77 +206,5 @@
     "titre": "Adm linux (Philippe LATU)",
     "room": "U3-307/308",
     "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-30",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Télécoms (Jérôme SOKOLOFF)",
-    "room": "U3-amphi",
-    "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-11-30",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "4A-K02",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-12-01",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Télécoms - C (KINX6AC1)",
-    "room": "U3-amphi",
-    "prof": "KINX6AC1"
-  },
-  {
-    "date": "2026-12-01",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "U3-306",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-12-01",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Tech. de trans. (TPA)",
-    "room": "Non attribuée",
-    "prof": "TPA"
-  },
-  {
-    "date": "2026-12-03",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Télécoms) (BJT)",
-    "room": "Non attribuée",
-    "prof": "BJT"
-  },
-  {
-    "date": "2026-12-03",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport ( (Rattrapage)",
-    "room": "Non attribuée",
-    "prof": "Rattrapage"
-  },
-  {
-    "date": "2026-12-04",
-    "start": "09h00",
-    "end": "12h00",
-    "titre": "BE/Projets (KINR5AE1)",
-    "room": "Non attribuée",
-    "prof": "KINR5AE1"
-  },
-  {
-    "date": "2026-12-04",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "BE/Projets (KINR5AE1)",
-    "room": "Non attribuée",
-    "prof": "KINR5AE1"
   }
 ]
