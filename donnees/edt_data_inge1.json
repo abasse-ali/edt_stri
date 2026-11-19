@@ -68,7 +68,7 @@
     "start": "13h30",
     "end": "15h30",
     "titre": "[EXAMEN] Outils maths (Abdelmalek BENZEKRI)",
-    "room": "U3-amphi",
+    "room": "reporté",
     "prof": "Abdelmalek BENZEKRI"
   },
   {
@@ -100,7 +100,7 @@
     "start": "15h45",
     "end": "17h30",
     "titre": "[EXAMEN] Econo/Gestion",
-    "room": "Amphi-STAPS",
+    "room": "rreeppoorrttéé",
     "prof": "Inconnu"
   },
   {
@@ -110,14 +110,6 @@
     "titre": "SHS (André AOUN)",
     "room": "U3-306",
     "prof": "André AOUN"
-  },
-  {
-    "date": "2026-11-20",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "Adm linux (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
   },
   {
     "date": "2026-11-23",
@@ -198,14 +190,6 @@
     "titre": "O de mod info (Andréi ANDRÉI)",
     "room": "Non attribuée",
     "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-11-27",
-    "start": "13h30",
-    "end": "16h30",
-    "titre": "Adm linux (Philippe LATU)",
-    "room": "U3-307/308",
-    "prof": "Philippe LATU"
   },
   {
     "date": "2026-11-30",
