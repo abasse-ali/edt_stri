@@ -1251,7 +1251,7 @@ def journaliser(nb_cours, nb_avant, etat, promo=None, moitie=None, agenda=None):
         print(f"   ⚠️ Journal non écrit ({e}).")
 
 
-def effondrement(nouvelles, anciennes, instant=None):
+def effondrement(nouvelles, anciennes, instant=None, horizon=None):
     """Le nombre de cours s'est-il effondre au point d'etre suspect ?
 
     Rend None si tout va bien, sinon le message a afficher. Un emploi du temps
@@ -1263,10 +1263,19 @@ def effondrement(nouvelles, anciennes, instant=None):
     22 % qui n'etait qu'un decalage de calendrier. Deux semaines passees d'un
     coup, apres une interruption, auraient franchi le seuil et bloque la
     publication a tort.
+
+    Pour la même raison, on ne compare que jusqu'à `horizon`, la dernière
+    journée du nouveau PDF (« AAAA-MM-JJ »). Le 19/11, l'école a retiré la
+    semaine du 30/11 de l'EDT de L3 : 30 cours à venir puis 16, mais 16 et 16
+    sur les deux semaines restantes. L'horizon vient des bandes de journées du
+    document, jamais des cours lus : sinon une lecture qui s'arrêterait en
+    route raccourcirait d'elle-même la période comparée, et passerait.
     """
     instant = instant or google_agenda.maintenant()
     anciennes = [c for c in anciennes if not google_agenda.cours_termine(c, instant)]
     nouvelles = [c for c in nouvelles if not google_agenda.cours_termine(c, instant)]
+    if horizon:
+        anciennes = [c for c in anciennes if c["date"] <= horizon]
     if len(anciennes) < 10 or not nouvelles:
         return None
     chute = 100 * (len(anciennes) - len(nouvelles)) / len(anciennes)
@@ -1341,7 +1350,8 @@ def principale():
     if jours_en_echec:
         print(f"⚠️ Première exécution avec des journées incomplètes : {', '.join(jours_en_echec)}")
 
-    alerte = effondrement(nouvelles_donnees, anciennes_donnees)
+    alerte = effondrement(nouvelles_donnees, anciennes_donnees,
+                          horizon=max(z["date"] for z in zones).strftime("%Y-%m-%d"))
     if alerte and not FORCER:
         print(f"⛔ Effondrement du nombre de cours. {alerte}")
         print("   Rien n'est publié. EDT_FORCER=1 pour passer outre.")

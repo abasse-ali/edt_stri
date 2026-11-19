@@ -982,6 +982,29 @@ def effondrement_ne_compte_pas_les_semaines_ecoulees():
         "20 → 3 cours à venir reste une panne d'extraction")
 
 
+@test
+def effondrement_ne_compte_pas_les_semaines_retirees_du_pdf():
+    """L3 du 19/11 : l'école a retiré la dernière semaine du PDF. Les cours
+    au-delà de sa dernière journée sont hors document, pas perdus à la lecture."""
+    le_14 = datetime(2026, 9, 14, 8, 0, tzinfo=ZoneInfo("Europe/Paris"))
+    proches = [cours(date="2026-09-%d" % j, titre=f"P{j}{h}")
+               for j in range(15, 19) for h in range(4)]          # 16 restants
+    retires = [cours(date="2026-09-%d" % j, titre=f"R{j}{h}")
+               for j in range(21, 26) for h in range(3)]          # 15 retirés
+
+    fin_du_pdf = "2026-09-18"
+
+    assert edt_stri.effondrement(proches, proches + retires, instant=le_14,
+                                 horizon=fin_du_pdf) is None, (
+        "31 → 16 n'est qu'une semaine sortie du PDF : les 16 restants sont intacts")
+
+    # Une vraie chute DANS la période couverte doit toujours bloquer, même si
+    # les cours lus s'arrêtent avant la fin du document.
+    assert edt_stri.effondrement(proches[:4], proches + retires, instant=le_14,
+                                 horizon=fin_du_pdf), (
+        "16 → 4 sur la même période reste une panne d'extraction")
+
+
 # =====================================================================
 # Fichier ICS
 # =====================================================================
