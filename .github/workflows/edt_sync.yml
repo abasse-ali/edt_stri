@@ -128,6 +128,8 @@ jobs:
         if: steps.verification.outputs.run_script == 'true'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMINS: ${{ secrets.DISCORD_ADMINS }}
         run: |
           EDT_PROMO=M1 EDT_MOITIE=BAS  python src/edt_stri.py
           EDT_PROMO=M1 EDT_MOITIE=HAUT python src/edt_stri.py
@@ -145,6 +147,8 @@ jobs:
         if: steps.traitement.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMINS: ${{ secrets.DISCORD_ADMINS }}
         run: python tests/verif_edt.py --sans-fraicheur
 
       # Filet de dernier recours : tout ce qui casse AVANT que edt_stri.py ne
@@ -156,6 +160,8 @@ jobs:
         if: failure()
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMINS: ${{ secrets.DISCORD_ADMINS }}
           LIEN_EXECUTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python src/alerte_ci.py
 

@@ -100,12 +100,16 @@ jobs:
           MOODLE_FILTRE: ${{ vars.MOODLE_FILTRE }}
           MOODLE_AGENDA: ${{ vars.MOODLE_AGENDA }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMINS: ${{ secrets.DISCORD_ADMINS }}
         run: python src/rendus.py
 
       - name: Prévenir sur Discord en cas d'échec
         if: failure()
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMINS: ${{ secrets.DISCORD_ADMINS }}
           LIEN_EXECUTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python src/alerte_ci.py
 

@@ -757,10 +757,6 @@ def prevenir_discord(rap):
     Sans cela il fallait lancer le script a la main pour savoir qu'un cours
     manquait : la CI echouait en silence, dans un onglet que personne n'ouvre.
     """
-    webhook = edt_stri.DISCORD_WEBHOOK_URL
-    if not webhook:
-        return
-
     lignes = [f"• {intitule} — {detail}" if detail else f"• {intitule}"
               for genre, intitule, detail in rap.lignes if genre == "ko"]
     description = (f"**{rap.anomalies} anomalie(s)** relevée(s) par la "
@@ -768,16 +764,8 @@ def prevenir_discord(rap):
     if len(lignes) > 14:
         description += f"\n… et {len(lignes) - 14} autre(s)."
 
-    try:
-        import requests
-        requests.post(webhook, timeout=edt_stri.TIMEOUT_HTTP, json={
-            "username": "Bot EDT STRI",
-            "embeds": [{"title": "\U0001f50e Vérification de l'emploi du temps",
-                        "description": description[:3900], "color": 15158332}],
-        }).raise_for_status()
-        print("✅ Anomalies signalées sur Discord.")
-    except Exception as e:
-        print(f"❌ Signalement Discord impossible : {e}")
+    edt_stri.alerte_ci.signaler("\U0001f50e Vérification de l'emploi du temps",
+                                description, 15158332)
 
 
 def controler_rendus(rap):

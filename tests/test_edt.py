@@ -1186,17 +1186,65 @@ def alerte_ci_ne_masque_jamais_la_panne_signalee():
     elle remplacerait la vraie cause dans le rapport."""
     import os
     import alerte_ci
-    sauvegarde = os.environ.get("DISCORD_WEBHOOK_URL")
+    # Le .env local porte le vrai jeton du bot : sans ce retrait, le test
+    # enverrait un vrai message privé.
+    noms = ("DISCORD_WEBHOOK_URL", "DISCORD_BOT_TOKEN")
+    sauvegarde = {n: os.environ.get(n) for n in noms}
     try:
+        os.environ["DISCORD_BOT_TOKEN"] = ""
         os.environ["DISCORD_WEBHOOK_URL"] = ""
         egal(alerte_ci.prevenir(), 0, "sans webhook")
         os.environ["DISCORD_WEBHOOK_URL"] = "https://discord.com/api/webhooks/0/faux"
         egal(alerte_ci.prevenir("essai"), 0, "webhook injoignable")
     finally:
-        if sauvegarde is None:
-            os.environ.pop("DISCORD_WEBHOOK_URL", None)
-        else:
-            os.environ["DISCORD_WEBHOOK_URL"] = sauvegarde
+        for nom, valeur in sauvegarde.items():
+            if valeur is None:
+                os.environ.pop(nom, None)
+            else:
+                os.environ[nom] = valeur
+
+
+@test
+def une_alerte_du_bot_porte_le_bouton_claude():
+    """La CI poste l'alerte, le bot répond au clic : seul l'identifiant du
+    bouton les relie. S'il divergeait, le bouton serait mort sans bruit."""
+    import os
+    import alerte_ci
+    envois = []
+
+    def poster(url, charge, jeton=None):
+        envois.append((url, charge, jeton))
+        return {"id": "42"}
+
+    noms = ("DISCORD_BOT_TOKEN", "DISCORD_ADMINS", "DISCORD_VALIDEUR",
+            "GITHUB_REPOSITORY", "GITHUB_RUN_ID", "LIEN_EXECUTION")
+    sauvegarde = {n: os.environ.get(n) for n in noms}
+    vrai_poster = alerte_ci._poster
+    try:
+        for nom in noms:
+            os.environ.pop(nom, None)
+        os.environ.update(DISCORD_BOT_TOKEN="jeton", DISCORD_ADMINS="<@123>, 456",
+                          GITHUB_REPOSITORY="moi/depot", GITHUB_RUN_ID="7")
+        alerte_ci._poster = poster
+        egal(alerte_ci.signaler("Titre", "Détail"), True, "alerte partie")
+    finally:
+        alerte_ci._poster = vrai_poster
+        for nom, valeur in sauvegarde.items():
+            if valeur is None:
+                os.environ.pop(nom, None)
+            else:
+                os.environ[nom] = valeur
+
+    egal(envois[0][1], {"recipient_id": "123"}, "au premier des admins")
+    message = envois[1][1]
+    assert "actions/runs/7" in message["embeds"][0]["description"], (
+        "le lien de l'exécution, par lequel Claude retrouve les journaux")
+    bouton = message["components"][0]["components"][0]
+    egal(bouton["custom_id"], alerte_ci.BOUTON_CLAUDE, "le bouton est là")
+    source = (Path(__file__).resolve().parent.parent / "src" / "bot_discord.py"
+              ).read_text(encoding="utf-8")
+    assert f'custom_id="{alerte_ci.BOUTON_CLAUDE}"' in source, (
+        "le bot doit écouter le même identifiant que celui que la CI envoie")
 
 
 @test

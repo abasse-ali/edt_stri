@@ -1,0 +1,65 @@
+name: Claude
+
+# Répond aux issues et commentaires qui mentionnent @claude — en particulier
+# celles qu'ouvre le bouton « Demander à Claude » des alertes Discord
+# (bot_discord.VueAlerte). Claude lit le dépôt et les journaux de la CI,
+# corrige, et propose une pull request ; rien n'est poussé sur main.
+#
+# Prérequis, une fois pour toutes :
+#   - l'application GitHub « Claude » installée sur ce dépôt
+#     (https://github.com/apps/claude) ;
+#   - le secret CLAUDE_CODE_OAUTH_TOKEN, obtenu par `claude setup-token`.
+#
+# Dépôt public : l'action ne répond qu'aux personnes ayant le droit d'écrire
+# sur le dépôt. Une issue ouverte par un inconnu ne déclenche rien.
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: read # lire les journaux des exécutions en échec
+
+jobs:
+  claude:
+    if: >-
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # De quoi reproduire une panne comme en local : télécharger le PDF du
+      # jour (playwright), le lire (poppler) et lancer les tests.
+      - name: Installer les dépendances
+        run: |
+          sudo apt-get update && sudo apt-get install -y poppler-utils
+          pip install -r requirements.txt playwright
+          playwright install --with-deps chromium
+
+      - name: Claude
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          claude_args: >-
+            --allowedTools "Bash(gh run view:*),Bash(gh run list:*),Bash(python:*),Bash(pip install:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*)"

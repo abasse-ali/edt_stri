@@ -43,6 +43,17 @@ Réglages, dans `.env` :
     DISCORD_SERVEUR        (facultatif) l'identifiant du serveur : les commandes
                            y apparaissent tout de suite, au lieu d'attendre
                            jusqu'à une heure la propagation mondiale
+    GITHUB_TOKEN           (facultatif) jeton GitHub à grain fin, limité au
+                           dépôt, droit « Issues : lecture et écriture ». Sans
+                           lui, le bouton « Demander à Claude » des alertes
+                           répond qu'il n'est pas configuré.
+    GITHUB_DEPOT           (facultatif) « propriétaire/dépôt », par défaut
+                           abasse-ali/edt_stri
+
+Les alertes de la CI arrivent en message privé avec un bouton « Demander à
+Claude de régler ça ». Il ouvre un formulaire ; le message saisi devient une
+issue GitHub mentionnant @claude, à laquelle Claude Code répond depuis GitHub
+Actions (`.github/workflows/claude.yml`) en proposant une pull request.
 
 Pour obtenir un identifiant : Discord → Paramètres → Avancés → Mode développeur,
 puis clic droit sur un salon, un serveur ou une personne → « Copier l'ID ».
@@ -73,6 +84,8 @@ for _flux in (sys.stdout, sys.stderr):
 JETON = variable_env("DISCORD_BOT_TOKEN")
 SALON_DEMANDES = int(variable_env("DISCORD_SALON_DEMANDES", "0") or 0)
 SERVEUR = int(variable_env("DISCORD_SERVEUR", "0") or 0)
+JETON_GITHUB = variable_env("GITHUB_TOKEN")
+DEPOT_GITHUB = variable_env("GITHUB_DEPOT", "abasse-ali/edt_stri")
 
 
 def identifiants(texte):
@@ -778,6 +791,87 @@ async def _prevenir(interaction, demande, accepte):
 
 
 # =====================================================================
+# ALERTES : « DEMANDER À CLAUDE »
+# =====================================================================
+
+def ouvrir_issue(titre, corps):
+    """Crée l'issue sur GitHub et rend son adresse. Bloquant : à lancer hors
+    de la boucle asyncio (`asyncio.to_thread`)."""
+    import urllib.request
+    requete = urllib.request.Request(
+        f"https://api.github.com/repos/{DEPOT_GITHUB}/issues",
+        data=json.dumps({"title": titre, "body": corps}).encode("utf-8"),
+        headers={"Authorization": f"Bearer {JETON_GITHUB}",
+                 "Accept": "application/vnd.github+json",
+                 "User-Agent": "edt-stri-bot"})
+    with urllib.request.urlopen(requete, timeout=20) as reponse:
+        return json.load(reponse)["html_url"]
+
+
+class FormulaireClaude(discord.ui.Modal, title="Demander à Claude"):
+    consigne = discord.ui.TextInput(
+        label="Ton message pour Claude",
+        style=discord.TextStyle.paragraph,
+        default="Règle le souci.",
+        max_length=1500)
+
+    def __init__(self, titre, details):
+        super().__init__()
+        self.titre, self.details = titre, details
+
+    async def on_submit(self, interaction):
+        # L'alerte entière part dans l'issue, lien vers l'exécution compris :
+        # c'est par là que Claude retrouve les journaux de la CI.
+        corps = (f"@claude {str(self.consigne.value).strip()}\n\n"
+                 f"---\n**Alerte Discord : {self.titre}**\n\n{self.details}\n\n"
+                 f"---\n_Envoyé depuis Discord par {interaction.user}._")
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        try:
+            adresse = await asyncio.to_thread(
+                ouvrir_issue, f"[Alerte] {self.titre}"[:200], corps)
+        except Exception as e:
+            print(f"⛔ Issue GitHub non créée ({type(e).__name__}: {e}).")
+            await interaction.followup.send(
+                f"⚠️ La demande n'a pas pu être créée sur GitHub "
+                f"({type(e).__name__}). Vérifie `GITHUB_TOKEN` dans le `.env` "
+                "du bot : il lui faut le droit « Issues » sur le dépôt.",
+                ephemeral=True)
+            return
+        print(f"🤖 Demande transmise à Claude : {adresse}")
+        await interaction.followup.send(
+            f"🤖 C'est transmis : {adresse}\n"
+            "Claude répond dans l'issue et propose une pull request avec la "
+            "correction. GitHub te prévient à chaque étape.", ephemeral=True)
+
+
+class VueAlerte(discord.ui.View):
+    """Le bouton des alertes. Le message est posté par la CI (alerte_ci.py),
+    pas par le bot : seul l'identifiant du bouton relie les deux."""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Demander à Claude de régler ça", emoji="🤖",
+                       style=discord.ButtonStyle.primary,
+                       custom_id="edt:claude")
+    async def claude(self, interaction, bouton):
+        if ADMINS and interaction.user.id not in ADMINS:
+            await interaction.response.send_message(
+                "Seule la personne qui gère les agendas peut faire appel à Claude.",
+                ephemeral=True)
+            return
+        if not JETON_GITHUB:
+            await interaction.response.send_message(
+                "⚠️ Bouton pas encore configuré : ajoute `GITHUB_TOKEN` dans le "
+                "`.env` du bot, puis redémarre-le.", ephemeral=True)
+            return
+        embed = interaction.message.embeds[0] if interaction.message.embeds else None
+        await interaction.response.send_modal(FormulaireClaude(
+            (embed and embed.title) or "Alerte",
+            (embed and embed.description) or ""))
+
+
+# =====================================================================
 # BOT
 # =====================================================================
 
@@ -795,6 +889,7 @@ class Bot(discord.Client):
         self.add_view(VueDemande())
         self.add_view(VuePanneau())
         self.add_view(VueTerminee())
+        self.add_view(VueAlerte())
         if SERVEUR:
             serveur = discord.Object(id=SERVEUR)
             self.arbre.copy_global_to(guild=serveur)

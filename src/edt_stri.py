@@ -32,6 +32,7 @@ from ics.contentline import ContentLine
 from pdf2image import convert_from_path
 
 import lecture_pdf
+import alerte_ci
 import chemins
 import google_agenda
 # Le téléchargement vit dans un module sans dépendance lourde : la CI
@@ -275,9 +276,14 @@ def envoyer_notification_discord(modifications):
 
 
 def envoyer_alerte_discord(message):
-    """CORRECTIF #2 bis : prévenir en cas d'abandon, plutôt que rester silencieux."""
-    _envoyer_embed(f"⚠️ {NOM_AGENDA} — synchronisation interrompue",
-                   message, 15158332)
+    """CORRECTIF #2 bis : prévenir en cas d'abandon, plutôt que rester silencieux.
+
+    Passe par `alerte_ci.signaler` : en message privé avec le bouton Claude
+    quand le bot est configuré. Les annonces de changements, elles, restent
+    sur le webhook du salon.
+    """
+    alerte_ci.signaler(f"⚠️ {NOM_AGENDA} — synchronisation interrompue",
+                       message, 15158332)
 
 
 # =====================================================================
