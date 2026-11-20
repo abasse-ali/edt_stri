@@ -1,165 +1,5 @@
 [
   {
-    "date": "2026-11-16",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-16",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-16",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-16",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "Visio",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "Visio",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-11-18",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-18",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-18",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-18",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Gestion (M1 RT) (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Tel. Mob. (AF)",
-    "room": "Visio",
-    "prof": "AF"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Projets / BE (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-20",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-20",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Interco (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-20",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
-    "date": "2026-11-20",
-    "start": "15h45",
-    "end": "17h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
-  },
-  {
     "date": "2026-11-23",
     "start": "09h00",
     "end": "12h00",
@@ -203,7 +43,7 @@
     "date": "2026-11-24",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[EXAMEN] Rés. Mobiles (Thierry GAYRAUD)",
+    "titre": "Rés. Mobiles (Thierry GAYRAUD)",
     "room": "U3-Amphi",
     "prof": "Thierry GAYRAUD"
   },
@@ -227,25 +67,25 @@
     "date": "2026-11-25",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
+    "titre": "Gestion (M1 RT) (André AOUN)",
+    "room": "U3-4",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-11-25",
     "start": "15h45",
     "end": "17h45",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
-    "room": "Non attribuée",
-    "prof": "Travail en autonomie"
+    "titre": "BD (Riad MOKADEM)",
+    "room": "U3-Amphi",
+    "prof": "Riad MOKADEM"
   },
   {
     "date": "2026-11-26",
     "start": "07h45",
     "end": "09h45",
-    "titre": "[EXAMEN] BD (Riad MOKADEM)",
-    "room": "U4-Turing",
-    "prof": "Riad MOKADEM"
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
   },
   {
     "date": "2026-11-26",
@@ -291,7 +131,7 @@
     "date": "2026-11-27",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[EXAMEN] Interopérabilité (André AOUN)",
+    "titre": "Interopérabilité (André AOUN)",
     "room": "U2-Borel",
     "prof": "André AOUN"
   },
@@ -323,9 +163,9 @@
     "date": "2026-11-30",
     "start": "13h30",
     "end": "15h30",
-    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "titre": "MCPR (Patrice TORGUET)",
     "room": "Non attribuée",
-    "prof": "Travail en autonomie"
+    "prof": "Patrice TORGUET"
   },
   {
     "date": "2026-11-30",
@@ -355,9 +195,9 @@
     "date": "2026-12-01",
     "start": "13h30",
     "end": "15h30",
-    "titre": "[EXAMEN] Tel. Mobiles (AF)",
+    "titre": "Gestion (M1 RT) (André AOUN)",
     "room": "U3-Amphi",
-    "prof": "AF"
+    "prof": "André AOUN"
   },
   {
     "date": "2026-12-01",
@@ -379,9 +219,9 @@
     "date": "2026-12-02",
     "start": "10h00",
     "end": "12h00",
-    "titre": "MCPR (Patrice TORGUET)",
+    "titre": "[EXAMEN] BD (Riad MOKADEM)",
     "room": "U3-Amphi",
-    "prof": "Patrice TORGUET"
+    "prof": "Riad MOKADEM"
   },
   {
     "date": "2026-12-02",
@@ -417,6 +257,14 @@
   },
   {
     "date": "2026-12-03",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-12-03",
     "start": "15h45",
     "end": "17h45",
     "titre": "Projets / BE (Travail en autonomie)",
@@ -446,5 +294,109 @@
     "titre": "[EXAMEN] Rés. Mobiles / Tel. Mobiles (Yannick PTAK)",
     "room": "U3-Amphi",
     "prof": "Yannick PTAK"
+  },
+  {
+    "date": "2026-12-07",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-08",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-08",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "BE (M1 non alternants)",
+    "room": "U3-307",
+    "prof": "M1 non alternants"
+  },
+  {
+    "date": "2026-12-08",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-12-09",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-09",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-12-10",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-10",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-12-10",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-12-11",
+    "start": "",
+    "end": "",
+    "titre": "Alternant en entreprise",
+    "room": "",
+    "prof": ""
+  },
+  {
+    "date": "2026-12-11",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
+  },
+  {
+    "date": "2026-12-11",
+    "start": "13h30",
+    "end": "15h30",
+    "titre": "BE (M1 non alternants)",
+    "room": "U3-307",
+    "prof": "M1 non alternants"
+  },
+  {
+    "date": "2026-12-11",
+    "start": "15h45",
+    "end": "17h45",
+    "titre": "Projets / BE / TER / Recherche stage / RI (Travail en autonomie)",
+    "room": "Non attribuée",
+    "prof": "Travail en autonomie"
   }
 ]
