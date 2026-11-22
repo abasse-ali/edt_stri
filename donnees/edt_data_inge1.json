@@ -1,123 +1,11 @@
 [
   {
-    "date": "2026-11-16",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Administration Linux (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-16",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Télécoms (Jérôme SOKOLOFF)",
-    "room": "visio",
-    "prof": "Jérôme SOKOLOFF"
-  },
-  {
-    "date": "2026-11-16",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Anglais (Gérard ROUZIES)",
-    "room": "Visio",
-    "prof": "Gérard ROUZIES"
-  },
-  {
-    "date": "2026-11-16",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "Adm linux (Philippe LATU)",
-    "room": "Visio",
-    "prof": "Philippe LATU"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "O de mod info (Andréi ANDRÉI)",
-    "room": "Visio",
-    "prof": "Andréi ANDRÉI"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Informatique (Olfa MECHI)",
-    "room": "Visio",
-    "prof": "Olfa MECHI"
-  },
-  {
-    "date": "2026-11-17",
-    "start": "15h45",
-    "end": "18h45",
-    "titre": "[GA] Tech. de trans. (Eric GONNEAU)",
-    "room": "U4-307/308",
-    "prof": "Eric GONNEAU"
-  },
-  {
-    "date": "2026-11-18",
-    "start": "10h00",
-    "end": "12h30",
-    "titre": "Res. Entreprise (Thierry GAYRAUD)",
-    "room": "Non attribuée",
-    "prof": "Thierry GAYRAUD"
-  },
-  {
-    "date": "2026-11-18",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "[EXAMEN] Outils maths (Abdelmalek BENZEKRI)",
-    "room": "reporté",
-    "prof": "Abdelmalek BENZEKRI"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "Econo/Gestion TD (FHE)",
-    "room": "Visio",
-    "prof": "FHE"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "10h00",
-    "end": "12h00",
-    "titre": "Phy (Télécoms) (BJT)",
-    "room": "Visio",
-    "prof": "BJT"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "13h30",
-    "end": "15h30",
-    "titre": "Sport",
-    "room": "Non attribuée",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-11-19",
-    "start": "15h45",
-    "end": "17h30",
-    "titre": "[EXAMEN] Econo/Gestion",
-    "room": "reporté",
-    "prof": "Inconnu"
-  },
-  {
-    "date": "2026-11-20",
-    "start": "07h45",
-    "end": "09h45",
-    "titre": "SHS (André AOUN)",
-    "room": "Visio",
-    "prof": "André AOUN"
-  },
-  {
     "date": "2026-11-23",
     "start": "10h00",
     "end": "12h00",
-    "titre": "[EXAMEN] Techniques de trans. (Frédéric MOUTIER)",
-    "room": "U3-amphi",
-    "prof": "Frédéric MOUTIER"
+    "titre": "Informatique (André AOUN)",
+    "room": "U3-Amphi",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-11-23",
@@ -132,7 +20,7 @@
     "start": "16h00",
     "end": "18h00",
     "titre": "Adm Windows (Cédric CHAMBAULT)",
-    "room": "Non attribuée",
+    "room": "U3-306",
     "prof": "Cédric CHAMBAULT"
   },
   {
@@ -148,7 +36,7 @@
     "start": "15h45",
     "end": "18h45",
     "titre": "Tech. de trans. (TPA)",
-    "room": "Non attribuée",
+    "room": "U4-307/308",
     "prof": "TPA"
   },
   {
@@ -164,7 +52,7 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Phy (Télécoms) (BJT)",
-    "room": "Non attribuée",
+    "room": "U3-107",
     "prof": "BJT"
   },
   {
@@ -209,11 +97,19 @@
   },
   {
     "date": "2026-12-01",
+    "start": "07h45",
+    "end": "09h45",
+    "titre": "[EXAMEN] Outils maths (Abdelmalek BENZEKRI)",
+    "room": "àvenir",
+    "prof": "Abdelmalek BENZEKRI"
+  },
+  {
+    "date": "2026-12-01",
     "start": "10h00",
     "end": "12h00",
-    "titre": "Télécoms - C (KINX6AC1)",
+    "titre": "Télécoms (Jérôme SOKOLOFF)",
     "room": "U3-amphi",
-    "prof": "KINX6AC1"
+    "prof": "Jérôme SOKOLOFF"
   },
   {
     "date": "2026-12-01",
@@ -236,8 +132,16 @@
     "start": "07h45",
     "end": "09h45",
     "titre": "Phy (Télécoms) (BJT)",
-    "room": "Non attribuée",
+    "room": "U3-107",
     "prof": "BJT"
+  },
+  {
+    "date": "2026-12-03",
+    "start": "10h00",
+    "end": "12h00",
+    "titre": "SHS (André AOUN)",
+    "room": "U3-306",
+    "prof": "André AOUN"
   },
   {
     "date": "2026-12-03",
