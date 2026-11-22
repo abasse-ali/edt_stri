@@ -54,6 +54,7 @@ jobs:
           playwright install --with-deps chromium
 
       - name: Claude
+        id: claude
         uses: anthropics/claude-code-action@v1
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,3 +64,16 @@ jobs:
             actions: read
           claude_args: >-
             --allowedTools "Bash(gh run view:*),Bash(gh run list:*),Bash(python:*),Bash(pip install:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+
+      # L'action pousse une branche mais n'ouvre pas la pull request : sans ce
+      # message, la correction de l'alerte #3 (22/11) est restée sur sa branche
+      # et la panne a continué. Le bouton « Fusionner » du message fait le reste.
+      - name: Prévenir sur Discord
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+          ETAT_CLAUDE: ${{ steps.claude.outcome }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMINS: ${{ secrets.DISCORD_ADMINS }}
+        run: python src/fin_claude.py

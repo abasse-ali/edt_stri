@@ -22,8 +22,11 @@ logiciel, trait dessiné autrement, semaine retirée. Méthode :
    le style des voisins : la docstring raconte le cas vécu et sa date.
 5. Vérifier que les PDF déjà commités donnent exactement les mêmes cellules
    qu'avant, puis lancer `python tests/test_edt.py`.
-6. Proposer une pull request. Ne jamais pousser sur `main`, ne jamais
-   modifier `donnees/` à la main : la CI s'en charge après la fusion.
+6. Pousser la correction sur la branche de l'issue, et terminer la réponse
+   par un résumé court : cause, correction, vérifications. Ce résumé est
+   envoyé tel quel sur Discord avec un bouton « Fusionner » : c'est sur lui
+   que la fusion se décide. Ne jamais pousser sur `main`, ne jamais modifier
+   `donnees/` à la main : la CI s'en charge après la fusion.
 
 ## Conventions
 

@@ -44,16 +44,19 @@ Réglages, dans `.env` :
                            y apparaissent tout de suite, au lieu d'attendre
                            jusqu'à une heure la propagation mondiale
     GITHUB_TOKEN           (facultatif) jeton GitHub à grain fin, limité au
-                           dépôt, droit « Issues : lecture et écriture ». Sans
-                           lui, le bouton « Demander à Claude » des alertes
-                           répond qu'il n'est pas configuré.
+                           dépôt, droits en écriture : Issues (bouton Claude),
+                           Contents et Pull requests (bouton Fusionner),
+                           Actions (réveil et relance de l'EDT). Sans lui, les
+                           boutons répondent qu'ils ne sont pas configurés.
     GITHUB_DEPOT           (facultatif) « propriétaire/dépôt », par défaut
                            abasse-ali/edt_stri
 
 Les alertes de la CI arrivent en message privé avec un bouton « Demander à
 Claude de régler ça ». Il ouvre un formulaire ; le message saisi devient une
 issue GitHub mentionnant @claude, à laquelle Claude Code répond depuis GitHub
-Actions (`.github/workflows/claude.yml`) en proposant une pull request.
+Actions (`.github/workflows/claude.yml`). Quand il a poussé une correction, un
+second message arrive avec son résumé et un bouton « Fusionner et appliquer » :
+pull request, fusion, puis relance de l'emploi du temps, en un clic.
 
 Pour obtenir un identifiant : Discord → Paramètres → Avancés → Mode développeur,
 puis clic droit sur un salon, un serveur ou une personne → « Copier l'ID ».
@@ -61,6 +64,7 @@ puis clic droit sur un salon, un serveur ou une personne → « Copier l'ID ».
 
 import asyncio
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -794,18 +798,66 @@ async def _prevenir(interaction, demande, accepte):
 # ALERTES : « DEMANDER À CLAUDE »
 # =====================================================================
 
-def ouvrir_issue(titre, corps):
-    """Crée l'issue sur GitHub et rend son adresse. Bloquant : à lancer hors
-    de la boucle asyncio (`asyncio.to_thread`)."""
+def _github(methode, chemin, donnees=None):
+    """Appel à l'API GitHub du dépôt ; rend le JSON décodé (ou {}). Lève
+    `urllib.error.HTTPError` en cas de refus. Bloquant : à lancer hors de la
+    boucle asyncio (`asyncio.to_thread`)."""
     import urllib.request
     requete = urllib.request.Request(
-        f"https://api.github.com/repos/{DEPOT_GITHUB}/issues",
-        data=json.dumps({"title": titre, "body": corps}).encode("utf-8"),
+        f"https://api.github.com/repos/{DEPOT_GITHUB}/{chemin}", method=methode,
+        data=None if donnees is None else json.dumps(donnees).encode("utf-8"),
         headers={"Authorization": f"Bearer {JETON_GITHUB}",
                  "Accept": "application/vnd.github+json",
                  "User-Agent": "edt-stri-bot"})
-    with urllib.request.urlopen(requete, timeout=20) as reponse:
-        return json.load(reponse)["html_url"]
+    with urllib.request.urlopen(requete, timeout=30) as reponse:
+        corps = reponse.read()
+    return json.loads(corps) if corps else {}
+
+
+def ouvrir_issue(titre, corps):
+    """Crée l'issue sur GitHub et rend son adresse."""
+    return _github("POST", "issues", {"title": titre, "body": corps})["html_url"]
+
+
+def fusionner(branche, numero, titre, par):
+    """Pull request depuis la branche de Claude, fusion, puis relance de l'EDT.
+
+    Rend (adresse de la pull request, EDT relancé ou non). L'action Claude
+    n'ouvre jamais la pull request elle-même — c'est ce qui bloquait la
+    correction de l'alerte #3 le 22/11. Un second clic retrouve celle déjà
+    ouverte au lieu d'échouer.
+    """
+    import urllib.error
+    proprietaire = DEPOT_GITHUB.split("/")[0]
+    try:
+        pr = _github("POST", "pulls", {
+            "title": titre, "head": branche, "base": "main",
+            "body": f"Closes #{numero}\n\nCorrection de Claude, fusionnée "
+                    f"depuis Discord par {par}."})
+    except urllib.error.HTTPError as e:
+        if e.code != 422:
+            raise
+        ouvertes = _github("GET", f"pulls?head={proprietaire}:{branche}&state=open")
+        if not ouvertes:
+            raise
+        pr = ouvertes[0]
+
+    # Squash : un commit par correction sur main, comme les autres.
+    _github("PUT", f"pulls/{pr['number']}/merge", {"merge_method": "squash"})
+    try:
+        _github("DELETE", f"git/refs/heads/{branche}")
+    except Exception:
+        pass  # une branche restée en place ne gêne personne
+
+    # Les PDF modifiés ne sont pas encore commités (la CI échouait) : la passe
+    # relancée les retraitera avec la correction.
+    try:
+        _github("POST", "actions/workflows/edt_sync.yml/dispatches", {"ref": "main"})
+        relance = True
+    except Exception as e:
+        print(f"   ⚠️ EDT non relancé ({type(e).__name__}) : il le sera à l'heure.")
+        relance = False
+    return pr["html_url"], relance
 
 
 class FormulaireClaude(discord.ui.Modal, title="Demander à Claude"):
@@ -871,6 +923,62 @@ class VueAlerte(discord.ui.View):
             (embed and embed.description) or ""))
 
 
+REGEX_PIED_FUSION = re.compile(r"branche (\S+) · issue #(\d+)")
+
+
+class VueFusion(discord.ui.View):
+    """Le bouton du message « Claude a corrigé », posté par fin_claude.py.
+    La branche et l'issue sont relues dans le pied du message."""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Fusionner et appliquer", emoji="✅",
+                       style=discord.ButtonStyle.primary,
+                       custom_id="edt:fusionner")
+    async def fusion(self, interaction, bouton):
+        if ADMINS and interaction.user.id not in ADMINS:
+            await interaction.response.send_message(
+                "Seule la personne qui gère les agendas peut fusionner.",
+                ephemeral=True)
+            return
+        if not JETON_GITHUB:
+            await interaction.response.send_message(
+                "⚠️ `GITHUB_TOKEN` absent du `.env` du bot.", ephemeral=True)
+            return
+        embed = interaction.message.embeds[0] if interaction.message.embeds else None
+        trouve = embed and embed.footer and REGEX_PIED_FUSION.search(embed.footer.text or "")
+        if not trouve:
+            await interaction.response.send_message(
+                "⚠️ Message illisible : branche introuvable.", ephemeral=True)
+            return
+        branche, numero = trouve.group(1), trouve.group(2)
+        titre = (embed.title or "").split(" : ", 1)[-1] or f"Correction de l'issue #{numero}"
+
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        try:
+            adresse, relance = await asyncio.to_thread(
+                fusionner, branche, numero, titre, str(interaction.user))
+        except Exception as e:
+            detail = getattr(e, "code", None) or type(e).__name__
+            print(f"⛔ Fusion impossible ({branche}) : {e}")
+            await interaction.followup.send(
+                f"⚠️ Fusion impossible ({detail}). Conflit avec `main`, ou "
+                "jeton sans les droits *Contents* et *Pull requests* en "
+                "écriture. Rien n'a été fusionné.", ephemeral=True)
+            return
+
+        print(f"✅ Correction fusionnée depuis Discord : {adresse}")
+        embed.color = VERT
+        embed.set_footer(text=f"Fusionné par {interaction.user} · {embed.footer.text}")
+        await interaction.message.edit(embed=embed, view=None)
+        await interaction.followup.send(
+            f"✅ Fusionné : {adresse}\n"
+            + ("L'emploi du temps est relancé, résultat d'ici deux minutes."
+               if relance else "L'emploi du temps sera relancé à l'heure."),
+            ephemeral=True)
+
+
 # =====================================================================
 # BOT
 # =====================================================================
@@ -890,6 +998,7 @@ class Bot(discord.Client):
         self.add_view(VuePanneau())
         self.add_view(VueTerminee())
         self.add_view(VueAlerte())
+        self.add_view(VueFusion())
         if SERVEUR:
             serveur = discord.Object(id=SERVEUR)
             self.arbre.copy_global_to(guild=serveur)

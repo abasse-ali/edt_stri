@@ -1279,11 +1279,85 @@ def une_alerte_du_bot_porte_le_bouton_claude():
 
 
 @test
+def la_fin_de_claude_propose_de_fusionner_sa_branche():
+    """22/11 : Claude a corrigé l'alerte #3 sur sa branche, mais l'action
+    n'ouvre pas de pull request — la panne a continué. fin_claude relit sa
+    réponse (forme réelle de l'issue #3) et propose la fusion sur Discord."""
+    import re
+    import fin_claude
+    import alerte_ci
+
+    reponse = (
+        "**Claude finished @abasse-ali's task in 2m 34s** —— [View job](https://"
+        "github.com/x/y/actions/runs/1) • [`claude/issue-3-20261122-1749`](https://"
+        "github.com/x/y/tree/b) • [Create PR ➔](https://github.com/x/y/compare/"
+        "main...claude/issue-3-20261122-1749?quick_pull=1&title=Lecture%20PDF%20%3A"
+        "%20deux%20cellules&body=Closes%20%233)\n\n---\n### Corrigé\n\n"
+        "**Cause.** Deux mots à 4,6 pt.\n\n · [Branche](https://github.com/x/y/tree/b)")
+
+    egal(fin_claude.titre_propose(reponse), "Lecture PDF : deux cellules",
+         "titre repris du lien Create PR")
+    egal(fin_claude.resume(reponse), "### Corrigé\n\n**Cause.** Deux mots à 4,6 pt.",
+         "sans l'en-tête de liens ni le pied")
+    egal(fin_claude.branche_de_claude(
+        ["main", "claude/issue-3-20261122-1749", "claude/issue-3-20261122-1830",
+         "claude/issue-31-20261123-0900"], 3),
+        "claude/issue-3-20261122-1830", "la plus récente de CETTE issue")
+
+    # Le pied écrit par fin_claude doit être relu par le bot au clic.
+    pied = "branche claude/issue-3-20261122-1830 · issue #3"
+    source = (chemins.SRC / "bot_discord.py").read_text(encoding="utf-8")
+    motif = re.search(r'REGEX_PIED_FUSION = re\.compile\(r"(.+)"\)', source).group(1)
+    trouve = re.search(motif, pied)
+    egal(trouve and trouve.groups(), ("claude/issue-3-20261122-1830", "3"),
+         "le bot retrouve la branche et l'issue")
+    assert f'custom_id="{alerte_ci.BOUTON_FUSION}"' in source, (
+        "le bot doit écouter le bouton que fin_claude envoie")
+
+
+@test
+def une_alerte_peut_porter_un_autre_bouton_et_un_pied():
+    import os
+    import alerte_ci
+    envois = []
+    noms = ("DISCORD_BOT_TOKEN", "DISCORD_ADMINS", "DISCORD_VALIDEUR",
+            "GITHUB_REPOSITORY", "GITHUB_RUN_ID", "LIEN_EXECUTION")
+    sauvegarde = {n: os.environ.get(n) for n in noms}
+    vrai_poster = alerte_ci._poster
+    try:
+        for nom in noms:
+            os.environ.pop(nom, None)
+        os.environ.update(DISCORD_BOT_TOKEN="jeton", DISCORD_ADMINS="123")
+        alerte_ci._poster = lambda url, charge, jeton=None: (
+            envois.append(charge) or {"id": "42"})
+        alerte_ci.signaler("T", "D", boutons=((alerte_ci.BOUTON_FUSION, "F", "✅"),),
+                           pied="branche b · issue #3")
+        alerte_ci.signaler("T", "D", boutons=())
+    finally:
+        alerte_ci._poster = vrai_poster
+        for nom, valeur in sauvegarde.items():
+            if valeur is None:
+                os.environ.pop(nom, None)
+            else:
+                os.environ[nom] = valeur
+
+    avec, sans = envois[1], envois[3]
+    egal(avec["components"][0]["components"][0]["custom_id"],
+         alerte_ci.BOUTON_FUSION, "le bouton demandé, pas celui de Claude")
+    egal(avec["embeds"][0]["footer"]["text"], "branche b · issue #3", "le pied")
+    egal("components" in sans, False, "aucun bouton quand on n'en veut pas")
+
+
+@test
 def alerte_ci_n_importe_que_la_bibliotheque_standard():
     """Elle doit fonctionner quand l'installation des dépendances est
     précisément ce qui a échoué."""
     importes = _modules_importes(chemins.SRC / "alerte_ci.py")
     egal(importes - {"json", "os", "sys", "urllib"}, set(), "dépendance externe")
+    # fin_claude tourne dans le workflow Claude, juste après l'action.
+    importes = _modules_importes(chemins.SRC / "fin_claude.py")
+    egal(importes - {"json", "os", "sys", "urllib", "alerte_ci"}, set(),
+         "dépendance externe dans fin_claude")
 
 
 # =====================================================================

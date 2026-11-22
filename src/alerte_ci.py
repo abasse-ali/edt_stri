@@ -44,6 +44,12 @@ API_DISCORD = "https://discord.com/api/v10"
 # a posté le message : la CI l'envoie, le bot (bot_discord.VueAlerte) y répond.
 # Ne pas le changer sans changer les deux.
 BOUTON_CLAUDE = "edt:claude"
+# Posé par fin_claude.py quand Claude a poussé une correction ; le bot
+# (bot_discord.VueFusion) la fusionne au clic.
+BOUTON_FUSION = "edt:fusionner"
+
+# (identifiant, libellé, emoji) — le bouton par défaut des alertes.
+DEMANDER_A_CLAUDE = (BOUTON_CLAUDE, "Demander à Claude de régler ça", "🤖")
 
 
 def _lien_execution():
@@ -81,31 +87,37 @@ def _poster(url, charge, jeton=None):
     return json.loads(corps) if corps else {}
 
 
-def signaler(titre, description, couleur=10038562):
+def signaler(titre, description, couleur=10038562, boutons=(DEMANDER_A_CLAUDE,),
+             pied=None):
     """Envoie une alerte sur Discord. Rend True si elle est partie.
 
-    En message privé par le bot, avec le bouton Claude, quand il est configuré ;
-    sinon par le webhook, sans bouton. Ne lève jamais : une alerte qui échoue
-    ne doit pas masquer la panne qu'elle signale.
+    En message privé par le bot, avec ses `boutons` — par défaut celui de
+    Claude —, quand il est configuré ; sinon par le webhook, sans bouton. Le
+    `pied` porte ce que le bot doit relire au clic (la branche à fusionner).
+    Ne lève jamais : une alerte qui échoue ne doit pas masquer la panne qu'elle
+    signale.
     """
     lien = _lien_execution()
     if lien and lien not in description:
         description += f"\n\n[Voir le détail de l'exécution]({lien})"
     embed = {"title": titre[:250], "description": description[:3900], "color": couleur}
+    if pied:
+        embed["footer"] = {"text": pied[:2000]}
 
     jeton, qui = os.environ.get("DISCORD_BOT_TOKEN", "").strip(), _destinataire()
     if jeton and qui:
+        message = {"embeds": [embed]}
+        if boutons:
+            message["components"] = [{"type": 1, "components": [
+                {"type": 2, "style": 1, "custom_id": ident, "label": libelle,
+                 "emoji": {"name": emoji}}
+                for ident, libelle, emoji in boutons]}]
         try:
             salon = _poster(f"{API_DISCORD}/users/@me/channels",
                             {"recipient_id": qui}, jeton)
-            _poster(f"{API_DISCORD}/channels/{salon['id']}/messages", {
-                "embeds": [embed],
-                "components": [{"type": 1, "components": [{
-                    "type": 2, "style": 1, "emoji": {"name": "🤖"},
-                    "label": "Demander à Claude de régler ça",
-                    "custom_id": BOUTON_CLAUDE}]}],
-            }, jeton)
-            print("✅ Alerte envoyée en message privé, avec le bouton Claude.")
+            _poster(f"{API_DISCORD}/channels/{salon['id']}/messages", message, jeton)
+            print("✅ Alerte envoyée en message privé"
+                  + (", avec ses boutons." if boutons else "."))
             return True
         except Exception as e:
             print(f"⚠️  Message privé impossible ({e}) : repli sur le webhook.")
