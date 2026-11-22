@@ -655,6 +655,14 @@ def lire_cellule(grille, gauche, droite, position, mots_bande, vers_heure):
     return [bloc] if bloc else []
 
 
+def _bordure_entre(grille, a, b, y0, y1):
+    """Vrai si une bordure verticale de la tranche passe entre les mots a et b."""
+    gauche, droite = sorted((a, b), key=lambda m: m['x0'])
+    return any(gauche['x1'] <= (r['x0'] + r['x1']) / 2 <= droite['x0']
+               and grille._recouvre(r, y0, y1)
+               for r in grille.verticales)
+
+
 def _coupe_un_titre(dedans, dans_moitie, gauche, droite, grille, y0, y1, colle=5.0):
     """Vrai si un mot voisin prolonge le texte capturé, juste au-delà d'un bord."""
     exclus = [m for m in dans_moitie if m not in dedans]
@@ -662,10 +670,16 @@ def _coupe_un_titre(dedans, dans_moitie, gauche, droite, grille, y0, y1, colle=5
         for m in exclus:
             if grille.est_salle(m, y0, y1):
                 continue
+            # Une bordure verticale tracée entre les deux mots les sépare : ce
+            # sont deux cellules voisines, pas un titre coupé. 25/11 (L3) :
+            # « (AU3-306 » et « Tech. » étaient à 4,6 pt l'un de l'autre, de
+            # part et d'autre d'une bordure, et les deux cellules étaient
+            # rejetées comme « coupées » (encadrées sans contenu).
             colles = [d for d in dedans
                       if abs(d['top'] - m['top']) < 1.5
                       and (0 <= m['x0'] - d['x1'] <= colle if cote == "droite"
-                           else 0 <= d['x0'] - m['x1'] <= colle)]
+                           else 0 <= d['x0'] - m['x1'] <= colle)
+                      and not _bordure_entre(grille, d, m, y0, y1)]
             if colles and (m['x0'] >= bord - 2 if cote == "droite" else m['x1'] <= bord + 2):
                 return True
     return False

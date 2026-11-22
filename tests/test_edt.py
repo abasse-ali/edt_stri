@@ -541,6 +541,37 @@ def une_case_pleine_hauteur_peut_porter_deux_cours():
 
 
 @test
+def deux_cellules_voisines_ne_passent_pas_pour_un_titre_coupe():
+    """Mesures réelles du PDF de L3 du 25/11, créneaux 07h45 et 09h00.
+
+    « (AU3-306 » (x1 = 192,0) et « Tech. » (x0 = 196,6) sont à 4,6 pt l'un de
+    l'autre, de part et d'autre d'une bordure verticale en x = 195. Sous le
+    seuil de 5 pt, `_coupe_un_titre` y voyait un titre coupé en plein milieu et
+    rejetait les deux cellules : « 2 encadrée(s) sans contenu », CI en échec.
+    """
+    def mot(texte, x0, x1):
+        return {"text": texte, "x0": x0, "x1": x1, "top": 245.5, "bottom": 252.0}
+
+    gauche = [mot("Gestion/PPP", 131.0, 164.0), mot("(AU3-306", 165.9, 192.0)]
+    droite = [mot("Tech.", 196.6, 211.2), mot("de", 213.0, 219.4)]
+    grille = object.__new__(lecture_pdf.GrilleJour)
+    # Bordure de la tranche basse (y 242,9 → 253,2), entre les deux cellules.
+    grille.salles = []
+    grille.verticales = [{"x0": 195.0, "x1": 196.0, "top": 234.0, "bottom": 254.0}]
+    y0, y1 = 242.9, 253.2
+
+    egal(lecture_pdf._coupe_un_titre(gauche, gauche + droite, 129.0, 195.5,
+                                     grille, y0, y1), False,
+         "une bordure entre les deux mots les sépare")
+
+    # Sans bordure, le même écart reste un titre coupé en plein milieu.
+    grille.verticales = []
+    egal(lecture_pdf._coupe_un_titre(gauche, gauche + droite, 129.0, 195.5,
+                                     grille, y0, y1), True,
+         "sans bordure, le mot voisin prolonge le titre")
+
+
+@test
 def un_fond_d_examen_en_deux_demi_bandes_reste_un_examen():
     """Mesures réelles du PDF de L3 du 13/09, examen du 28/09 à 07h45.
 
