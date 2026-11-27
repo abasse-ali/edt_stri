@@ -1,18 +1,6 @@
 [
   {
     "date": "2026-11-22",
-    "start": "10h00",
-    "end": "10h00",
-    "uid": "4107@moodle.inetdoc.net",
-    "echeance": true,
-    "titre": "TP7 - Validations synthèse - Hub & Spoke + OSPF should be completed",
-    "room": "",
-    "prof": "IntercoLANWAN",
-    "description": "Cours : IntercoLANWAN\nCanal Zulip : Hub & Spoke + Fédération OSPF [1]\nVous devez définir la composition des topologies en triangle.\nNOM DE FÉDÉRATION\n HUB 1\n SPOKE 1\n SPOKE 2\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\n HUB 2\n SPOKE 3\n SPOKE 4\n Nom étudiant•e\n Nom étudiant•e\n Nom étudiant•e\nLinks:\n------\n[1] https://zulip.inetdoc.net/#narrow/channel/4-2025-2028/topic/M1.20interco.20TP7/with/7941",
-    "provenance": "Moodle inetdoc"
-  },
-  {
-    "date": "2026-11-22",
     "start": "22h00",
     "end": "22h00",
     "uid": "1857@www.stri.fr/eformation",
